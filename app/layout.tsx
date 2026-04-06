@@ -1,0 +1,95 @@
+import type { Metadata, Viewport } from 'next'
+import { DM_Sans, DM_Mono } from 'next/font/google'
+import { Analytics } from '@vercel/analytics/next'
+import './globals.css'
+
+/**
+ * ═══════════════════════════════════════════════════════════════
+ * ACHIEVNO ROOT LAYOUT
+ * ═══════════════════════════════════════════════════════════════
+ * Shared layout for Telegram Mini App and Website
+ * Mobile-first, dark mode default
+ * ═══════════════════════════════════════════════════════════════
+ */
+
+const dmSans = DM_Sans({
+  subsets: ['latin'],
+  variable: '--font-sans',
+  display: 'swap',
+})
+
+const dmMono = DM_Mono({
+  subsets: ['latin'],
+  weight: ['400', '500'],
+  variable: '--font-mono',
+  display: 'swap',
+})
+
+export const metadata: Metadata = {
+  title: {
+    default: 'Achievno',
+    template: '%s | Achievno',
+  },
+  description: 'Track personal achievements and group progress. Celebrate wins together.',
+  generator: 'Achievno',
+  applicationName: 'Achievno',
+  keywords: ['achievements', 'goals', 'progress', 'groups', 'challenges', 'habits'],
+  authors: [{ name: 'Achievno' }],
+  creator: 'Achievno',
+  manifest: '/manifest.json',
+  icons: {
+    icon: [
+      { url: '/icon-32x32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/icon-192x192.png', sizes: '192x192', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/apple-icon-180x180.png', sizes: '180x180', type: 'image/png' },
+    ],
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'Achievno',
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  openGraph: {
+    type: 'website',
+    siteName: 'Achievno',
+    title: 'Achievno',
+    description: 'Track personal achievements and group progress. Celebrate wins together.',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'Achievno',
+    description: 'Track personal achievements and group progress.',
+  },
+}
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: 'cover',
+  themeColor: [
+    { media: '(prefers-color-scheme: dark)', color: '#0E0F11' },
+    { media: '(prefers-color-scheme: light)', color: '#FFFFFF' },
+  ],
+}
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode
+}>) {
+  return (
+    <html lang="en" className={`${dmSans.variable} ${dmMono.variable}`}>
+      <body className="font-sans antialiased min-h-screen bg-background text-foreground">
+        {children}
+        {process.env.NODE_ENV === 'production' && <Analytics />}
+      </body>
+    </html>
+  )
+}
