@@ -628,7 +628,9 @@
   
   /* Single-line metadata (no wrap) */
   .meta-single-line {
-    @apply truncate whitespace-nowrap text-label text-secondary;
+    @apply truncate whitespace-nowrap font-medium text-secondary;
+    font-size: 0.8125rem;
+    line-height: 1.4;
   }
   
   /* Density variants */
