@@ -47,8 +47,8 @@ const MOCK_NOTIFICATIONS: Notification[] = [
   {
     id: "1",
     type: "achievement",
-    title: "Achievement Progress",
-    message: "Alex completed 3 more steps on \"Launch Presentation\"",
+    title: "Progress logged",
+    message: "Alex logged 3 steps on \"Launch Presentation\"",
     time: "5 min ago",
     isRead: false,
     actionUrl: "/app/achievements/1",
@@ -57,8 +57,8 @@ const MOCK_NOTIFICATIONS: Notification[] = [
   {
     id: "2",
     type: "challenge",
-    title: "Challenge Update",
-    message: "You moved up to #2 in \"Code Review Sprint\"",
+    title: "Ranking changed",
+    message: "You moved to #2 in \"Code Review Sprint\"",
     time: "1 hour ago",
     isRead: false,
     actionUrl: "/app/challenges/c1",
@@ -66,8 +66,8 @@ const MOCK_NOTIFICATIONS: Notification[] = [
   {
     id: "3",
     type: "group",
-    title: "Group Activity",
-    message: "3 new achievements were completed in Dev Team",
+    title: "Dev Team",
+    message: "3 achievements completed",
     time: "2 hours ago",
     isRead: true,
     actionUrl: "/app/groups/dev-team",
@@ -75,8 +75,8 @@ const MOCK_NOTIFICATIONS: Notification[] = [
   {
     id: "4",
     type: "invite",
-    title: "Group Invite",
-    message: "Emma invited you to join \"Design Crew\"",
+    title: "Invite",
+    message: "Emma invited you to \"Design Crew\"",
     time: "3 hours ago",
     isRead: true,
     actor: { name: "Emma Wilson", avatar: null },
@@ -84,8 +84,8 @@ const MOCK_NOTIFICATIONS: Notification[] = [
   {
     id: "5",
     type: "comment",
-    title: "New Comment",
-    message: "Bella commented on your achievement \"Daily Workout\"",
+    title: "Comment",
+    message: "Bella commented on \"Daily Workout\"",
     time: "Yesterday",
     isRead: true,
     actionUrl: "/app/achievements/2",
@@ -166,7 +166,7 @@ export default function NotificationsPage() {
               onClick={markAllAsRead}
               className="text-label text-primary px-2"
             >
-              Mark all read
+              Mark all as read
             </button>
           ) : undefined
         }

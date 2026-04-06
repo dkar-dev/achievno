@@ -52,12 +52,6 @@ export default function WelcomePage() {
           <p className="text-body text-secondary mb-2">
             {APP_TAGLINE}
           </p>
-          
-          <p className="text-label text-tertiary">
-            Track personal achievements and group progress.
-            <br />
-            Celebrate wins together.
-          </p>
         </div>
       </div>
 
@@ -70,7 +64,7 @@ export default function WelcomePage() {
             className="w-full h-12 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-base font-semibold"
           >
             <Link href={ROUTES.signUp}>
-              Get Started
+              Create account
             </Link>
           </Button>
 
@@ -88,7 +82,7 @@ export default function WelcomePage() {
 
         {/* Terms */}
         <p className="text-center text-caption text-tertiary pb-4 normal-case">
-          By continuing, you agree to our Terms of Service and Privacy Policy
+          By continuing, you agree to our Terms and Privacy Policy.
         </p>
       </div>
     </div>

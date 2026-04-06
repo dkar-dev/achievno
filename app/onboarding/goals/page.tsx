@@ -69,9 +69,9 @@ export default function OnboardingGoalsPage() {
       <div className="flex-1 px-screen py-6">
         {/* Title */}
         <div className="mb-8">
-          <h1 className="text-display mb-2">What are your goals?</h1>
+          <h1 className="text-display mb-2">What do you track?</h1>
           <p className="text-body text-secondary">
-            Select the areas you want to focus on. You can change these later.
+            Pick your focus areas. Changeable later.
           </p>
         </div>
 
@@ -104,8 +104,7 @@ export default function OnboardingGoalsPage() {
 
         {/* Selection count */}
         <p className="text-label text-tertiary mt-4">
-          {selectedGoals.size} selected
-          {selectedGoals.size === 0 && ' — select at least 1 to continue'}
+          {selectedGoals.size === 0 ? 'Select at least one to continue' : `${selectedGoals.size} selected`}
         </p>
       </div>
 

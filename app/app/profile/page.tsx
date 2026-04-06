@@ -42,9 +42,9 @@ const MOCK_USER = {
     currentStreak: 7,
   },
   recentActivity: [
-    { id: "1", action: 'Completed "Morning Meditation"', time: "2 hours ago" },
-    { id: "2", action: 'Logged progress on "Read 10 Books"', time: "Yesterday" },
-    { id: "3", action: 'Joined "Code Review Sprint" challenge', time: "3 days ago" },
+    { id: "1", action: '"Morning Meditation" completed', time: "2 hours ago" },
+    { id: "2", action: 'Progress logged on "Read 10 Books"', time: "Yesterday" },
+    { id: "3", action: 'Joined "Code Review Sprint"', time: "3 days ago" },
   ],
   goalCategories: ["Learning", "Fitness", "Career"],
 }
@@ -105,7 +105,7 @@ export default function ProfilePage() {
 
         {/* Stats Grid */}
         <div className="px-5 py-5 border-b border-border">
-          <h3 className="text-caption text-secondary mb-3">Statistics</h3>
+          <h3 className="text-caption text-secondary mb-3">Stats</h3>
           <div className="grid grid-cols-2 gap-3">
             <div className="bg-surface rounded-xl border border-border p-4">
               <div className="flex items-center gap-2 mb-2">
@@ -114,7 +114,7 @@ export default function ProfilePage() {
               </div>
               <div className="text-heading">{MOCK_USER.stats.totalAchievements}</div>
               <div className="text-caption text-tertiary mt-1">
-                {MOCK_USER.stats.completedAchievements} completed
+                {MOCK_USER.stats.completedAchievements} done
               </div>
             </div>
 
@@ -124,7 +124,7 @@ export default function ProfilePage() {
                 <span className="text-label text-secondary">Challenges</span>
               </div>
               <div className="text-heading">{MOCK_USER.stats.activeChallenges}</div>
-              <div className="text-caption text-tertiary mt-1">active</div>
+              <div className="text-caption text-tertiary mt-1">active now</div>
             </div>
 
             <div className="bg-surface rounded-xl border border-border p-4">
@@ -133,7 +133,7 @@ export default function ProfilePage() {
                 <span className="text-label text-secondary">Groups</span>
               </div>
               <div className="text-heading">{MOCK_USER.stats.groupsJoined}</div>
-              <div className="text-caption text-tertiary mt-1">joined</div>
+              <div className="text-caption text-tertiary mt-1">member of</div>
             </div>
 
             <div className="bg-surface rounded-xl border border-border p-4">
@@ -149,7 +149,7 @@ export default function ProfilePage() {
 
         {/* Recent Activity */}
         <div className="px-5 py-5">
-          <h3 className="text-caption text-secondary mb-3">Recent Activity</h3>
+          <h3 className="text-caption text-secondary mb-3">Activity</h3>
           <div className="bg-surface rounded-xl border border-border divide-y divide-border">
             {MOCK_USER.recentActivity.map((activity) => (
               <div key={activity.id} className="px-4 py-3">
@@ -163,7 +163,7 @@ export default function ProfilePage() {
         {/* Member Since */}
         <div className="px-5 pb-8">
           <p className="text-label text-tertiary text-center">
-            Member since {MOCK_USER.joinedDate}
+            Joined {MOCK_USER.joinedDate}
           </p>
         </div>
       </div>

@@ -64,9 +64,9 @@ export default function OnboardingProfilePage() {
       <div className="flex-1 px-screen py-6">
         {/* Title */}
         <div className="mb-8">
-          <h1 className="text-display mb-2">Set up your profile</h1>
+          <h1 className="text-display mb-2">Your profile</h1>
           <p className="text-body text-secondary">
-            Let others know who you are.
+            How others see you.
           </p>
         </div>
 
@@ -108,7 +108,7 @@ export default function OnboardingProfilePage() {
               Bio <span className="text-tertiary font-normal">(optional)</span>
             </FieldLabel>
             <Textarea
-              placeholder="Tell us a bit about yourself..."
+              placeholder="Short bio..."
               rows={3}
               maxLength={200}
               className="rounded-xl bg-background-input border-border-strong focus:border-primary resize-none"

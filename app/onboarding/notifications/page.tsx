@@ -34,9 +34,9 @@ function StepIndicator({ currentStep, totalSteps }: { currentStep: number; total
 }
 
 const notificationBenefits = [
-  'Get reminders for your achievements',
-  'Know when friends complete challenges',
-  'Never miss group updates',
+  'Reminders for upcoming deadlines',
+  'Updates when teammates complete goals',
+  'Group activity and challenge results',
 ]
 
 export default function OnboardingNotificationsPage() {
@@ -76,9 +76,9 @@ export default function OnboardingNotificationsPage() {
       <div className="flex-1 px-screen py-6 flex flex-col">
         {/* Title */}
         <div className="mb-8">
-          <h1 className="text-display mb-2">Stay in the loop</h1>
+          <h1 className="text-display mb-2">Notifications</h1>
           <p className="text-body text-secondary">
-            Enable notifications to track your progress and celebrate wins.
+            Stay on top of goals and group activity.
           </p>
         </div>
 
@@ -116,7 +116,7 @@ export default function OnboardingNotificationsPage() {
               'bg-primary hover:bg-primary/90 text-primary-foreground'
             )}
           >
-            {isRequesting ? 'Enabling...' : 'Allow Notifications'}
+            {isRequesting ? 'Enabling...' : 'Enable notifications'}
           </Button>
           <Button
             onClick={handleSkip}
@@ -124,7 +124,7 @@ export default function OnboardingNotificationsPage() {
             disabled={isRequesting}
             className="w-full h-12 rounded-xl text-base font-medium text-secondary hover:text-foreground"
           >
-            Maybe Later
+            Not now
           </Button>
         </div>
       </div>

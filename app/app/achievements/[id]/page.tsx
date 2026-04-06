@@ -183,7 +183,7 @@ export default function AchievementDetailPage() {
                 {achievement.progressPercent}% complete
               </span>
               <span className="text-label text-tertiary">
-                {achievement.targetValue - achievement.currentValue} left
+                {achievement.targetValue - achievement.currentValue} remaining
               </span>
             </div>
           </div>
@@ -193,7 +193,7 @@ export default function AchievementDetailPage() {
             <div className="flex items-center gap-3 px-4 py-3 bg-background-surface rounded-xl border border-border mb-6">
               <IconClock size={20} className={achievement.isOverdue ? 'text-destructive' : 'text-tertiary'} />
               <div>
-                <p className="text-label text-tertiary">Due date</p>
+                <p className="text-label text-tertiary">Due</p>
                 <p className={`text-title ${achievement.isOverdue ? 'text-destructive' : ''}`}>
                   {formatDate(achievement.dueDate)}
                 </p>
@@ -250,9 +250,9 @@ export default function AchievementDetailPage() {
       <ConfirmModal
         open={isCompleteOpen}
         onOpenChange={setIsCompleteOpen}
-        title="Mark as Complete?"
-        description="Congratulations! You can still log additional progress after marking complete."
-        confirmLabel="Complete"
+        title="Mark as done?"
+        description="You can still log progress after marking complete."
+        confirmLabel="Mark done"
         onConfirm={handleComplete}
       />
 

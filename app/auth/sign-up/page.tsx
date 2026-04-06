@@ -60,7 +60,7 @@ export default function SignUpPage() {
         <div className="mb-8">
           <h1 className="text-display mb-2">Create account</h1>
           <p className="text-body text-secondary">
-            Start tracking your achievements today.
+            Takes 30 seconds.
           </p>
         </div>
 
@@ -85,24 +85,21 @@ export default function SignUpPage() {
               <Input
                 type="password"
                 name="password"
-                placeholder="Create a password"
+                placeholder="Password (8+ characters)"
                 autoComplete="new-password"
                 required
                 minLength={8}
                 disabled={isLoading}
                 className="h-12 rounded-xl bg-background-input border-border-strong focus:border-primary"
               />
-              <p className="text-caption text-tertiary normal-case mt-1.5">
-                At least 8 characters
-              </p>
             </Field>
 
             <Field>
-              <FieldLabel>Confirm Password</FieldLabel>
+              <FieldLabel>Confirm password</FieldLabel>
               <Input
                 type="password"
                 name="confirmPassword"
-                placeholder="Confirm your password"
+                placeholder="Repeat password"
                 autoComplete="new-password"
                 required
                 disabled={isLoading}
@@ -140,7 +137,7 @@ export default function SignUpPage() {
 
         {/* Sign in link */}
         <p className="text-center text-label text-secondary mt-6">
-          Already have an account?{' '}
+          Have an account?{' '}
           <Link href={ROUTES.signIn} className="text-primary font-medium hover:underline">
             Sign in
           </Link>

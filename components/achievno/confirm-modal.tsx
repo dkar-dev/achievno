@@ -92,8 +92,8 @@ export function DeleteAchievementModal({
     <ConfirmModal
       open={open}
       onOpenChange={onOpenChange}
-      title="Delete Achievement?"
-      description="This action cannot be undone. All progress will be permanently deleted."
+      title="Delete achievement?"
+      description="All progress will be permanently deleted. Cannot be undone."
       confirmLabel="Delete"
       onConfirm={onConfirm}
       variant="destructive"
@@ -112,8 +112,8 @@ export function ArchiveAchievementModal({
     <ConfirmModal
       open={open}
       onOpenChange={onOpenChange}
-      title="Archive Achievement?"
-      description="This achievement will be moved to your archive. You can restore it anytime."
+      title="Archive achievement?"
+      description="Moved to your archive. Restore it anytime."
       confirmLabel="Archive"
       onConfirm={onConfirm}
       variant="default"
@@ -133,8 +133,8 @@ export function LeaveGroupModal({
     <ConfirmModal
       open={open}
       onOpenChange={onOpenChange}
-      title="Leave Group?"
-      description={`You will no longer be a member of "${groupName}". You can rejoin if the group is public.`}
+      title="Leave group?"
+      description={`You'll be removed from "${groupName}". Rejoin anytime if it's public.`}
       confirmLabel="Leave"
       onConfirm={onConfirm}
       variant="destructive"
@@ -153,8 +153,8 @@ export function DeleteGroupModal({
     <ConfirmModal
       open={open}
       onOpenChange={onOpenChange}
-      title="Delete Group?"
-      description="This will permanently delete the group and all its achievements and challenges. This action cannot be undone."
+      title="Delete group?"
+      description="Permanently deletes the group, all achievements, and challenges. Cannot be undone."
       confirmLabel="Delete"
       onConfirm={onConfirm}
       variant="destructive"
@@ -173,9 +173,9 @@ export function LogoutModal({
     <ConfirmModal
       open={open}
       onOpenChange={onOpenChange}
-      title="Log Out?"
-      description="You will need to sign in again to access your achievements."
-      confirmLabel="Log Out"
+      title="Log out?"
+      description="You'll need to sign in again."
+      confirmLabel="Log out"
       onConfirm={onConfirm}
       variant="destructive"
       isLoading={isLoading}
@@ -193,9 +193,9 @@ export function DeleteAccountModal({
     <ConfirmModal
       open={open}
       onOpenChange={onOpenChange}
-      title="Delete Account?"
-      description="This will permanently delete your account and all your data. This action cannot be undone."
-      confirmLabel="Delete Account"
+      title="Delete account?"
+      description="All data is permanently deleted. Cannot be undone."
+      confirmLabel="Delete account"
       onConfirm={onConfirm}
       variant="destructive"
       isLoading={isLoading}

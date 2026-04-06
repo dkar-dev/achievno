@@ -113,7 +113,7 @@ export default function EditProfilePage() {
             <Textarea
               value={bio}
               onChange={(e) => setBio(e.target.value)}
-              placeholder="Tell others about yourself..."
+              placeholder="Short bio..."
               rows={4}
               maxLength={UI.maxBioLength}
               className="bg-input-surface border-input-border resize-none"
@@ -127,7 +127,7 @@ export default function EditProfilePage() {
           <div>
             <label className="text-label text-secondary mb-2 block">Goal Interests</label>
             <p className="text-body text-tertiary mb-3">
-              Select categories you're interested in
+              Select your focus areas.
             </p>
             <div className="flex flex-wrap gap-2">
               {GOAL_CATEGORIES.map((category) => {
@@ -176,8 +176,8 @@ export default function EditProfilePage() {
       <ConfirmModal
         open={showDiscardConfirm}
         onOpenChange={setShowDiscardConfirm}
-        title="Discard Changes?"
-        description="You have unsaved changes. Are you sure you want to discard them?"
+        title="Discard changes?"
+        description="Unsaved changes will be lost."
         confirmLabel="Discard"
         onConfirm={handleDiscard}
         variant="destructive"

@@ -42,20 +42,20 @@ const ACHIEVEMENT_TYPES = [
   {
     type: "personal" as const,
     icon: IconTarget,
-    title: "Individual Task",
-    description: "For personal goals and self-improvement milestones"
+    title: "Personal",
+    description: "Just for you"
   },
   {
     type: "shared" as const,
     icon: IconUsers,
-    title: "Shared Goal",
-    description: "For collaborative achievements with team members"
+    title: "Shared",
+    description: "Everyone works toward the same goal"
   },
   {
     type: "challenge" as const,
     icon: IconTrophy,
-    title: "Race Challenge",
-    description: "For competitive goals where first to finish wins"
+    title: "Challenge",
+    description: "First to finish wins"
   }
 ]
 
@@ -183,9 +183,9 @@ export default function CreateAchievementPage() {
         {/* Step 1: Select Type */}
         {currentStep === "type" && (
           <div className="p-5">
-            <h2 className="text-heading mb-2">Choose Type</h2>
+            <h2 className="text-heading mb-2">Type</h2>
             <p className="text-body text-secondary mb-6">
-              What kind of achievement do you want to create?
+              Pick the format for this achievement.
             </p>
             
             <div className="space-y-3">
@@ -226,7 +226,7 @@ export default function CreateAchievementPage() {
         {/* Step 2: Details */}
         {currentStep === "details" && (
           <div className="p-5">
-            <h2 className="text-heading mb-6">Achievement Details</h2>
+            <h2 className="text-heading mb-6">Details</h2>
             
             <div className="space-y-5">
               <div>
@@ -234,24 +234,24 @@ export default function CreateAchievementPage() {
                 <Input
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  placeholder="What do you want to achieve?"
+                  placeholder="e.g. Run 5K, Read 10 books"
                   className="bg-input-surface border-input-border"
                 />
               </div>
               
               <div>
-                <label className="text-label text-secondary mb-2 block">Description (optional)</label>
+                <label className="text-label text-secondary mb-2 block">Description <span className="text-tertiary font-normal">(optional)</span></label>
                 <Textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Add more context about this achievement..."
+                  placeholder="Add context or success criteria..."
                   rows={4}
                   className="bg-input-surface border-input-border resize-none"
                 />
               </div>
               
               <div>
-                <label className="text-label text-secondary mb-2 block">Deadline (optional)</label>
+                <label className="text-label text-secondary mb-2 block">Deadline <span className="text-tertiary font-normal">(optional)</span></label>
                 <div className="relative">
                   <Input
                     type="date"
@@ -273,9 +273,9 @@ export default function CreateAchievementPage() {
         {/* Step 3: Assignees */}
         {currentStep === "assignees" && (
           <div className="p-5">
-            <h2 className="text-heading mb-2">Assign Members</h2>
+            <h2 className="text-heading mb-2">Assign</h2>
             <p className="text-body text-secondary mb-6">
-              Select who will work on this {achievementType === "challenge" ? "challenge" : "goal"}
+              Who is working on this {achievementType === "challenge" ? "challenge" : "goal"}?
             </p>
             
             <div className="space-y-2">
@@ -314,7 +314,7 @@ export default function CreateAchievementPage() {
         {/* Step 4: Review */}
         {currentStep === "review" && (
           <div className="p-5">
-            <h2 className="text-heading mb-6">Review Achievement</h2>
+            <h2 className="text-heading mb-6">Review</h2>
             
             <div className="bg-surface rounded-xl border border-border p-4 space-y-4">
               <div>
@@ -377,7 +377,7 @@ export default function CreateAchievementPage() {
             disabled={!canProceed()}
             className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
           >
-            {currentStep === "review" ? "Create Achievement" : "Continue"}
+            {currentStep === "review" ? "Create" : "Continue"}
           </Button>
         </div>
       </div>

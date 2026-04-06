@@ -132,13 +132,13 @@ export default function SpacesListPage() {
             )}
           >
             {isArchiveOpen ? <IconChevronUp size={16} /> : <IconChevronDown size={16} />}
-            <span>{isArchiveOpen ? 'Hide' : 'Show'} Archive ({DEMO_ARCHIVED_ACHIEVEMENTS.length})</span>
+            <span>            Archive ({DEMO_ARCHIVED_ACHIEVEMENTS.length})</span>
           </button>
 
           {/* Archive Drawer Content */}
           {isArchiveOpen && (
             <div className="bg-background-surface rounded-xl border border-border p-3 space-y-2">
-              <p className="text-caption text-tertiary px-1">ARCHIVED ACHIEVEMENTS</p>
+              <p className="text-caption text-tertiary px-1">ARCHIVED</p>
               {DEMO_ARCHIVED_ACHIEVEMENTS.map((achievement) => (
                 <button
                   key={achievement.id}
@@ -184,7 +184,7 @@ export default function SpacesListPage() {
           className="w-full h-11 rounded-xl border-border-strong bg-background-elevated hover:bg-background-input gap-2"
         >
           <IconCompass size={18} />
-          Discover Groups & Challenges
+          Discover
         </Button>
       </div>
 

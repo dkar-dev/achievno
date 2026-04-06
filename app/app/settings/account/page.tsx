@@ -44,7 +44,7 @@ export default function AccountSettingsPage() {
       <div className="flex-1 overflow-auto">
         {/* Account Info */}
         <div className="p-5 border-b border-border">
-          <h3 className="text-caption text-secondary mb-4">Account Information</h3>
+          <h3 className="text-caption text-secondary mb-4">Account</h3>
           <div className="bg-surface rounded-xl border border-border p-4">
             <div className="flex justify-between items-center mb-3">
               <span className="text-label text-secondary">Email</span>
@@ -67,10 +67,10 @@ export default function AccountSettingsPage() {
             <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
               <AchievnoIcon icon={IconKey} className="text-foreground" />
             </div>
-            <div className="flex-1 text-left">
-              <p className="text-body font-medium">Change Password</p>
-              <p className="text-label text-secondary">Update your password</p>
-            </div>
+              <div className="flex-1 text-left">
+                <p className="text-body font-medium">Change password</p>
+                <p className="text-label text-secondary">Update login credentials</p>
+              </div>
             <AchievnoIcon icon={IconChevronRight} size="sm" className="text-muted-foreground" />
           </button>
         </div>
@@ -82,10 +82,10 @@ export default function AccountSettingsPage() {
             <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
               <AchievnoIcon icon={IconDownload} className="text-foreground" />
             </div>
-            <div className="flex-1 text-left">
-              <p className="text-body font-medium">Export Data</p>
-              <p className="text-label text-secondary">Download all your achievements and data</p>
-            </div>
+              <div className="flex-1 text-left">
+                <p className="text-body font-medium">Export data</p>
+                <p className="text-label text-secondary">Download your achievements and history</p>
+              </div>
             <AchievnoIcon icon={IconChevronRight} size="sm" className="text-muted-foreground" />
           </button>
         </div>
@@ -101,7 +101,7 @@ export default function AccountSettingsPage() {
               <div className="flex-1">
                 <p className="text-body font-medium text-destructive">Delete Account</p>
                 <p className="text-label text-secondary mb-3">
-                  Permanently delete your account and all associated data. This action cannot be undone.
+                  Permanently removes your account and all data. Cannot be undone.
                 </p>
                 <Button
                   variant="outline"
@@ -120,8 +120,8 @@ export default function AccountSettingsPage() {
       <ConfirmModal
         open={showDeleteConfirm}
         onOpenChange={setShowDeleteConfirm}
-        title="Delete Account?"
-        description="This will permanently delete your account, all achievements, group memberships, and challenge history. This action cannot be undone."
+        title="Delete account?"
+        description="All achievements, groups, and history will be permanently deleted. This cannot be undone."
         confirmLabel="Delete Account"
         onConfirm={handleDeleteAccount}
         variant="destructive"

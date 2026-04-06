@@ -11,8 +11,8 @@
 // ─────────────────────────────────────────────────────────────────
 
 export const APP_NAME = 'Achievno'
-export const APP_TAGLINE = 'Track achievements. Celebrate wins.'
-export const APP_DESCRIPTION = 'Track personal achievements and group progress. Celebrate wins together.'
+export const APP_TAGLINE = 'Do hard things. Together.'
+export const APP_DESCRIPTION = 'Track goals and group progress.'
 
 // ─────────────────────────────────────────────────────────────────
 // COLORS (for runtime use, e.g. avatars, bot messages)
@@ -172,21 +172,21 @@ export const UI = {
 export const STATUS_LABELS = {
   achievement: {
     draft: 'Draft',
-    active: 'In Progress',
-    completed: 'Completed',
+    active: 'Active',
+    completed: 'Done',
     archived: 'Archived',
   },
   challenge: {
-    upcoming: 'Starting Soon',
-    active: 'Active',
-    completed: 'Finished',
+    upcoming: 'Upcoming',
+    active: 'Live',
+    completed: 'Ended',
   },
   notification: {
     personal_achievement_update: 'Achievement',
-    group_achievement_update: 'Group Achievement',
+    group_achievement_update: 'Group',
     challenge_update: 'Challenge',
-    group_invite: 'Invitation',
-    role_change: 'Group Role',
+    group_invite: 'Invite',
+    role_change: 'Role',
     profile_event: 'Profile',
     system: 'System',
   },
@@ -197,14 +197,14 @@ export const STATUS_LABELS = {
 // ─────────────────────────────────────────────────────────────────
 
 export const BOT_MESSAGES = {
-  welcome: `Welcome to ${APP_NAME}! Track your achievements and celebrate wins with your groups.`,
-  achievementCreated: (title: string) => `New achievement created: "${title}". Let's make progress!`,
-  achievementCompleted: (title: string) => `Congratulations! You completed "${title}".`,
-  challengeJoined: (title: string) => `You joined the challenge: "${title}". Good luck!`,
-  challengeWon: (title: string) => `You won the challenge: "${title}"! Great work!`,
-  groupJoined: (name: string) => `You're now a member of "${name}". Welcome!`,
-  progressLogged: (value: number, unit: string) => `Progress logged: ${value} ${unit}. Keep it up!`,
-  reminder: (title: string) => `Reminder: Don't forget about "${title}".`,
+  welcome: `Welcome to ${APP_NAME}. Track goals and progress with your groups.`,
+  achievementCreated: (title: string) => `"${title}" created.`,
+  achievementCompleted: (title: string) => `"${title}" marked complete.`,
+  challengeJoined: (title: string) => `Joined "${title}".`,
+  challengeWon: (title: string) => `You won "${title}".`,
+  groupJoined: (name: string) => `You joined "${name}".`,
+  progressLogged: (value: number, unit: string) => `+${value} ${unit} logged.`,
+  reminder: (title: string) => `"${title}" is due soon.`,
 } as const
 
 // ─────────────────────────────────────────────────────────────────

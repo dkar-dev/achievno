@@ -78,9 +78,9 @@ export function NoAchievements({ onAction }: { onAction?: () => void }) {
   return (
     <EmptyState
       type="achievements"
-      title="No achievements yet"
-      description="Create your first achievement to start tracking your progress."
-      actionLabel="Create Achievement"
+      title="No achievements"
+      description="Add your first one to start tracking."
+      actionLabel="New achievement"
       onAction={onAction}
     />
   )
@@ -90,9 +90,9 @@ export function NoGroups({ onAction }: { onAction?: () => void }) {
   return (
     <EmptyState
       type="groups"
-      title="No groups yet"
-      description="Join a group or create your own to track progress together."
-      actionLabel="Create Group"
+      title="No groups"
+      description="Create or join a group to track goals together."
+      actionLabel="Create group"
       onAction={onAction}
     />
   )
@@ -102,8 +102,8 @@ export function NoChallenges() {
   return (
     <EmptyState
       type="challenges"
-      title="No active challenges"
-      description="Challenges will appear here when group admins create them."
+      title="No challenges"
+      description="Group admins can create challenges here."
     />
   )
 }
@@ -113,7 +113,7 @@ export function NoNotifications() {
     <EmptyState
       type="notifications"
       title="All caught up"
-      description="You have no new notifications."
+      description="No new notifications."
     />
   )
 }
@@ -122,8 +122,8 @@ export function NoSearchResults({ query }: { query: string }) {
   return (
     <EmptyState
       type="generic"
-      title="No results found"
-      description={`No matches for "${query}". Try a different search.`}
+      title="No results"
+      description={`Nothing matched "${query}".`}
     />
   )
 }

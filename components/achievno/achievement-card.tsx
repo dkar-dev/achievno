@@ -145,7 +145,7 @@ export function AchievementCard({
 
         {/* Badge */}
         <AchievnoBadge variant={badgeVariant}>
-          {isOverdue ? 'Overdue' : STATUS_LABELS.achievement[achievement.status]}
+          {isOverdue ? 'Overdue' : STATUS_LABELS.achievement[achievement.status] }
         </AchievnoBadge>
       </div>
 

@@ -26,36 +26,36 @@ interface NotificationSetting {
 const INITIAL_SETTINGS: NotificationSetting[] = [
   {
     id: "achievements",
-    label: "Achievement Updates",
-    description: "When achievements are completed or progress is logged",
+    label: "Achievements",
+    description: "Completions and progress updates",
     pushEnabled: true,
     emailEnabled: false,
   },
   {
     id: "challenges",
-    label: "Challenge Activity",
-    description: "Challenge updates, rankings, and completions",
+    label: "Challenges",
+    description: "Rankings and results",
     pushEnabled: true,
     emailEnabled: true,
   },
   {
     id: "groups",
-    label: "Group Activity",
-    description: "New members, achievements, and announcements",
+    label: "Groups",
+    description: "New members and activity",
     pushEnabled: true,
     emailEnabled: false,
   },
   {
     id: "invites",
-    label: "Invitations",
-    description: "Group invites and friend requests",
+    label: "Invites",
+    description: "Group invitations",
     pushEnabled: true,
     emailEnabled: true,
   },
   {
     id: "reminders",
     label: "Reminders",
-    description: "Achievement deadlines and daily check-ins",
+    description: "Upcoming deadlines",
     pushEnabled: true,
     emailEnabled: false,
   },
@@ -97,19 +97,19 @@ export default function NotificationSettingsPage() {
       <div className="flex-1 overflow-auto">
         {/* Master Toggles */}
         <div className="p-5 border-b border-border">
-          <h3 className="text-caption text-secondary mb-4">Master Controls</h3>
+          <h3 className="text-caption text-secondary mb-4">Channels</h3>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-body font-medium">Push Notifications</p>
-                <p className="text-label text-secondary">Receive notifications on your device</p>
+                <p className="text-body font-medium">Push</p>
+                <p className="text-label text-secondary">On-device notifications</p>
               </div>
               <Switch checked={masterPush} onCheckedChange={toggleMasterPush} />
             </div>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-body font-medium">Email Notifications</p>
-                <p className="text-label text-secondary">Receive important updates via email</p>
+                <p className="text-body font-medium">Email</p>
+                <p className="text-label text-secondary">Summaries and important updates</p>
               </div>
               <Switch checked={masterEmail} onCheckedChange={toggleMasterEmail} />
             </div>
@@ -118,7 +118,7 @@ export default function NotificationSettingsPage() {
 
         {/* Individual Settings */}
         <div className="p-5">
-          <h3 className="text-caption text-secondary mb-4">Notification Types</h3>
+          <h3 className="text-caption text-secondary mb-4">By type</h3>
           <div className="space-y-6">
             {settings.map((setting) => (
               <div key={setting.id} className="bg-surface rounded-xl border border-border p-4">

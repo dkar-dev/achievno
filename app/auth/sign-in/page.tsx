@@ -48,9 +48,9 @@ export default function SignInPage() {
       <div className="flex-1 px-screen py-6">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-display mb-2">Welcome back</h1>
+          <h1 className="text-display mb-2">Sign in</h1>
           <p className="text-body text-secondary">
-            Sign in to continue tracking your achievements.
+            Welcome back.
           </p>
         </div>
 
@@ -81,7 +81,7 @@ export default function SignInPage() {
               </div>
               <Input
                 type="password"
-                placeholder="Enter your password"
+                placeholder="Password"
                 autoComplete="current-password"
                 required
                 disabled={isLoading}
@@ -119,9 +119,9 @@ export default function SignInPage() {
 
         {/* Sign up link */}
         <p className="text-center text-label text-secondary mt-6">
-          {"Don't have an account? "}
+          No account?{' '}
           <Link href={ROUTES.signUp} className="text-primary font-medium hover:underline">
-            Sign up
+            Create one
           </Link>
         </p>
       </div>
