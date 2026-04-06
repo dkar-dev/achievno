@@ -15,10 +15,19 @@ import { cn } from '@/lib/utils'
 
 interface AchievnoAvatarProps extends React.ComponentProps<typeof Avatar> {
   src?: string | null
-  initials: string
+  initials?: string
+  name?: string
   color?: string
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
   variant?: 'circle' | 'rounded'
+}
+
+function getInitials(name?: string, initials?: string): string {
+  if (initials) return initials.slice(0, 2).toUpperCase()
+  if (!name) return '?'
+  const parts = name.trim().split(/\s+/)
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
 }
 
 const sizeClasses = {
@@ -37,12 +46,16 @@ const radiusClasses = {
 export function AchievnoAvatar({
   src,
   initials,
+  name,
   color = '#F5A623',
   size = 'md',
   variant = 'rounded',
   className,
   ...props
 }: AchievnoAvatarProps) {
+  // Derive initials from name or use provided initials
+  const displayInitials = getInitials(name, initials)
+  
   // Calculate background with opacity for subtle appearance
   const bgStyle = {
     backgroundColor: `${color}15`,
@@ -61,7 +74,7 @@ export function AchievnoAvatar({
       {src && (
         <AvatarImage
           src={src}
-          alt={initials}
+          alt={name || displayInitials}
           className={radiusClasses[variant]}
         />
       )}
@@ -72,7 +85,7 @@ export function AchievnoAvatar({
         )}
         style={{ ...bgStyle, color }}
       >
-        {initials.slice(0, 2).toUpperCase()}
+        {displayInitials}
       </AvatarFallback>
     </Avatar>
   )
