@@ -19,31 +19,48 @@ export const APP_DESCRIPTION = 'Track personal achievements and group progress. 
 // ─────────────────────────────────────────────────────────────────
 
 export const COLORS = {
-  // Brand
-  primary: '#F5A623',
-  primaryForeground: '#1A1200',
+  // Brand (Light theme primary)
+  primary: '#E09400',
+  primaryForeground: '#FFFFFF',
   
-  // Backgrounds
-  bgBase: '#0E0F11',
-  bgSurface: '#16181C',
-  bgElevated: '#1E2128',
-  bgInput: '#272B33',
+  // Backgrounds (Light theme)
+  bgBase: '#FFFFFF',
+  bgSurface: '#F9FAFB',
+  bgElevated: '#FFFFFF',
+  bgMuted: '#F9FAFB',
+  bgInput: '#E5E7EB',
   
-  // Text
-  textPrimary: '#F2F3F5',
-  textSecondary: '#9BA3AF',
-  textTertiary: '#5C6370',
+  // Text (Light theme)
+  textPrimary: '#111827',
+  textSecondary: '#4B5563',
+  textTertiary: '#9CA3AF',
   
-  // Semantic
-  success: '#4ADE80',
-  destructive: '#FF6B6B',
-  info: '#60A5FA',
-  challenge: '#A78BFA',
-  teal: '#2DD4BF',
+  // Semantic (Light theme)
+  success: '#16A34A',
+  destructive: '#DC2626',
+  info: '#2563EB',
+  challenge: '#7C3AED',
+  teal: '#0D9488',
   
-  // Borders
-  border: 'rgba(255, 255, 255, 0.07)',
-  borderStrong: 'rgba(255, 255, 255, 0.12)',
+  // Borders (Light theme)
+  border: 'rgba(0, 0, 0, 0.08)',
+  borderStrong: 'rgba(0, 0, 0, 0.12)',
+  borderSubtle: '#E5E7EB',
+  borderEmphasis: '#D1D5DB',
+  
+  // Dark theme variants (for runtime switching)
+  dark: {
+    primary: '#F5A623',
+    primaryForeground: '#1A1200',
+    bgBase: '#0A0A0C',
+    bgElevated: '#141417',
+    bgMuted: '#1C1C21',
+    textPrimary: '#F2F3F5',
+    textSecondary: '#9BA3AF',
+    textTertiary: '#5C6370',
+    borderSubtle: '#27272A',
+    borderEmphasis: '#3F3F46',
+  },
 } as const
 
 // Avatar colors for groups
@@ -156,6 +173,7 @@ export const UI = {
   maxTitleLength: 100,
   maxDescriptionLength: 500,
   maxBioLength: 200,
+  maxTitleLines: 2, // Card title max lines
   
   // Pagination
   pageSize: 20,
@@ -163,6 +181,46 @@ export const UI = {
   // Toast durations
   toastSuccess: 3000,
   toastError: 5000,
+  
+  // Skeleton counts
+  skeletonListCount: 4,
+  
+  // Needs Attention limits
+  needsAttentionMax: 5,
+} as const
+
+// ─────────────────────────────────────────────────────────────────
+// MOTION SYSTEM (spring configs for framer-motion)
+// ─────────────────────────────────────────────────────────────────
+
+export const MOTION = {
+  // Bottom sheet spring (not linear)
+  bottomSheet: {
+    type: 'spring',
+    damping: 30,
+    stiffness: 300,
+    mass: 0.8,
+  },
+  // Screen push transition
+  screenPush: {
+    duration: 0.2,
+    ease: 'easeOut',
+  },
+  // Progress bar animation
+  progress: {
+    duration: 0.2,
+    ease: 'easeOut',
+  },
+  // Success feedback
+  success: {
+    duration: 0.2,
+    ease: 'easeOut',
+  },
+  // Tab crossfade
+  tabFade: {
+    duration: 0.15,
+    ease: 'easeOut',
+  },
 } as const
 
 // ─────────────────────────────────────────────────────────────────
@@ -171,13 +229,14 @@ export const UI = {
 
 export const STATUS_LABELS = {
   achievement: {
-    draft: 'Draft',
-    active: 'In Progress',
+    not_started: 'Not started',
+    active: 'In progress',
     completed: 'Completed',
+    overdue: 'Overdue',
     archived: 'Archived',
   },
   challenge: {
-    upcoming: 'Starting Soon',
+    upcoming: 'Starting soon',
     active: 'Active',
     completed: 'Finished',
   },

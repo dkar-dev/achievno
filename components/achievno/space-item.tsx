@@ -37,10 +37,10 @@ export function SpaceItem({
       onClick={onPress}
       className={cn(
         'flex items-center gap-3 w-full px-4 py-3',
-        'bg-background-elevated rounded-xl border border-border',
-        'transition-colors hover:bg-background-input active:bg-background-input',
+        'bg-bg-elevated rounded-xl border border-border-subtle',
+        'transition-colors hover:bg-bg-muted active:bg-bg-muted',
         'text-left',
-        isPinned && 'border-primary/20 bg-accent-subtle/30',
+        isPinned && 'border-primary/20 bg-accent-subtle',
         className
       )}
     >

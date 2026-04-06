@@ -6,6 +6,12 @@
  * ═══════════════════════════════════════════════════════════════
  * Route: /app/spaces
  * Main entry screen after auth - spaces-first navigation
+ * 
+ * Features:
+ * - Skeleton loading states (3-5 items)
+ * - Light theme primary (bg-bg-base)
+ * - Reduced vertical spacing
+ * - Inline collapsible archive section
  * ═══════════════════════════════════════════════════════════════
  */
 
@@ -13,15 +19,20 @@ import * as React from 'react'
 import { useRouter } from 'next/navigation'
 import { SpacesHeader } from '@/components/achievno/header'
 import { PersonalSpaceItem, GroupSpaceItem } from '@/components/achievno/space-item'
+import { SpaceListSkeleton } from '@/components/achievno/skeleton'
+import { AsyncBoundary } from '@/components/achievno/loading-states'
 import { MenuSheet } from '@/components/achievno/menu-sheet'
 import { LogoutModal, NoGroups } from '@/components/achievno'
 import { Button } from '@/components/ui/button'
 import { IconChevronDown, IconChevronUp, IconCompass } from '@/lib/achievno/icons'
-import { ROUTES, AVATAR_COLORS } from '@/lib/achievno/constants'
+import { ROUTES, AVATAR_COLORS, UI } from '@/lib/achievno/constants'
 import type { Space, User } from '@/lib/achievno/types'
 import { cn } from '@/lib/utils'
 
-// Demo data
+// ─────────────────────────────────────────────────────────────────
+// DEMO DATA
+// ─────────────────────────────────────────────────────────────────
+
 const DEMO_USER: User = {
   id: 'user-1',
   email: 'alex@example.com',
@@ -34,9 +45,9 @@ const DEMO_USER: User = {
 const DEMO_PERSONAL_SPACE: Space = {
   id: 'personal',
   type: 'personal',
-  name: 'My Space',
+  name: 'Personal',
   avatarInitials: 'AJ',
-  avatarColor: '#F5A623',
+  avatarColor: '#E09400',
   activeCount: 4,
   completedCount: 12,
   hasUnread: true,
@@ -92,8 +103,13 @@ const DEMO_GROUPS: Space[] = [
   },
 ]
 
+// ─────────────────────────────────────────────────────────────────
+// MAIN COMPONENT
+// ─────────────────────────────────────────────────────────────────
+
 export default function SpacesListPage() {
   const router = useRouter()
+  const [isLoading] = React.useState(false)
   const [isMenuOpen, setIsMenuOpen] = React.useState(false)
   const [isLogoutModalOpen, setIsLogoutModalOpen] = React.useState(false)
   const [isArchiveOpen, setIsArchiveOpen] = React.useState(false)
@@ -105,7 +121,7 @@ export default function SpacesListPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen flex flex-col bg-bg-base">
       {/* Header */}
       <SpacesHeader
         hasNotifications={hasNotifications}
@@ -115,76 +131,83 @@ export default function SpacesListPage() {
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto">
-        <div className="px-screen py-4 space-y-3">
-          {/* Pinned Personal Space */}
-          <PersonalSpaceItem
-            space={DEMO_PERSONAL_SPACE}
-            onPress={() => router.push(ROUTES.personalWorkspace)}
-          />
-
-          {/* Archive Drawer Handle */}
-          <button
-            type="button"
-            onClick={() => setIsArchiveOpen(!isArchiveOpen)}
-            className={cn(
-              'flex items-center justify-center w-full py-2 gap-2',
-              'text-label text-tertiary hover:text-secondary transition-colors'
-            )}
+        <div className="px-screen py-3 motion-screen-push">
+          <AsyncBoundary
+            loading={isLoading}
+            loadingFallback={<SpaceListSkeleton count={UI.skeletonListCount} />}
           >
-            {isArchiveOpen ? <IconChevronUp size={16} /> : <IconChevronDown size={16} />}
-            <span>{isArchiveOpen ? 'Hide' : 'Show'} Archive ({DEMO_ARCHIVED_ACHIEVEMENTS.length})</span>
-          </button>
+            {/* Pinned Personal Space */}
+            <PersonalSpaceItem
+              space={DEMO_PERSONAL_SPACE}
+              onPress={() => router.push(ROUTES.personalWorkspace)}
+            />
 
-          {/* Archive Drawer Content */}
-          {isArchiveOpen && (
-            <div className="bg-background-surface rounded-xl border border-border p-3 space-y-2">
-              <p className="text-caption text-tertiary px-1">ARCHIVED ACHIEVEMENTS</p>
-              {DEMO_ARCHIVED_ACHIEVEMENTS.map((achievement) => (
+            {/* Archive Collapsible */}
+            {DEMO_ARCHIVED_ACHIEVEMENTS.length > 0 && (
+              <div className="mt-3">
                 <button
-                  key={achievement.id}
                   type="button"
-                  onClick={() => router.push(ROUTES.achievement(achievement.id))}
-                  className="flex items-center justify-between w-full px-3 py-2.5 rounded-lg bg-background-elevated hover:bg-background-input transition-colors"
+                  onClick={() => setIsArchiveOpen(!isArchiveOpen)}
+                  className={cn(
+                    'flex items-center justify-center w-full py-2 gap-1',
+                    'text-caption text-tertiary hover:text-secondary transition-colors'
+                  )}
                 >
-                  <span className="text-label text-secondary line-through">{achievement.title}</span>
-                  <span className="text-caption text-tertiary normal-case">
-                    {new Date(achievement.completedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                  </span>
+                  {isArchiveOpen ? <IconChevronUp size={14} /> : <IconChevronDown size={14} />}
+                  <span>Archive ({DEMO_ARCHIVED_ACHIEVEMENTS.length})</span>
                 </button>
-              ))}
-            </div>
-          )}
 
-          {/* Groups Section */}
-          <div className="pt-4">
-            <p className="text-caption text-tertiary px-1 mb-3">GROUPS</p>
-            
-            {DEMO_GROUPS.length > 0 ? (
-              <div className="space-y-2">
-                {DEMO_GROUPS.map((group) => (
-                  <GroupSpaceItem
-                    key={group.id}
-                    space={group}
-                    onPress={() => router.push(ROUTES.group(group.id))}
-                  />
-                ))}
+                {isArchiveOpen && (
+                  <div className="bg-bg-elevated rounded-xl border border-border-subtle p-2 space-y-1 motion-tab-content">
+                    {DEMO_ARCHIVED_ACHIEVEMENTS.map((achievement) => (
+                      <button
+                        key={achievement.id}
+                        type="button"
+                        onClick={() => router.push(ROUTES.achievement(achievement.id))}
+                        className="flex items-center justify-between w-full px-3 py-2 rounded-lg hover:bg-bg-muted transition-colors"
+                      >
+                        <span className="text-label text-secondary line-through truncate">{achievement.title}</span>
+                        <span className="text-caption text-tertiary shrink-0 ml-2">
+                          {new Date(achievement.completedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
-            ) : (
-              <NoGroups onAction={() => router.push(ROUTES.groupCreate)} />
             )}
-          </div>
+
+            {/* Groups Section */}
+            <div className="mt-4">
+              <p className="text-caption text-tertiary mb-2">GROUPS</p>
+              
+              {DEMO_GROUPS.length > 0 ? (
+                <div className="space-y-2">
+                  {DEMO_GROUPS.map((group) => (
+                    <GroupSpaceItem
+                      key={group.id}
+                      space={group}
+                      onPress={() => router.push(ROUTES.group(group.id))}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <NoGroups onAction={() => router.push(ROUTES.groupCreate)} />
+              )}
+            </div>
+          </AsyncBoundary>
         </div>
       </div>
 
-      {/* Discover FAB / Link */}
-      <div className="px-screen pb-safe-area-bottom py-4 border-t border-border">
+      {/* Discover Link */}
+      <div className="px-screen pb-safe-area-bottom py-3 border-t border-border-subtle">
         <Button
           onClick={() => router.push(ROUTES.discover)}
           variant="outline"
-          className="w-full h-11 rounded-xl border-border-strong bg-background-elevated hover:bg-background-input gap-2"
+          className="w-full h-11 rounded-xl border-border-subtle bg-bg-elevated hover:bg-bg-muted gap-2"
         >
           <IconCompass size={18} />
-          Discover Groups & Challenges
+          Discover Groups
         </Button>
       </div>
 

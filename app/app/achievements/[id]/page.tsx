@@ -5,7 +5,13 @@
  * ACHIEVNO ACHIEVEMENT DETAIL
  * ═══════════════════════════════════════════════════════════════
  * Route: /app/achievements/:id
- * View achievement details, progress, and actions
+ * 
+ * Features:
+ * - Log progress via bottom sheet
+ * - Fixed back button position
+ * - Primary CTA bottom anchored
+ * - Description: max 1 line preview, full on expand
+ * - Success feedback: scale animation + checkmark fade
  * ═══════════════════════════════════════════════════════════════
  */
 
@@ -14,6 +20,9 @@ import { useRouter, useParams } from 'next/navigation'
 import { BackHeader } from '@/components/achievno/header'
 import { AchievnoBadge, getAchievementBadgeVariant } from '@/components/achievno/badge'
 import { AchievnoProgress } from '@/components/achievno/progress'
+import { LogProgressSheet } from '@/components/achievno/log-progress-sheet'
+import { AchievementDetailSkeleton } from '@/components/achievno/skeleton'
+import { AsyncBoundary } from '@/components/achievno/loading-states'
 import {
   DeleteAchievementModal,
   ArchiveAchievementModal,
@@ -33,17 +42,21 @@ import {
   IconArchive,
   IconTrash,
   IconPlus,
-  IconClock,
   IconCheck,
 } from '@/lib/achievno/icons'
 import { ROUTES, STATUS_LABELS } from '@/lib/achievno/constants'
+import { toast } from '@/hooks/use-toast'
 import type { Achievement } from '@/lib/achievno/types'
+import { cn } from '@/lib/utils'
 
-// Demo achievement data
+// ─────────────────────────────────────────────────────────────────
+// DEMO DATA
+// ─────────────────────────────────────────────────────────────────
+
 const DEMO_ACHIEVEMENT: Achievement = {
   id: 'ach-1',
   title: 'Read 10 Books',
-  description: 'Complete 10 books this quarter. Focus on technical and personal development topics.',
+  description: 'Complete 10 books this quarter. Focus on technical and personal development topics. This is a longer description that should be truncated on the detail page.',
   targetValue: 10,
   currentValue: 7,
   unit: 'books',
@@ -57,53 +70,111 @@ const DEMO_ACHIEVEMENT: Achievement = {
   isOverdue: false,
 }
 
+// ─────────────────────────────────────────────────────────────────
+// HELPERS
+// ─────────────────────────────────────────────────────────────────
+
+function formatTimeAgo(dateStr: string): string {
+  const date = new Date(dateStr)
+  const now = new Date()
+  const diffMs = now.getTime() - date.getTime()
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+
+  if (diffDays === 0) return 'Today'
+  if (diffDays === 1) return 'Yesterday'
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+}
+
+function formatDate(dateStr?: string): string | null {
+  if (!dateStr) return null
+  return new Date(dateStr).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+  })
+}
+
+// ─────────────────────────────────────────────────────────────────
+// MAIN COMPONENT
+// ─────────────────────────────────────────────────────────────────
+
 export default function AchievementDetailPage() {
   const router = useRouter()
   const params = useParams()
-  const [achievement] = React.useState<Achievement>(DEMO_ACHIEVEMENT)
+  
+  // State
+  const [achievement, setAchievement] = React.useState<Achievement>(DEMO_ACHIEVEMENT)
+  const [isLoading] = React.useState(false)
+  const [isLogSheetOpen, setIsLogSheetOpen] = React.useState(false)
   const [isDeleteOpen, setIsDeleteOpen] = React.useState(false)
   const [isArchiveOpen, setIsArchiveOpen] = React.useState(false)
   const [isCompleteOpen, setIsCompleteOpen] = React.useState(false)
+  const [showSuccess, setShowSuccess] = React.useState(false)
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = React.useState(false)
 
   const isCompleted = achievement.status === 'completed'
   const isArchived = achievement.status === 'archived'
   const badgeVariant = achievement.isOverdue ? 'overdue' : getAchievementBadgeVariant(achievement.status)
+  
+  // Use muted badge for active to respect color constraint
+  const displayBadgeVariant = badgeVariant === 'primary' ? 'muted' : badgeVariant
 
-  const formatDate = (dateStr?: string) => {
-    if (!dateStr) return null
-    return new Date(dateStr).toLocaleDateString('en-US', {
-      month: 'long',
-      day: 'numeric',
-      year: 'numeric',
-    })
+  // Build compact meta string
+  const metaString = `${achievement.currentValue}/${achievement.targetValue}${achievement.dueDate ? ` · due ${formatDate(achievement.dueDate)}` : ''}`
+
+  // Handlers
+  const handleLogProgress = async (value: number, note?: string) => {
+    // Optimistic update
+    const newValue = Math.min(achievement.currentValue + value, achievement.targetValue)
+    setAchievement((prev) => ({
+      ...prev,
+      currentValue: newValue,
+      progressPercent: Math.round((newValue / prev.targetValue) * 100),
+    }))
+
+    // Show success animation
+    setShowSuccess(true)
+    setTimeout(() => setShowSuccess(false), 500)
+
+    // Simulate API call
+    await new Promise((r) => setTimeout(r, 300))
   }
 
-  const handleLogProgress = () => {
-    router.push(ROUTES.achievementProgress(params.id as string))
-  }
+  const handleMarkComplete = async () => {
+    setAchievement((prev) => ({
+      ...prev,
+      status: 'completed',
+      currentValue: prev.targetValue,
+      progressPercent: 100,
+      completedAt: new Date().toISOString(),
+    }))
 
-  const handleEdit = () => {
-    router.push(ROUTES.achievementEdit(params.id as string))
+    setShowSuccess(true)
+    setTimeout(() => setShowSuccess(false), 500)
+
+    await new Promise((r) => setTimeout(r, 300))
   }
 
   const handleComplete = () => {
     setIsCompleteOpen(false)
-    router.push(ROUTES.personalWorkspace)
+    handleMarkComplete()
+    toast({ title: 'Achievement completed!' })
   }
 
   const handleArchive = () => {
     setIsArchiveOpen(false)
+    toast({ title: 'Achievement archived' })
     router.push(ROUTES.personalWorkspace)
   }
 
   const handleDelete = () => {
     setIsDeleteOpen(false)
+    toast({ title: 'Achievement deleted' })
     router.push(ROUTES.personalWorkspace)
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      {/* Header */}
+    <div className="min-h-screen flex flex-col bg-bg-base">
+      {/* Header - Fixed position back button */}
       <BackHeader
         title=""
         onBack={() => router.back()}
@@ -113,7 +184,7 @@ export default function AchievementDetailPage() {
               <Button
                 size="icon"
                 variant="ghost"
-                className="size-9 rounded-lg bg-background-elevated"
+                className="size-9 rounded-lg bg-bg-elevated"
               >
                 <IconMoreVertical size={18} />
               </Button>
@@ -121,7 +192,7 @@ export default function AchievementDetailPage() {
             <DropdownMenuContent align="end" className="w-48">
               {!isArchived && (
                 <>
-                  <DropdownMenuItem onClick={handleEdit}>
+                  <DropdownMenuItem onClick={() => router.push(ROUTES.achievementEdit(params.id as string))}>
                     <IconEdit size={16} className="mr-2" />
                     Edit
                   </DropdownMenuItem>
@@ -146,88 +217,116 @@ export default function AchievementDetailPage() {
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto">
-        <div className="px-screen py-6">
-          {/* Header section */}
-          <div className="mb-6">
-            <div className="flex items-start justify-between gap-4 mb-2">
-              <h1 className="text-display">{achievement.title}</h1>
-              <AchievnoBadge variant={badgeVariant} size="md">
-                {achievement.isOverdue ? 'Overdue' : STATUS_LABELS.achievement[achievement.status]}
+        <AsyncBoundary
+          loading={isLoading}
+          loadingFallback={<AchievementDetailSkeleton />}
+        >
+          <div className={cn(
+            'px-screen py-4 motion-screen-push',
+            showSuccess && 'motion-success'
+          )}>
+            {/* Title & Badge */}
+            <div className="flex items-start justify-between gap-3 mb-4">
+              <div className="flex-1">
+                {/* Completed checkmark */}
+                {isCompleted && (
+                  <div className={cn(
+                    'inline-flex items-center justify-center size-6 rounded-md bg-success mb-2',
+                    showSuccess && 'motion-checkmark'
+                  )}>
+                    <IconCheck size={14} className="text-success-foreground" />
+                  </div>
+                )}
+                
+                <h1 className={cn(
+                  'text-heading font-semibold',
+                  isCompleted && 'text-secondary line-through'
+                )}>
+                  {achievement.title}
+                </h1>
+              </div>
+              
+              <AchievnoBadge variant={displayBadgeVariant} size="md">
+                {achievement.isOverdue ? STATUS_LABELS.achievement.overdue : STATUS_LABELS.achievement[achievement.status]}
               </AchievnoBadge>
             </div>
-            
-            {achievement.description && (
-              <p className="text-body text-secondary">{achievement.description}</p>
-            )}
-          </div>
 
-          {/* Progress card */}
-          <div className="bg-background-surface rounded-2xl border border-border p-4 mb-6">
-            <div className="flex items-baseline justify-between mb-4">
-              <span className="text-heading font-semibold">
-                {achievement.currentValue}
-                <span className="text-secondary font-normal"> / {achievement.targetValue}</span>
-              </span>
-              <span className="text-label text-tertiary">{achievement.unit}</span>
-            </div>
-            
-            <AchievnoProgress
-              value={achievement.currentValue}
-              max={achievement.targetValue}
-              color={isCompleted ? 'success' : 'primary'}
-              size="md"
-            />
-            
-            <div className="flex items-center justify-between mt-3">
-              <span className="text-label text-tertiary">
-                {achievement.progressPercent}% complete
-              </span>
-              <span className="text-label text-tertiary">
-                {achievement.targetValue - achievement.currentValue} left
-              </span>
-            </div>
-          </div>
-
-          {/* Due date */}
-          {achievement.dueDate && (
-            <div className="flex items-center gap-3 px-4 py-3 bg-background-surface rounded-xl border border-border mb-6">
-              <IconClock size={20} className={achievement.isOverdue ? 'text-destructive' : 'text-tertiary'} />
-              <div>
-                <p className="text-label text-tertiary">Due date</p>
-                <p className={`text-title ${achievement.isOverdue ? 'text-destructive' : ''}`}>
-                  {formatDate(achievement.dueDate)}
-                </p>
+            {/* Progress Card */}
+            <div className="bg-bg-elevated rounded-xl border border-border-subtle p-4 mb-4">
+              <div className="flex items-baseline justify-between mb-3">
+                <span className="text-title font-semibold">
+                  {achievement.currentValue}
+                  <span className="text-secondary font-normal"> / {achievement.targetValue}</span>
+                </span>
+                <span className="text-label text-tertiary">{achievement.unit}</span>
               </div>
+              
+              <AchievnoProgress
+                value={achievement.currentValue}
+                max={achievement.targetValue}
+                color={isCompleted ? 'success' : 'primary'}
+                size="md"
+                className="motion-progress"
+              />
+              
+              <p className="text-label text-tertiary mt-2">
+                {metaString}
+              </p>
             </div>
-          )}
 
-          {/* Dates */}
-          <div className="space-y-2 text-label text-tertiary">
-            <p>Created {formatDate(achievement.createdAt)}</p>
-            {achievement.completedAt && <p>Completed {formatDate(achievement.completedAt)}</p>}
+            {/* Description - max 1 line preview, expandable */}
+            {achievement.description && (
+              <div className="mb-4">
+                <button
+                  type="button"
+                  onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
+                  className="text-left w-full"
+                >
+                  <p className={cn(
+                    'text-body text-secondary',
+                    !isDescriptionExpanded && 'line-clamp-1'
+                  )}>
+                    {achievement.description}
+                  </p>
+                  {achievement.description.length > 60 && (
+                    <span className="text-label text-primary mt-1 inline-block">
+                      {isDescriptionExpanded ? 'Show less' : 'Show more'}
+                    </span>
+                  )}
+                </button>
+              </div>
+            )}
+
+            {/* Dates */}
+            <div className="space-y-1 text-label text-tertiary">
+              <p>Created {formatTimeAgo(achievement.createdAt)}</p>
+              {achievement.completedAt && (
+                <p>Completed {formatTimeAgo(achievement.completedAt)}</p>
+              )}
+            </div>
           </div>
-        </div>
+        </AsyncBoundary>
       </div>
 
-      {/* Bottom actions */}
+      {/* Bottom Actions - Anchored */}
       {!isArchived && (
-        <div className="px-screen pb-safe-area-bottom py-4 border-t border-border">
+        <div className="sticky bottom-0 bg-bg-base border-t border-border-subtle px-screen py-4 safe-area-bottom">
           <div className="flex gap-3">
             {!isCompleted && (
               <>
                 <Button
-                  onClick={handleLogProgress}
+                  onClick={() => setIsLogSheetOpen(true)}
                   className="flex-1 h-12 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-base font-semibold"
                 >
-                  <IconPlus size={18} />
+                  <IconPlus size={18} className="mr-2" />
                   Log Progress
                 </Button>
                 <Button
                   onClick={() => setIsCompleteOpen(true)}
-                  variant="outline"
-                  className="h-12 px-4 rounded-xl border-success/30 bg-success/10 text-success hover:bg-success/20"
+                  variant="ghost"
+                  className="h-12 px-4 rounded-xl text-secondary"
                 >
-                  <IconCheck size={18} />
+                  <IconCheck size={18} className="mr-1" />
                   Complete
                 </Button>
               </>
@@ -236,9 +335,9 @@ export default function AchievementDetailPage() {
               <Button
                 onClick={() => setIsArchiveOpen(true)}
                 variant="outline"
-                className="flex-1 h-12 rounded-xl border-border-strong bg-background-elevated"
+                className="flex-1 h-12 rounded-xl"
               >
-                <IconArchive size={18} />
+                <IconArchive size={18} className="mr-2" />
                 Archive
               </Button>
             )}
@@ -246,12 +345,21 @@ export default function AchievementDetailPage() {
         </div>
       )}
 
+      {/* Log Progress Sheet */}
+      <LogProgressSheet
+        open={isLogSheetOpen}
+        onOpenChange={setIsLogSheetOpen}
+        achievement={achievement}
+        onLogProgress={handleLogProgress}
+        onMarkComplete={handleMarkComplete}
+      />
+
       {/* Modals */}
       <ConfirmModal
         open={isCompleteOpen}
         onOpenChange={setIsCompleteOpen}
-        title="Mark as Complete?"
-        description="Congratulations! You can still log additional progress after marking complete."
+        title="Mark as complete?"
+        description="You can still edit this achievement after marking complete."
         confirmLabel="Complete"
         onConfirm={handleComplete}
       />

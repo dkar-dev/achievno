@@ -81,16 +81,19 @@ export function AchievnoBadge({
 }
 
 // Helper to get badge variant from achievement status
-export function getAchievementBadgeVariant(status: AchievementStatus): AchievnoBadgeProps['variant'] {
+export function getAchievementBadgeVariant(status: AchievementStatus | 'not_started' | 'overdue'): AchievnoBadgeProps['variant'] {
   switch (status) {
     case 'draft':
-      return 'draft'
+    case 'not_started':
+      return 'muted'
     case 'active':
       return 'primary'
     case 'completed':
       return 'success'
     case 'archived':
       return 'muted'
+    case 'overdue':
+      return 'overdue'
     default:
       return 'muted'
   }
