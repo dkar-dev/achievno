@@ -13,7 +13,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { AchievnoHeader } from "@/components/achievno/header"
+import { BackHeader } from "@/components/achievno/header"
 import { AchievnoIcon, IconEye, IconEyeOff, IconCheck } from "@/lib/achievno/icons"
 import { cn } from "@/lib/utils"
 
@@ -54,9 +54,8 @@ export default function ChangePasswordPage() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <AchievnoHeader
+      <BackHeader
         title="Change Password"
-        showBack
         onBack={() => router.back()}
       />
 

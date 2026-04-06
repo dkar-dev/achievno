@@ -10,7 +10,7 @@
  */
 
 import { useRouter, useParams } from "next/navigation"
-import { AchievnoHeader } from "@/components/achievno/header"
+import { BackHeader } from "@/components/achievno/header"
 import { AchievnoAvatar } from "@/components/achievno/avatar"
 import { AchievnoBadge } from "@/components/achievno/badge"
 import { AchievnoProgress } from "@/components/achievno/progress"
@@ -55,9 +55,8 @@ export default function PublicProfilePage() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <AchievnoHeader
+      <BackHeader
         title="Profile"
-        showBack
         onBack={() => router.back()}
       />
 

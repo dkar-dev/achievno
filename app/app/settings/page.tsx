@@ -10,7 +10,7 @@
  */
 
 import { useRouter } from "next/navigation"
-import { AchievnoHeader } from "@/components/achievno/header"
+import { BackHeader } from "@/components/achievno/header"
 import { 
   AchievnoIcon,
   IconBell,
@@ -72,9 +72,8 @@ export default function SettingsPage() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <AchievnoHeader
+      <BackHeader
         title="Settings"
-        showBack
         onBack={() => router.back()}
       />
 

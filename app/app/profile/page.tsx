@@ -11,7 +11,7 @@
 
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { AchievnoHeader } from "@/components/achievno/header"
+import { BackHeader } from "@/components/achievno/header"
 import { AchievnoAvatar } from "@/components/achievno/avatar"
 import { AchievnoBadge } from "@/components/achievno/badge"
 import { 
@@ -54,9 +54,8 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <AchievnoHeader
+      <BackHeader
         title="Profile"
-        showBack
         onBack={() => router.back()}
         rightActions={
           <button 

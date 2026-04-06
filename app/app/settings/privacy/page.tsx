@@ -12,7 +12,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Switch } from "@/components/ui/switch"
-import { AchievnoHeader } from "@/components/achievno/header"
+import { BackHeader } from "@/components/achievno/header"
 import { cn } from "@/lib/utils"
 
 type ProfileVisibility = "public" | "groups" | "private"
@@ -44,9 +44,8 @@ export default function PrivacySettingsPage() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <AchievnoHeader
+      <BackHeader
         title="Privacy"
-        showBack
         onBack={() => router.back()}
       />
 

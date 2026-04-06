@@ -12,7 +12,7 @@
 import { useState } from "react"
 import { useRouter, useParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { AchievnoHeader } from "@/components/achievno/header"
+import { BackHeader } from "@/components/achievno/header"
 import { AchievnoAvatar, AchievnoAvatarStack } from "@/components/achievno/avatar"
 import { AchievnoBadge } from "@/components/achievno/badge"
 import { ConfirmModal } from "@/components/achievno/confirm-modal"
@@ -76,9 +76,8 @@ export default function PublicGroupDetailPage() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <AchievnoHeader
+      <BackHeader
         title="Group"
-        showBack
         onBack={() => router.back()}
       />
 

@@ -14,7 +14,7 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { AchievnoHeader } from "@/components/achievno/header"
+import { BackHeader } from "@/components/achievno/header"
 import { AchievnoAvatar } from "@/components/achievno/avatar"
 import { AchievnoBadge } from "@/components/achievno/badge"
 import { ConfirmModal } from "@/components/achievno/confirm-modal"
@@ -72,9 +72,8 @@ export default function EditProfilePage() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <AchievnoHeader
+      <BackHeader
         title="Edit Profile"
-        showBack
         onBack={handleBack}
       />
 

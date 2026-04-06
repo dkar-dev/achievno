@@ -12,7 +12,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { AchievnoHeader } from "@/components/achievno/header"
+import { BackHeader } from "@/components/achievno/header"
 import { ConfirmModal } from "@/components/achievno/confirm-modal"
 import { 
   AchievnoIcon,
@@ -36,9 +36,8 @@ export default function AccountSettingsPage() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <AchievnoHeader
+      <BackHeader
         title="Account"
-        showBack
         onBack={() => router.back()}
       />
 
