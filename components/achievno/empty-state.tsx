@@ -73,14 +73,14 @@ export function EmptyState({
   )
 }
 
-// Pre-configured empty states
+// Pre-configured empty states (minimal text, optional CTA, no heavy illustrations)
 export function NoAchievements({ onAction }: { onAction?: () => void }) {
   return (
     <EmptyState
       type="achievements"
-      title="No achievements yet"
-      description="Create your first achievement to start tracking your progress."
-      actionLabel="Create Achievement"
+      title="No achievements"
+      description="Create an achievement to start tracking."
+      actionLabel="Create"
       onAction={onAction}
     />
   )
@@ -90,9 +90,9 @@ export function NoGroups({ onAction }: { onAction?: () => void }) {
   return (
     <EmptyState
       type="groups"
-      title="No groups yet"
-      description="Join a group or create your own to track progress together."
-      actionLabel="Create Group"
+      title="No groups"
+      description="Join or create a group to track together."
+      actionLabel="Create"
       onAction={onAction}
     />
   )
@@ -102,8 +102,8 @@ export function NoChallenges() {
   return (
     <EmptyState
       type="challenges"
-      title="No active challenges"
-      description="Challenges will appear here when group admins create them."
+      title="No challenges"
+      description="Challenges appear when admins create them."
     />
   )
 }
@@ -112,8 +112,8 @@ export function NoNotifications() {
   return (
     <EmptyState
       type="notifications"
-      title="All caught up"
-      description="You have no new notifications."
+      title="No notifications"
+      description="You&apos;re all caught up."
     />
   )
 }
@@ -122,8 +122,18 @@ export function NoSearchResults({ query }: { query: string }) {
   return (
     <EmptyState
       type="generic"
-      title="No results found"
-      description={`No matches for "${query}". Try a different search.`}
+      title="No results"
+      description={`No matches for "${query}".`}
+    />
+  )
+}
+
+export function NeedsAttentionEmpty() {
+  return (
+    <EmptyState
+      type="achievements"
+      title="Nothing urgent"
+      description="No overdue or due soon items."
     />
   )
 }

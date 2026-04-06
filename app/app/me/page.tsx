@@ -5,22 +5,32 @@
  * ACHIEVNO PERSONAL WORKSPACE
  * ═══════════════════════════════════════════════════════════════
  * Route: /app/me
- * Personal achievement workspace with active/archived filter
+ * Personal achievement workspace with:
+ * - Needs Attention section (sorted: overdue → due today → due soon)
+ * - Active/archived filter with compact density
+ * - Log progress sheet integration
+ * - Inline collapsible archive section
  * ═══════════════════════════════════════════════════════════════
  */
 
 import * as React from 'react'
 import { useRouter } from 'next/navigation'
 import { BackHeader } from '@/components/achievno/header'
-import { SegmentedControl } from '@/components/achievno/tabs'
-import { AchievementCard } from '@/components/achievno/achievement-card'
-import { NoAchievements } from '@/components/achievno/empty-state'
+import { FilterPills } from '@/components/achievno/tabs'
+import { AchievementCard, AchievementCardSkeleton } from '@/components/achievno/achievement-card'
+import { LogProgressSheet } from '@/components/achievno/log-progress-sheet'
+import { NoAchievements, NeedsAttentionEmpty } from '@/components/achievno/empty-state'
+import { AsyncBoundary } from '@/components/achievno/loading-states'
 import { Button } from '@/components/ui/button'
-import { IconPlus } from '@/lib/achievno/icons'
-import { ROUTES, PERSONAL_FILTERS } from '@/lib/achievno/constants'
+import { IconPlus, IconChevronDown, IconChevronUp } from '@/lib/achievno/icons'
+import { ROUTES, UI } from '@/lib/achievno/constants'
 import type { Achievement, PersonalWorkspaceSection } from '@/lib/achievno/types'
+import { cn } from '@/lib/utils'
 
-// Demo data
+// ─────────────────────────────────────────────────────────────────
+// DEMO DATA
+// ─────────────────────────────────────────────────────────────────
+
 const DEMO_ACHIEVEMENTS: Achievement[] = [
   {
     id: 'ach-1',
@@ -46,7 +56,7 @@ const DEMO_ACHIEVEMENTS: Achievement[] = [
     currentValue: 3,
     unit: 'milestones',
     status: 'active',
-    dueDate: '2026-04-15',
+    dueDate: '2026-04-01', // Overdue
     createdAt: '2026-02-01',
     spaceId: 'personal',
     spaceType: 'personal',
@@ -62,6 +72,7 @@ const DEMO_ACHIEVEMENTS: Achievement[] = [
     currentValue: 8,
     unit: 'modules',
     status: 'active',
+    dueDate: '2026-04-08', // Due soon
     createdAt: '2026-03-01',
     spaceId: 'personal',
     spaceType: 'personal',
@@ -104,28 +115,127 @@ const DEMO_ARCHIVED: Achievement[] = [
     progressPercent: 100,
     isOverdue: false,
   },
+  {
+    id: 'arch-2',
+    title: 'Run 5K',
+    targetValue: 1,
+    currentValue: 1,
+    unit: 'race',
+    status: 'archived',
+    createdAt: '2025-09-01',
+    completedAt: '2025-11-20',
+    archivedAt: '2025-11-25',
+    spaceId: 'personal',
+    spaceType: 'personal',
+    creatorId: 'user-1',
+    progressPercent: 100,
+    isOverdue: false,
+  },
 ]
+
+// ─────────────────────────────────────────────────────────────────
+// HELPERS
+// ─────────────────────────────────────────────────────────────────
+
+/**
+ * Get items for Needs Attention section
+ * Sorted: overdue → due today → due soon (next 3 days)
+ * Max: 3-5 items
+ */
+function getNeedsAttention(achievements: Achievement[]): Achievement[] {
+  const now = new Date()
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const threeDaysLater = new Date(today.getTime() + 3 * 24 * 60 * 60 * 1000)
+
+  const urgent = achievements
+    .filter((a) => {
+      if (a.status !== 'active') return false
+      if (!a.dueDate) return false
+      return true
+    })
+    .map((a) => {
+      const dueDate = new Date(a.dueDate!)
+      const dueDateNormalized = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate())
+      
+      let priority: number
+      if (a.isOverdue || dueDateNormalized < today) {
+        priority = 0 // Overdue
+      } else if (dueDateNormalized.getTime() === today.getTime()) {
+        priority = 1 // Due today
+      } else if (dueDateNormalized <= threeDaysLater) {
+        priority = 2 // Due soon
+      } else {
+        priority = 3 // Not urgent
+      }
+      
+      return { ...a, priority }
+    })
+    .filter((a) => a.priority < 3) // Only urgent items
+    .sort((a, b) => a.priority - b.priority)
+    .slice(0, UI.needsAttentionMax)
+
+  return urgent
+}
+
+// ─────────────────────────────────────────────────────────────────
+// FILTER OPTIONS
+// ─────────────────────────────────────────────────────────────────
+
+const FILTER_OPTIONS = [
+  { id: 'active' as const, label: 'Active' },
+  { id: 'completed' as const, label: 'Completed' },
+]
+
+// ─────────────────────────────────────────────────────────────────
+// MAIN COMPONENT
+// ─────────────────────────────────────────────────────────────────
 
 export default function PersonalWorkspacePage() {
   const router = useRouter()
-  const [filter, setFilter] = React.useState<PersonalWorkspaceSection>('active')
+  
+  // State
+  const [filter, setFilter] = React.useState<'active' | 'completed'>('active')
+  const [isLoading] = React.useState(false)
+  const [isArchiveOpen, setIsArchiveOpen] = React.useState(false)
+  const [selectedAchievement, setSelectedAchievement] = React.useState<Achievement | null>(null)
+  const [isLogSheetOpen, setIsLogSheetOpen] = React.useState(false)
 
-  const filteredAchievements = filter === 'active'
-    ? DEMO_ACHIEVEMENTS.filter((a) => a.status === 'active' || a.status === 'completed')
-    : DEMO_ARCHIVED
+  // Computed data
+  const activeAchievements = DEMO_ACHIEVEMENTS.filter((a) => a.status === 'active')
+  const completedAchievements = DEMO_ACHIEVEMENTS.filter((a) => a.status === 'completed')
+  const needsAttention = getNeedsAttention(DEMO_ACHIEVEMENTS)
+
+  const filteredAchievements = filter === 'active' ? activeAchievements : completedAchievements
+
+  // Handlers
+  const handleLogProgress = (achievement: Achievement) => {
+    setSelectedAchievement(achievement)
+    setIsLogSheetOpen(true)
+  }
+
+  const handleSaveProgress = async (value: number, note?: string) => {
+    // Simulate API call
+    await new Promise((r) => setTimeout(r, 500))
+    console.log('[v0] Progress logged:', { achievement: selectedAchievement?.id, value, note })
+  }
+
+  const handleMarkComplete = async () => {
+    await new Promise((r) => setTimeout(r, 500))
+    console.log('[v0] Marked complete:', selectedAchievement?.id)
+  }
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      {/* Header */}
+    <div className="min-h-screen flex flex-col bg-bg-base">
+      {/* Header - Fixed */}
       <BackHeader
-        title="My Space"
+        title="Personal"
         onBack={() => router.push(ROUTES.spaces)}
         rightActions={
           <Button
             size="icon"
             variant="ghost"
             onClick={() => router.push(ROUTES.achievementCreate)}
-            className="size-9 rounded-lg bg-background-elevated"
+            className="size-9 rounded-lg bg-bg-elevated"
           >
             <IconPlus size={18} />
             <span className="sr-only">Create achievement</span>
@@ -133,37 +243,104 @@ export default function PersonalWorkspacePage() {
         }
       />
 
-      {/* Filter tabs */}
-      <div className="px-screen py-3 border-b border-border">
-        <SegmentedControl
-          value={filter}
-          onChange={setFilter}
-          options={PERSONAL_FILTERS}
-        />
-      </div>
-
       {/* Content */}
       <div className="flex-1 overflow-y-auto">
-        <div className="px-screen py-4">
-          {filteredAchievements.length > 0 ? (
-            <div className="space-y-3">
-              {filteredAchievements.map((achievement) => (
-                <AchievementCard
-                  key={achievement.id}
-                  achievement={achievement}
-                  onPress={() => router.push(ROUTES.achievement(achievement.id))}
-                />
-              ))}
-            </div>
-          ) : (
-            <NoAchievements
-              onAction={() => router.push(ROUTES.achievementCreate)}
+        <div className="px-screen py-4 motion-screen-push">
+          
+          {/* Needs Attention Section */}
+          {needsAttention.length > 0 && (
+            <section className="mb-6">
+              <h2 className="text-caption text-secondary mb-2">NEEDS ATTENTION</h2>
+              <div className="flex flex-col gap-2">
+                {needsAttention.map((achievement) => (
+                  <AchievementCard
+                    key={achievement.id}
+                    achievement={achievement}
+                    variant="compact"
+                    onPress={() => router.push(ROUTES.achievement(achievement.id))}
+                    onLogProgress={() => handleLogProgress(achievement)}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {needsAttention.length === 0 && filter === 'active' && activeAchievements.length > 0 && (
+            <section className="mb-6">
+              <NeedsAttentionEmpty />
+            </section>
+          )}
+
+          {/* Filter Pills */}
+          <div className="mb-4">
+            <FilterPills
+              value={filter}
+              onChange={setFilter}
+              options={FILTER_OPTIONS}
             />
+          </div>
+
+          {/* Achievement List */}
+          <AsyncBoundary
+            loading={isLoading}
+            loadingFallback={
+              <div className="flex flex-col gap-2">
+                {Array.from({ length: UI.skeletonListCount }).map((_, i) => (
+                  <AchievementCardSkeleton key={i} variant="compact" />
+                ))}
+              </div>
+            }
+          >
+            {filteredAchievements.length > 0 ? (
+              <div className="flex flex-col gap-2">
+                {filteredAchievements.map((achievement) => (
+                  <AchievementCard
+                    key={achievement.id}
+                    achievement={achievement}
+                    variant="compact"
+                    onPress={() => router.push(ROUTES.achievement(achievement.id))}
+                    onLogProgress={achievement.status === 'active' ? () => handleLogProgress(achievement) : undefined}
+                  />
+                ))}
+              </div>
+            ) : (
+              <NoAchievements onAction={() => router.push(ROUTES.achievementCreate)} />
+            )}
+          </AsyncBoundary>
+
+          {/* Archive Collapsible Section */}
+          {DEMO_ARCHIVED.length > 0 && (
+            <section className="mt-6">
+              <button
+                type="button"
+                onClick={() => setIsArchiveOpen(!isArchiveOpen)}
+                className={cn(
+                  'flex items-center justify-center w-full py-2 gap-2',
+                  'text-label text-tertiary hover:text-secondary transition-colors'
+                )}
+              >
+                {isArchiveOpen ? <IconChevronUp size={16} /> : <IconChevronDown size={16} />}
+                <span>Archive ({DEMO_ARCHIVED.length})</span>
+              </button>
+
+              {isArchiveOpen && (
+                <div className="mt-2 flex flex-col gap-2 motion-tab-content">
+                  {DEMO_ARCHIVED.map((achievement) => (
+                    <AchievementCard
+                      key={achievement.id}
+                      achievement={achievement}
+                      variant="compact"
+                      onPress={() => router.push(ROUTES.achievement(achievement.id))}
+                    />
+                  ))}
+                </div>
+              )}
+            </section>
           )}
         </div>
       </div>
 
-      {/* Floating action button for mobile */}
+      {/* FAB */}
       <div className="fixed bottom-6 right-6 safe-area-bottom">
         <Button
           onClick={() => router.push(ROUTES.achievementCreate)}
@@ -173,6 +350,17 @@ export default function PersonalWorkspacePage() {
           <span className="sr-only">Create achievement</span>
         </Button>
       </div>
+
+      {/* Log Progress Sheet */}
+      {selectedAchievement && (
+        <LogProgressSheet
+          open={isLogSheetOpen}
+          onOpenChange={setIsLogSheetOpen}
+          achievement={selectedAchievement}
+          onLogProgress={handleSaveProgress}
+          onMarkComplete={handleMarkComplete}
+        />
+      )}
     </div>
   )
 }
