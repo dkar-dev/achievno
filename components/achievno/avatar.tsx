@@ -53,10 +53,8 @@ export function AchievnoAvatar({
   className,
   ...props
 }: AchievnoAvatarProps) {
-  // Derive initials from name or use provided initials
   const displayInitials = getInitials(name, initials)
   
-  // Calculate background with opacity for subtle appearance
   const bgStyle = {
     backgroundColor: `${color}15`,
   }

@@ -12,7 +12,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { AchievnoHeader } from "@/components/achievno/header"
+import { BackHeader } from "@/components/achievno/header"
 import { AchievnoAvatar } from "@/components/achievno/avatar"
 import { EmptyState } from "@/components/achievno/empty-state"
 import { 
@@ -157,9 +157,8 @@ export default function NotificationsPage() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <AchievnoHeader
+      <BackHeader
         title="Notifications"
-        showBack
         onBack={() => router.push("/app/spaces")}
         rightActions={
           unreadCount > 0 ? (

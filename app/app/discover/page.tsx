@@ -12,10 +12,10 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Input } from "@/components/ui/input"
-import { AchievnoHeader } from "@/components/achievno/header"
+import { BackHeader } from "@/components/achievno/header"
 import { AchievnoAvatar } from "@/components/achievno/avatar"
 import { AchievnoBadge } from "@/components/achievno/badge"
-import { SegmentedTabs } from "@/components/achievno/tabs"
+import { TabBar } from "@/components/achievno/tabs"
 import { 
   AchievnoIcon,
   IconSearch,
@@ -102,9 +102,8 @@ export default function DiscoverPage() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <AchievnoHeader
+      <BackHeader
         title="Discover"
-        showBack
         onBack={() => router.push("/app/spaces")}
       />
 
@@ -127,10 +126,10 @@ export default function DiscoverPage() {
 
       {/* Tabs */}
       <div className="px-5 py-3 border-b border-border">
-        <SegmentedTabs
-          tabs={DISCOVER_TABS}
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
+        <TabBar
+          tabs={DISCOVER_TABS.map(t => ({ id: t.value, label: t.label }))}
+          value={activeTab}
+          onChange={setActiveTab}
           variant="pill"
         />
       </div>
