@@ -15,10 +15,19 @@ import { cn } from '@/lib/utils'
 
 interface AchievnoAvatarProps extends React.ComponentProps<typeof Avatar> {
   src?: string | null
-  initials: string
+  initials?: string
+  name?: string
   color?: string
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
   variant?: 'circle' | 'rounded'
+}
+
+function getInitials(name?: string, initials?: string): string {
+  if (initials) return initials.slice(0, 2).toUpperCase()
+  if (!name) return '?'
+  const parts = name.trim().split(/\s+/)
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
 }
 
 const sizeClasses = {
@@ -37,13 +46,15 @@ const radiusClasses = {
 export function AchievnoAvatar({
   src,
   initials,
+  name,
   color = '#F5A623',
   size = 'md',
   variant = 'rounded',
   className,
   ...props
 }: AchievnoAvatarProps) {
-  // Calculate background with opacity for subtle appearance
+  const displayInitials = getInitials(name, initials)
+  
   const bgStyle = {
     backgroundColor: `${color}15`,
   }
@@ -61,7 +72,7 @@ export function AchievnoAvatar({
       {src && (
         <AvatarImage
           src={src}
-          alt={initials}
+          alt={name || displayInitials}
           className={radiusClasses[variant]}
         />
       )}
@@ -72,8 +83,63 @@ export function AchievnoAvatar({
         )}
         style={{ ...bgStyle, color }}
       >
-        {initials.slice(0, 2).toUpperCase()}
+        {displayInitials}
       </AvatarFallback>
     </Avatar>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────────
+// AVATAR STACK (overlapping avatars)
+// ─────────────────────────────────────────────────────────────────
+
+interface AchievnoAvatarStackProps {
+  users: Array<{ id: string; name: string; avatar?: string | null }>
+  size?: 'xs' | 'sm' | 'md'
+  max?: number
+  className?: string
+}
+
+export function AchievnoAvatarStack({
+  users,
+  size = 'sm',
+  max = 3,
+  className,
+}: AchievnoAvatarStackProps) {
+  const displayed = users.slice(0, max)
+  const remaining = users.length - max
+
+  const overlapClasses = {
+    xs: '-ml-1.5 first:ml-0',
+    sm: '-ml-2 first:ml-0',
+    md: '-ml-2.5 first:ml-0',
+  }
+
+  return (
+    <div className={cn('flex items-center', className)}>
+      {displayed.map((user) => (
+        <AchievnoAvatar
+          key={user.id}
+          name={user.name}
+          src={user.avatar}
+          size={size}
+          variant="circle"
+          className={cn(overlapClasses[size], 'ring-2 ring-background')}
+        />
+      ))}
+      {remaining > 0 && (
+        <div
+          className={cn(
+            'flex items-center justify-center rounded-full bg-secondary text-secondary-foreground ring-2 ring-background font-medium',
+            overlapClasses[size],
+            size === 'xs' && 'size-6 text-[10px]',
+            size === 'sm' && 'size-8 text-xs',
+            size === 'md' && 'size-10 text-sm'
+          )}
+        >
+          +{remaining}
+        </div>
+      )}
+    </div>
   )
 }

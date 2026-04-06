@@ -14,7 +14,7 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { AchievnoHeader } from "@/components/achievno/header"
+import { BackHeader } from "@/components/achievno/header"
 import { AchievnoAvatar, AchievnoAvatarStack } from "@/components/achievno/avatar"
 import { 
   AchievnoIcon, 
@@ -132,9 +132,8 @@ export default function CreateAchievementPage() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <AchievnoHeader
+      <BackHeader
         title="New Achievement"
-        showBack
         onBack={handleBack}
       />
 

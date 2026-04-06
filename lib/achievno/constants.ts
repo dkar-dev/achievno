@@ -95,7 +95,7 @@ export const ROUTES = {
   
   // Dynamic routes
   achievement: (id: string) => `/app/achievements/${id}`,
-  achievementCreate: '/app/me/achievements/create',
+  achievementCreate: '/app/achievements/create',
   achievementEdit: (id: string) => `/app/achievements/${id}/edit`,
   achievementProgress: (id: string) => `/app/achievements/${id}/progress`,
   

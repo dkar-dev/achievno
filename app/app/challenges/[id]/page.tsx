@@ -13,7 +13,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { AchievnoHeader } from "@/components/achievno/header"
+import { BackHeader } from "@/components/achievno/header"
 import { AchievnoProgress } from "@/components/achievno/progress"
 import { AchievnoAvatar } from "@/components/achievno/avatar"
 import { AchievnoBadge } from "@/components/achievno/badge"
@@ -85,9 +85,8 @@ export default function ChallengeDetailPage() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <AchievnoHeader
+      <BackHeader
         title="Challenge"
-        showBack
         onBack={() => router.back()}
         rightActions={
           <button className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-secondary">
