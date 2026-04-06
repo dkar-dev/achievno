@@ -1,371 +1,280 @@
-@import 'tailwindcss';
-@import 'tw-animate-css';
+@import "tailwindcss";
+@import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
 
-/* 
+/*
  * ═══════════════════════════════════════════════════════════════
- * ACHIEVNO UNIFIED DESIGN SYSTEM
+ * ACHIEVNO DESIGN SYSTEM — v2
  * ═══════════════════════════════════════════════════════════════
- * Shared tokens for: Telegram Mini App, Website, Bot brand system
- * Design direction: Warm Precision - dark, focused, amber-warm
- * Base frame: iPhone 15 Pro 390×844
+ * Direction: Clean, calm, modern productivity UI
+ * Inspired by: Linear + Notion mobile + wellness/productivity
+ * Light theme primary, dark theme secondary
+ * Palette: 1 brand amber · 1 success · 1 danger · neutral grays
  * ═══════════════════════════════════════════════════════════════
  */
 
 :root {
-  /* Background Ramp */
-  --background: #0E0F11;
-  --background-surface: #16181C;
-  --background-elevated: #1E2128;
-  --background-input: #272B33;
-  
-  /* Text Ramp */
-  --foreground: #F2F3F5;
-  --foreground-secondary: #9BA3AF;
-  --foreground-tertiary: #5C6370;
-  
-  /* Brand Accent - Warm Amber */
-  --primary: #F5A623;
-  --primary-foreground: #1A1200;
-  
-  /* Secondary - Elevated surface */
-  --secondary: #1E2128;
-  --secondary-foreground: #F2F3F5;
-  
-  /* Muted */
-  --muted: #16181C;
-  --muted-foreground: #9BA3AF;
-  
-  /* Accent - Uses amber as accent color */
-  --accent: #F5A623;
-  --accent-foreground: #1A1200;
-  
-  /* Semantic Colors */
-  --success: #4ADE80;
-  --success-foreground: #052E16;
-  --destructive: #FF6B6B;
-  --destructive-foreground: #FFFFFF;
-  --info: #60A5FA;
-  --info-foreground: #1E3A5F;
-  --challenge: #A78BFA;
-  --challenge-foreground: #2E1065;
-  
-  /* Borders */
-  --border: rgba(255, 255, 255, 0.07);
-  --border-strong: rgba(255, 255, 255, 0.12);
-  --border-focus: rgba(245, 166, 35, 0.5);
-  
-  /* Input */
-  --input: #272B33;
-  --input-border: rgba(255, 255, 255, 0.12);
-  
-  /* Ring */
-  --ring: #F5A623;
-  
-  /* Card */
-  --card: #16181C;
-  --card-foreground: #F2F3F5;
-  
-  /* Popover */
-  --popover: #1E2128;
-  --popover-foreground: #F2F3F5;
-  
-  /* Chart colors */
-  --chart-1: #F5A623;
-  --chart-2: #4ADE80;
-  --chart-3: #60A5FA;
-  --chart-4: #A78BFA;
-  --chart-5: #2DD4BF;
-  
-  /* Radius - Achievno uses larger radii for warmth */
-  --radius: 0.75rem;
-  --radius-sm: 0.5rem;
-  --radius-md: 0.625rem;
-  --radius-lg: 0.75rem;
-  --radius-xl: 1rem;
-  --radius-2xl: 1.25rem;
-  --radius-full: 9999px;
-  
-  /* Spacing (4pt base grid) */
-  --space-1: 0.25rem;
-  --space-2: 0.5rem;
-  --space-3: 0.75rem;
-  --space-4: 1rem;
-  --space-5: 1.25rem;
-  --space-6: 1.5rem;
-  --space-8: 2rem;
-  --space-12: 3rem;
-  
-  /* Typography */
-  --font-display: 1.75rem;
-  --font-heading: 1.375rem;
-  --font-title: 1.0625rem;
-  --font-body: 0.9375rem;
-  --font-label: 0.8125rem;
-  --font-caption: 0.6875rem;
-  
-  /* Sidebar (for web layout wrapper) */
-  --sidebar: #16181C;
-  --sidebar-foreground: #F2F3F5;
-  --sidebar-primary: #F5A623;
-  --sidebar-primary-foreground: #1A1200;
-  --sidebar-accent: #1E2128;
-  --sidebar-accent-foreground: #F2F3F5;
-  --sidebar-border: rgba(255, 255, 255, 0.07);
-  --sidebar-ring: #F5A623;
+  /* ── Backgrounds ─────────────────────────────────────────── */
+  --background:         #f9f9f8;   /* off-white canvas          */
+  --background-surface: #ffffff;   /* card / panel surface      */
+  --background-raised:  #f1f0ef;   /* slightly raised surface   */
+  --background-subtle:  #e8e8e6;   /* subtle fills, dividers    */
+
+  /* ── Text Ramp ───────────────────────────────────────────── */
+  --foreground:          #18181b;   /* primary text              */
+  --foreground-secondary:#71717a;   /* secondary / descriptive   */
+  --foreground-tertiary: #a1a09a;   /* placeholder / disabled    */
+
+  /* ── Brand Accent — Warm Amber ───────────────────────────── */
+  --accent:              #f59e0b;
+  --accent-hover:        #d97706;
+  --accent-subtle:       #fef3c7;
+  --accent-foreground:   #ffffff;
+
+  /* ── Semantic ────────────────────────────────────────────── */
+  --success:             #059669;
+  --success-subtle:      #d1fae5;
+  --success-foreground:  #ffffff;
+
+  --danger:              #e11d48;
+  --danger-subtle:       #ffe4e6;
+  --danger-foreground:   #ffffff;
+
+  /* ── Borders & Rings ─────────────────────────────────────── */
+  --border:              #e4e4e0;
+  --border-strong:       #d1d1cc;
+  --ring:                #f59e0b;
+
+  /* ── Inputs ──────────────────────────────────────────────── */
+  --input:               #f1f0ef;
+  --input-border:        #d4d4d0;
+
+  /* ── Card ────────────────────────────────────────────────── */
+  --card:                #ffffff;
+  --card-foreground:     #18181b;
+
+  /* ── Muted ───────────────────────────────────────────────── */
+  --muted:               #f1f0ef;
+  --muted-foreground:    #71717a;
+
+  /* ── Radius ──────────────────────────────────────────────── */
+  --radius: 0.625rem;     /* 10px base */
+
+  /* ── Sidebar (web shell) ─────────────────────────────────── */
+  --sidebar:                    #ffffff;
+  --sidebar-foreground:         #18181b;
+  --sidebar-border:             #e4e4e0;
+  --sidebar-accent:             #f1f0ef;
+  --sidebar-accent-foreground:  #18181b;
+  --sidebar-primary:            #f59e0b;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-ring:               #f59e0b;
 }
 
-/* Light mode override - Achievno is dark-first but supports light */
-.light {
-  --background: #FFFFFF;
-  --background-surface: #F9FAFB;
-  --background-elevated: #F3F4F6;
-  --background-input: #E5E7EB;
-  
-  --foreground: #111827;
-  --foreground-secondary: #4B5563;
-  --foreground-tertiary: #9CA3AF;
-  
-  --primary: #E09400;
-  --primary-foreground: #FFFFFF;
-  
-  --secondary: #F3F4F6;
-  --secondary-foreground: #111827;
-  
-  --muted: #F9FAFB;
-  --muted-foreground: #6B7280;
-  
-  --accent: #E09400;
-  --accent-foreground: #FFFFFF;
-  
-  --border: rgba(0, 0, 0, 0.08);
-  --border-strong: rgba(0, 0, 0, 0.12);
-  
-  --card: #FFFFFF;
-  --card-foreground: #111827;
-  
-  --popover: #FFFFFF;
-  --popover-foreground: #111827;
-  
-  --input: #F3F4F6;
-  --input-border: rgba(0, 0, 0, 0.12);
+.dark {
+  /* ── Backgrounds ─────────────────────────────────────────── */
+  --background:         #111110;
+  --background-surface: #1a1a19;
+  --background-raised:  #222220;
+  --background-subtle:  #2a2a28;
+
+  /* ── Text Ramp ───────────────────────────────────────────── */
+  --foreground:          #f5f5f4;
+  --foreground-secondary:#a8a89e;
+  --foreground-tertiary: #6c6c65;
+
+  /* ── Brand Accent — same amber, slightly adjusted ─────────── */
+  --accent:              #f59e0b;
+  --accent-hover:        #fbbf24;
+  --accent-subtle:       #2d1f00;
+  --accent-foreground:   #111110;
+
+  /* ── Semantic ────────────────────────────────────────────── */
+  --success:             #10b981;
+  --success-subtle:      #052e1a;
+  --success-foreground:  #111110;
+
+  --danger:              #f43f5e;
+  --danger-subtle:       #2d0614;
+  --danger-foreground:   #111110;
+
+  /* ── Borders & Rings ─────────────────────────────────────── */
+  --border:              #2a2a28;
+  --border-strong:       #3a3a37;
+  --ring:                #f59e0b;
+
+  /* ── Inputs ──────────────────────────────────────────────── */
+  --input:               #1a1a19;
+  --input-border:        #2a2a28;
+
+  /* ── Card ────────────────────────────────────────────────── */
+  --card:                #1a1a19;
+  --card-foreground:     #f5f5f4;
+
+  /* ── Muted ───────────────────────────────────────────────── */
+  --muted:               #1a1a19;
+  --muted-foreground:    #a8a89e;
+
+  /* ── Sidebar ─────────────────────────────────────────────── */
+  --sidebar:                    #1a1a19;
+  --sidebar-foreground:         #f5f5f4;
+  --sidebar-border:             #2a2a28;
+  --sidebar-accent:             #222220;
+  --sidebar-accent-foreground:  #f5f5f4;
+  --sidebar-primary:            #f59e0b;
+  --sidebar-primary-foreground: #111110;
+  --sidebar-ring:               #f59e0b;
 }
 
 @theme inline {
-  /* Typography - DM Sans for Achievno */
-  --font-sans: 'DM Sans', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-mono: 'DM Mono', 'Geist Mono', monospace;
-  
-  /* Core Colors */
-  --color-background: var(--background);
-  --color-background-surface: var(--background-surface);
-  --color-background-elevated: var(--background-elevated);
-  --color-background-input: var(--background-input);
-  
-  --color-foreground: var(--foreground);
-  --color-foreground-secondary: var(--foreground-secondary);
+  /* ── Fonts ───────────────────────────────────────────────── */
+  --font-sans: "Plus Jakarta Sans", "Plus Jakarta Sans Fallback", sans-serif;
+  --font-mono: "JetBrains Mono", "JetBrains Mono Fallback", monospace;
+
+  /* ── Semantic color mappings ─────────────────────────────── */
+  --color-background:          var(--background);
+  --color-background-surface:  var(--background-surface);
+  --color-background-raised:   var(--background-raised);
+  --color-background-subtle:   var(--background-subtle);
+
+  --color-foreground:          var(--foreground);
+  --color-foreground-secondary:var(--foreground-secondary);
   --color-foreground-tertiary: var(--foreground-tertiary);
-  
-  /* Card & Popover */
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  
-  /* Primary (Amber) */
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  
-  /* Secondary */
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  
-  /* Muted */
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  
-  /* Accent (Amber) */
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  
-  /* Semantic Colors */
-  --color-success: var(--success);
-  --color-success-foreground: var(--success-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
-  --color-info: var(--info);
-  --color-info-foreground: var(--info-foreground);
-  --color-challenge: var(--challenge);
-  --color-challenge-foreground: var(--challenge-foreground);
-  
-  /* Borders */
-  --color-border: var(--border);
-  --color-border-strong: var(--border-strong);
-  --color-border-focus: var(--border-focus);
-  
-  /* Input */
-  --color-input: var(--input);
-  --color-input-border: var(--input-border);
-  --color-ring: var(--ring);
-  
-  /* Charts */
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-  
-  /* Radius */
-  --radius-sm: var(--radius-sm);
-  --radius-md: var(--radius-md);
-  --radius-lg: var(--radius-lg);
-  --radius-xl: var(--radius-xl);
-  --radius-2xl: var(--radius-2xl);
-  --radius-full: var(--radius-full);
-  
-  /* Sidebar (Web wrapper) */
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
+
+  --color-accent:              var(--accent);
+  --color-accent-hover:        var(--accent-hover);
+  --color-accent-subtle:       var(--accent-subtle);
+  --color-accent-foreground:   var(--accent-foreground);
+
+  --color-success:             var(--success);
+  --color-success-subtle:      var(--success-subtle);
+  --color-success-foreground:  var(--success-foreground);
+
+  --color-danger:              var(--danger);
+  --color-danger-subtle:       var(--danger-subtle);
+  --color-danger-foreground:   var(--danger-foreground);
+
+  --color-border:              var(--border);
+  --color-border-strong:       var(--border-strong);
+  --color-ring:                var(--ring);
+
+  --color-input:               var(--input);
+  --color-input-border:        var(--input-border);
+
+  --color-card:                var(--card);
+  --color-card-foreground:     var(--card-foreground);
+
+  --color-muted:               var(--muted);
+  --color-muted-foreground:    var(--muted-foreground);
+
+  --color-sidebar:                    var(--sidebar);
+  --color-sidebar-foreground:         var(--sidebar-foreground);
+  --color-sidebar-border:             var(--sidebar-border);
+  --color-sidebar-accent:             var(--sidebar-accent);
+  --color-sidebar-accent-foreground:  var(--sidebar-accent-foreground);
+  --color-sidebar-primary:            var(--sidebar-primary);
   --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-ring:               var(--sidebar-ring);
+
+  /* ── Radius scale ────────────────────────────────────────── */
+  --radius-xs:  calc(var(--radius) - 4px);
+  --radius-sm:  calc(var(--radius) - 2px);
+  --radius-md:  var(--radius);
+  --radius-lg:  calc(var(--radius) + 4px);
+  --radius-xl:  calc(var(--radius) + 8px);
+  --radius-2xl: calc(var(--radius) + 14px);
+  --radius-full: 9999px;
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    box-sizing: border-box;
   }
-  
+
   html {
-    /* Achievno is dark-mode first */
+    color-scheme: light;
+  }
+
+  html.dark {
     color-scheme: dark;
   }
-  
+
   body {
-    @apply bg-background text-foreground antialiased;
+    @apply bg-background text-foreground font-sans antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
-  
-  /* Safe area handling for mobile */
-  .safe-area-top {
-    padding-top: env(safe-area-inset-top, 0);
-  }
-  
-  .safe-area-bottom {
-    padding-bottom: env(safe-area-inset-bottom, 0);
-  }
-  
-  .safe-area-inset {
-    padding-top: env(safe-area-inset-top, 0);
-    padding-bottom: env(safe-area-inset-bottom, 0);
-    padding-left: env(safe-area-inset-left, 0);
-    padding-right: env(safe-area-inset-right, 0);
+    line-height: 1.5;
   }
 }
 
-/* 
- * ═══════════════════════════════════════════════════════════════
- * ACHIEVNO UTILITY CLASSES
- * ═══════════════════════════════════════════════════════════════
- */
-
 @layer utilities {
-  /* Text hierarchy */
+  /* ── Typography scale ────────────────────────────────────── */
   .text-display {
-    @apply text-[1.75rem] font-semibold tracking-[-0.05em] leading-[1.15];
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: -0.04em;
+    line-height: 1.15;
   }
-  
-  .text-heading {
-    @apply text-[1.375rem] font-semibold tracking-[-0.03em] leading-[1.2];
+  .text-heading-1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1.2;
   }
-  
+  .text-heading-2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    line-height: 1.25;
+  }
   .text-title {
-    @apply text-[1.0625rem] font-semibold tracking-[-0.01em] leading-[1.3];
+    font-size: 1.0625rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.35;
   }
-  
   .text-body {
-    @apply text-[0.9375rem] font-normal tracking-normal leading-[1.55];
+    font-size: 0.9375rem;
+    font-weight: 400;
+    letter-spacing: 0;
+    line-height: 1.6;
   }
-  
+  .text-body-sm {
+    font-size: 0.875rem;
+    font-weight: 400;
+    line-height: 1.55;
+  }
   .text-label {
-    @apply text-[0.8125rem] font-medium tracking-normal leading-[1.4];
+    font-size: 0.8125rem;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    line-height: 1.4;
   }
-  
   .text-caption {
-    @apply text-[0.6875rem] font-medium tracking-[0.02em] leading-[1.4] uppercase;
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.03em;
+    line-height: 1.4;
   }
-  
-  /* Achievno semantic text colors */
-  .text-secondary {
-    color: var(--foreground-secondary);
+  .text-overline {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    line-height: 1.4;
   }
-  
-  .text-tertiary {
-    color: var(--foreground-tertiary);
-  }
-  
-  /* Surface layers */
-  .bg-surface {
-    background-color: var(--background-surface);
-  }
-  
-  .bg-elevated {
-    background-color: var(--background-elevated);
-  }
-  
-  .bg-input-surface {
-    background-color: var(--background-input);
-  }
-  
-  /* Semantic backgrounds */
-  .bg-success-subtle {
-    background-color: rgba(74, 222, 128, 0.15);
-  }
-  
-  .bg-destructive-subtle {
-    background-color: rgba(255, 107, 107, 0.15);
-  }
-  
-  .bg-info-subtle {
-    background-color: rgba(96, 165, 250, 0.15);
-  }
-  
-  .bg-challenge-subtle {
-    background-color: rgba(167, 139, 250, 0.15);
-  }
-  
-  .bg-accent-subtle {
-    background-color: rgba(245, 166, 35, 0.12);
-  }
-  
-  /* Border variants */
-  .border-strong {
-    border-color: var(--border-strong);
-  }
-  
-  /* Mobile-first container */
-  .container-mobile {
-    @apply w-full max-w-[390px] mx-auto;
-  }
-  
-  /* Screen padding (Achievno standard: 20px sides) */
-  .px-screen {
-    @apply px-5;
-  }
-  
-  /* Header height */
-  .h-header {
-    height: 48px;
-  }
-  
-  /* Bottom nav height */
-  .h-bottomnav {
-    height: 48px;
-  }
+
+  /* ── Semantic text helpers ───────────────────────────────── */
+  .text-secondary  { color: var(--foreground-secondary); }
+  .text-tertiary   { color: var(--foreground-tertiary); }
+
+  /* ── Surface helpers ─────────────────────────────────────── */
+  .bg-surface   { background-color: var(--background-surface); }
+  .bg-raised    { background-color: var(--background-raised); }
+  .bg-subtle    { background-color: var(--background-subtle); }
+
+  /* ── Safe area (mobile) ──────────────────────────────────── */
+  .safe-top    { padding-top: env(safe-area-inset-top, 0); }
+  .safe-bottom { padding-bottom: env(safe-area-inset-bottom, 0); }
 }
