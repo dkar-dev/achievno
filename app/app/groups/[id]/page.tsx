@@ -12,12 +12,12 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { AchievnoHeader } from "@/components/achievno/header"
+import { BackHeader } from "@/components/achievno/header"
 import { AchievnoProgress } from "@/components/achievno/progress"
 import { AchievnoAvatar, AchievnoAvatarStack } from "@/components/achievno/avatar"
 import { AchievnoBadge } from "@/components/achievno/badge"
 import { AchievementCard } from "@/components/achievno/achievement-card"
-import { SegmentedTabs } from "@/components/achievno/tabs"
+import { TabBar } from "@/components/achievno/tabs"
 import { EmptyState } from "@/components/achievno/empty-state"
 import { 
   AchievnoIcon,
@@ -119,9 +119,8 @@ export default function GroupWorkspacePage() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <AchievnoHeader
+      <BackHeader
         title={MOCK_GROUP.name}
-        showBack
         onBack={() => router.push("/app/spaces")}
         rightActions={
           <button className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-secondary">
@@ -152,12 +151,11 @@ export default function GroupWorkspacePage() {
 
       {/* Tabs */}
       <div className="px-5 py-3 border-b border-border">
-        <SegmentedTabs
-          tabs={GROUP_TABS}
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
+        <TabBar
+          tabs={GROUP_TABS.map(t => ({ id: t.value, label: t.label }))}
+          value={activeTab}
+          onChange={setActiveTab}
           variant="underline"
-          size="sm"
         />
       </div>
 

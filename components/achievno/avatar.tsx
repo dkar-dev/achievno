@@ -90,3 +90,58 @@ export function AchievnoAvatar({
     </Avatar>
   )
 }
+
+// ─────────────────────────────────────────────────────────────────
+// AVATAR STACK (overlapping avatars)
+// ─────────────────────────────────────────────────────────────────
+
+interface AchievnoAvatarStackProps {
+  users: Array<{ id: string; name: string; avatar?: string | null }>
+  size?: 'xs' | 'sm' | 'md'
+  max?: number
+  className?: string
+}
+
+export function AchievnoAvatarStack({
+  users,
+  size = 'sm',
+  max = 3,
+  className,
+}: AchievnoAvatarStackProps) {
+  const displayed = users.slice(0, max)
+  const remaining = users.length - max
+
+  const overlapClasses = {
+    xs: '-ml-1.5 first:ml-0',
+    sm: '-ml-2 first:ml-0',
+    md: '-ml-2.5 first:ml-0',
+  }
+
+  return (
+    <div className={cn('flex items-center', className)}>
+      {displayed.map((user) => (
+        <AchievnoAvatar
+          key={user.id}
+          name={user.name}
+          src={user.avatar}
+          size={size}
+          variant="circle"
+          className={cn(overlapClasses[size], 'ring-2 ring-background')}
+        />
+      ))}
+      {remaining > 0 && (
+        <div
+          className={cn(
+            'flex items-center justify-center rounded-full bg-secondary text-secondary-foreground ring-2 ring-background font-medium',
+            overlapClasses[size],
+            size === 'xs' && 'size-6 text-[10px]',
+            size === 'sm' && 'size-8 text-xs',
+            size === 'md' && 'size-10 text-sm'
+          )}
+        >
+          +{remaining}
+        </div>
+      )}
+    </div>
+  )
+}
