@@ -107,7 +107,7 @@ export default function ProfilePage() {
         <div className="px-5 py-5 border-b border-border">
           <h3 className="text-caption text-secondary mb-3">Statistics</h3>
           <div className="grid grid-cols-2 gap-3">
-            <div className="bg-surface rounded-xl border border-border p-4">
+            <div className="bg-surface rounded-xl border border-border p-4 flex flex-col items-center text-center">
               <div className="flex items-center gap-2 mb-2">
                 <AchievnoIcon icon={IconTarget} size="sm" className="text-primary" />
                 <span className="text-label text-secondary">Achievements</span>
@@ -118,7 +118,7 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            <div className="bg-surface rounded-xl border border-border p-4">
+            <div className="bg-surface rounded-xl border border-border p-4 flex flex-col items-center text-center">
               <div className="flex items-center gap-2 mb-2">
                 <AchievnoIcon icon={IconTrophy} size="sm" className="text-challenge" />
                 <span className="text-label text-secondary">Challenges</span>
@@ -127,7 +127,7 @@ export default function ProfilePage() {
               <div className="text-caption text-tertiary mt-1">active</div>
             </div>
 
-            <div className="bg-surface rounded-xl border border-border p-4">
+            <div className="bg-surface rounded-xl border border-border p-4 flex flex-col items-center text-center">
               <div className="flex items-center gap-2 mb-2">
                 <AchievnoIcon icon={IconUsers} size="sm" className="text-info" />
                 <span className="text-label text-secondary">Groups</span>
@@ -136,7 +136,7 @@ export default function ProfilePage() {
               <div className="text-caption text-tertiary mt-1">joined</div>
             </div>
 
-            <div className="bg-surface rounded-xl border border-border p-4">
+            <div className="bg-surface rounded-xl border border-border p-4 flex flex-col items-center text-center">
               <div className="flex items-center gap-2 mb-2">
                 <AchievnoIcon icon={IconCalendar} size="sm" className="text-success" />
                 <span className="text-label text-secondary">Streak</span>

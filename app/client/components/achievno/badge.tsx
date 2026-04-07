@@ -87,7 +87,7 @@ export function getAchievementBadgeVariant(status: AchievementStatus | 'not_star
     case 'not_started':
       return 'muted'
     case 'active':
-      return 'primary'
+      return 'info'
     case 'completed':
       return 'success'
     case 'archived':

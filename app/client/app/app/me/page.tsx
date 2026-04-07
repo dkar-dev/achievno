@@ -230,17 +230,6 @@ export default function PersonalWorkspacePage() {
       <BackHeader
         title="Personal"
         onBack={() => router.push(ROUTES.spaces)}
-        rightActions={
-          <Button
-            size="icon"
-            variant="ghost"
-            onClick={() => router.push(ROUTES.achievementCreate)}
-            className="size-9 rounded-lg bg-bg-elevated"
-          >
-            <IconPlus size={18} />
-            <span className="sr-only">Create achievement</span>
-          </Button>
-        }
       />
 
       {/* Content */}

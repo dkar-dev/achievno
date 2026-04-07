@@ -101,18 +101,28 @@ export function TabBar<T extends string>({
     )
   }
 
+  const activeIndex = tabs.findIndex((t) => t.id === value)
+
   return (
-    <div className={cn('flex gap-1 overflow-x-auto no-scrollbar px-screen', className)}>
+    <div className={cn('relative flex bg-background-elevated rounded-xl p-1 overflow-hidden', className)}>
+      {/* Sliding indicator - sits behind the active tab text */}
+      <div
+        className="absolute top-1 bottom-1 bg-primary rounded-lg shadow-sm transition-all duration-200 ease-out"
+        style={{
+          left: `calc(0.25rem + (100% - 0.5rem) / ${tabs.length} * ${activeIndex})`,
+          width: `calc((100% - 0.5rem) / ${tabs.length})`,
+        }}
+      />
       {tabs.map((tab) => (
         <button
           key={tab.id}
           type="button"
           onClick={() => onChange(tab.id)}
           className={cn(
-            'px-4 py-2 rounded-xl text-label font-medium transition-colors whitespace-nowrap',
+            'relative z-10 flex-1 py-2 px-3 rounded-lg text-label font-medium transition-colors whitespace-nowrap text-center',
             value === tab.id
-              ? 'bg-primary text-primary-foreground'
-              : 'bg-background-elevated text-secondary hover:text-foreground'
+              ? 'text-primary-foreground'
+              : 'text-tertiary hover:text-secondary'
           )}
         >
           {tab.label}

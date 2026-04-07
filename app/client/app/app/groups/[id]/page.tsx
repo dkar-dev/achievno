@@ -149,17 +149,17 @@ function OverviewTab() {
     <div className="space-y-6 motion-tab-content">
       {/* Quick Stats - compact */}
       <div className="grid grid-cols-3 gap-2">
-        <div className="bg-bg-elevated rounded-lg p-3 border border-border-subtle">
+        <div className="bg-bg-elevated rounded-lg p-3 border border-border-subtle flex flex-col items-center justify-center text-center min-h-[64px]">
           <div className="text-title font-semibold text-primary">{MOCK_ACHIEVEMENTS.length}</div>
-          <div className="text-caption text-tertiary">Active</div>
+          <div className="text-caption text-tertiary truncate w-full">Active</div>
         </div>
-        <div className="bg-bg-elevated rounded-lg p-3 border border-border-subtle">
+        <div className="bg-bg-elevated rounded-lg p-3 border border-border-subtle flex flex-col items-center justify-center text-center min-h-[64px]">
           <div className="text-title font-semibold text-challenge">{MOCK_CHALLENGES.filter(c => c.status === 'active').length}</div>
-          <div className="text-caption text-tertiary">Challenges</div>
+          <div className="text-caption text-tertiary truncate w-full">Challenges</div>
         </div>
-        <div className="bg-bg-elevated rounded-lg p-3 border border-border-subtle">
+        <div className="bg-bg-elevated rounded-lg p-3 border border-border-subtle flex flex-col items-center justify-center text-center min-h-[64px]">
           <div className="text-title font-semibold text-success">89%</div>
-          <div className="text-caption text-tertiary">This week</div>
+          <div className="text-caption text-tertiary truncate w-full">This week</div>
         </div>
       </div>
 
