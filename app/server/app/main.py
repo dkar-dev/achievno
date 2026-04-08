@@ -9,15 +9,14 @@ app = FastAPI(title=settings.app_name)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_allowed_origins,
+    allow_origin_regex=settings.cors_allowed_origin_regex,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-
 @app.get("/health")
 async def health() -> dict[str, str]:
     return {"status": "ok"}
-
 
 app.include_router(telegram_router, prefix="/api/v1")
