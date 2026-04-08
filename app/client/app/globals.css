@@ -17,342 +17,357 @@
    LIGHT THEME (PRIMARY)
    ═══════════════════════════════════════════════════════════════ */
 :root {
-  /* Background Ramp */
-  --background: #FFFFFF;
-  --background-surface: #F9FAFB;
-  --background-elevated: #F3F4F6;
-  --background-input: #E5E7EB;
-  
-  /* Surface Hierarchy (NEW) */
-  --bg-base: #FFFFFF;
-  --bg-elevated: #FFFFFF;
-  --bg-muted: #F9FAFB;
-  
-  /* Text Ramp */
-  --foreground: #111827;
-  --foreground-secondary: #4B5563;
-  --foreground-tertiary: #9CA3AF;
-  
-  /* Brand Accent - Warm Amber */
-  --primary: #E09400;
-  --primary-foreground: #FFFFFF;
-  
-  /* Secondary - Elevated surface */
-  --secondary: #F3F4F6;
-  --secondary-foreground: #111827;
-  
-  /* Muted */
-  --muted: #F9FAFB;
-  --muted-foreground: #6B7280;
-  
-  /* Accent (Amber) */
-  --accent: #E09400;
-  --accent-foreground: #FFFFFF;
-  
-  /* Semantic Colors */
-  --success: #16A34A;
-  --success-foreground: #FFFFFF;
-  --destructive: #DC2626;
-  --destructive-foreground: #FFFFFF;
-  --info: #2563EB;
-  --info-foreground: #FFFFFF;
-  --challenge: #7C3AED;
-  --challenge-foreground: #FFFFFF;
-  
-  /* Borders */
-  --border: rgba(0, 0, 0, 0.08);
-  --border-strong: rgba(0, 0, 0, 0.12);
-  --border-focus: rgba(224, 148, 0, 0.5);
-  --border-subtle: #E5E7EB;
-  --border-emphasis: #D1D5DB;
-  
-  /* Input */
-  --input: #F3F4F6;
-  --input-border: rgba(0, 0, 0, 0.12);
-  
-  /* Ring */
-  --ring: #E09400;
-  --ring-error: #DC2626;
-  
-  /* Card */
-  --card: #FFFFFF;
-  --card-foreground: #111827;
-  
-  /* Popover */
-  --popover: #FFFFFF;
-  --popover-foreground: #111827;
-  
-  /* Chart colors */
-  --chart-1: #E09400;
-  --chart-2: #16A34A;
-  --chart-3: #2563EB;
-  --chart-4: #7C3AED;
-  --chart-5: #0D9488;
-  
-  /* Radius - Achievno uses larger radii for warmth */
-  --radius: 0.75rem;
-  --radius-sm: 0.5rem;
-  --radius-md: 0.625rem;
-  --radius-lg: 0.75rem;
-  --radius-xl: 1rem;
-  --radius-2xl: 1.25rem;
-  --radius-full: 9999px;
-  
-  /* Spacing (4pt base grid) */
-  --space-1: 0.25rem;
-  --space-2: 0.5rem;
-  --space-3: 0.75rem;
-  --space-4: 1rem;
-  --space-5: 1.25rem;
-  --space-6: 1.5rem;
-  --space-8: 2rem;
-  --space-12: 3rem;
-  
-  /* Typography */
-  --font-display: 1.75rem;
-  --font-heading: 1.375rem;
-  --font-title: 1.0625rem;
-  --font-body: 0.9375rem;
-  --font-label: 0.8125rem;
-  --font-caption: 0.6875rem;
-  
-  /* Sidebar (for web layout wrapper) */
-  --sidebar: #F9FAFB;
-  --sidebar-foreground: #111827;
-  --sidebar-primary: #E09400;
-  --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #F3F4F6;
-  --sidebar-accent-foreground: #111827;
-  --sidebar-border: rgba(0, 0, 0, 0.08);
-  --sidebar-ring: #E09400;
-  
-  /* Selection state */
-  --selected-bg: rgba(224, 148, 0, 0.08);
-  --selected-border: #E09400;
+    /* Background Ramp */
+    --background: #FFFFFF;
+    --background-surface: #F9FAFB;
+    --background-elevated: #F3F4F6;
+    --background-input: #E5E7EB;
+
+    /* Surface Hierarchy (NEW) */
+    --bg-base: #FFFFFF;
+    --bg-elevated: #FFFFFF;
+    --bg-muted: #F9FAFB;
+
+    /* Text Ramp */
+    --foreground: #111827;
+    --foreground-secondary: #4B5563;
+    --foreground-tertiary: #9CA3AF;
+
+    /* Brand Accent - Warm Amber */
+    --primary: #E09400;
+    --primary-foreground: #FFFFFF;
+
+    /* Secondary - Elevated surface */
+    --secondary: #F3F4F6;
+    --secondary-foreground: #111827;
+
+    /* Muted */
+    --muted: #F9FAFB;
+    --muted-foreground: #6B7280;
+
+    /* Accent (Amber) */
+    --accent: #E09400;
+    --accent-foreground: #FFFFFF;
+
+    /* Semantic Colors */
+    --success: #16A34A;
+    --success-foreground: #FFFFFF;
+    --destructive: #DC2626;
+    --destructive-foreground: #FFFFFF;
+    --info: #2563EB;
+    --info-foreground: #FFFFFF;
+    --challenge: #7C3AED;
+    --challenge-foreground: #FFFFFF;
+
+    /* Borders */
+    --border: rgba(0, 0, 0, 0.08);
+    --border-strong: rgba(0, 0, 0, 0.12);
+    --border-focus: rgba(224, 148, 0, 0.5);
+    --border-subtle: #E5E7EB;
+    --border-emphasis: #D1D5DB;
+
+    /* Input */
+    --input: #F3F4F6;
+    --input-border: rgba(0, 0, 0, 0.12);
+
+    /* Ring */
+    --ring: #E09400;
+    --ring-error: #DC2626;
+
+    /* Card */
+    --card: #FFFFFF;
+    --card-foreground: #111827;
+
+    /* Popover */
+    --popover: #FFFFFF;
+    --popover-foreground: #111827;
+
+    /* Chart colors */
+    --chart-1: #E09400;
+    --chart-2: #16A34A;
+    --chart-3: #2563EB;
+    --chart-4: #7C3AED;
+    --chart-5: #0D9488;
+
+    /* Radius - Achievno uses larger radii for warmth */
+    --radius: 0.75rem;
+    --radius-sm: 0.5rem;
+    --radius-md: 0.625rem;
+    --radius-lg: 0.75rem;
+    --radius-xl: 1rem;
+    --radius-2xl: 1.25rem;
+    --radius-full: 9999px;
+
+    /* Spacing (4pt base grid) */
+    --space-1: 0.25rem;
+    --space-2: 0.5rem;
+    --space-3: 0.75rem;
+    --space-4: 1rem;
+    --space-5: 1.25rem;
+    --space-6: 1.5rem;
+    --space-8: 2rem;
+    --space-12: 3rem;
+
+    /* Typography */
+    --font-display: 1.75rem;
+    --font-heading: 1.375rem;
+    --font-title: 1.0625rem;
+    --font-body: 0.9375rem;
+    --font-label: 0.8125rem;
+    --font-caption: 0.6875rem;
+
+    /* Sidebar (for web layout wrapper) */
+    --sidebar: #F9FAFB;
+    --sidebar-foreground: #111827;
+    --sidebar-primary: #E09400;
+    --sidebar-primary-foreground: #FFFFFF;
+    --sidebar-accent: #F3F4F6;
+    --sidebar-accent-foreground: #111827;
+    --sidebar-border: rgba(0, 0, 0, 0.08);
+    --sidebar-ring: #E09400;
+
+    /* Selection state */
+    --selected-bg: rgba(224, 148, 0, 0.08);
+    --selected-border: #E09400;
+
+    /* telegram */
+    --tg-bg-color: var(--background);
+    --tg-text-color: var(--foreground);
+    --tg-hint-color: #8e8e93;
+    --tg-link-color: #2f80ed;
+    --tg-button-color: #2f80ed;
+    --tg-button-text-color: #ffffff;
+    --tg-secondary-bg-color: transparent;
+    --tg-header-bg-color: transparent;
+    --tg-accent-text-color: currentColor;
+    --tg-section-bg-color: transparent;
+    --tg-section-header-text-color: currentColor;
+    --tg-subtitle-text-color: #8e8e93;
+    --tg-destructive-text-color: #ff3b30;
 }
 
 /* ═══════════════════════════════════════════════════════════════
    DARK THEME (SECONDARY)
    ═══════════════════════════════════════════════════════════════ */
 .dark {
-  /* Background Ramp */
-  --background: #0E0F11;
-  --background-surface: #16181C;
-  --background-elevated: #1E2128;
-  --background-input: #272B33;
-  
-  /* Surface Hierarchy */
-  --bg-base: #0A0A0C;
-  --bg-elevated: #141417;
-  --bg-muted: #1C1C21;
-  
-  /* Text Ramp */
-  --foreground: #F2F3F5;
-  --foreground-secondary: #9BA3AF;
-  --foreground-tertiary: #5C6370;
-  
-  /* Brand Accent - Warm Amber */
-  --primary: #F5A623;
-  --primary-foreground: #1A1200;
-  
-  /* Secondary - Elevated surface */
-  --secondary: #1E2128;
-  --secondary-foreground: #F2F3F5;
-  
-  /* Muted */
-  --muted: #16181C;
-  --muted-foreground: #9BA3AF;
-  
-  /* Accent (Amber) */
-  --accent: #F5A623;
-  --accent-foreground: #1A1200;
-  
-  /* Semantic Colors */
-  --success: #4ADE80;
-  --success-foreground: #052E16;
-  --destructive: #FF6B6B;
-  --destructive-foreground: #FFFFFF;
-  --info: #60A5FA;
-  --info-foreground: #1E3A5F;
-  --challenge: #A78BFA;
-  --challenge-foreground: #2E1065;
-  
-  /* Borders */
-  --border: rgba(255, 255, 255, 0.07);
-  --border-strong: rgba(255, 255, 255, 0.12);
-  --border-focus: rgba(245, 166, 35, 0.5);
-  --border-subtle: #27272A;
-  --border-emphasis: #3F3F46;
-  
-  /* Input */
-  --input: #272B33;
-  --input-border: rgba(255, 255, 255, 0.12);
-  
-  /* Ring */
-  --ring: #F5A623;
-  --ring-error: #FF6B6B;
-  
-  /* Card */
-  --card: #16181C;
-  --card-foreground: #F2F3F5;
-  
-  /* Popover */
-  --popover: #1E2128;
-  --popover-foreground: #F2F3F5;
-  
-  /* Chart colors */
-  --chart-1: #F5A623;
-  --chart-2: #4ADE80;
-  --chart-3: #60A5FA;
-  --chart-4: #A78BFA;
-  --chart-5: #2DD4BF;
-  
-  /* Sidebar (Web wrapper) */
-  --sidebar: #16181C;
-  --sidebar-foreground: #F2F3F5;
-  --sidebar-primary: #F5A623;
-  --sidebar-primary-foreground: #1A1200;
-  --sidebar-accent: #1E2128;
-  --sidebar-accent-foreground: #F2F3F5;
-  --sidebar-border: rgba(255, 255, 255, 0.07);
-  --sidebar-ring: #F5A623;
-  
-  /* Selection state */
-  --selected-bg: rgba(245, 166, 35, 0.12);
-  --selected-border: #F5A623;
+    /* Background Ramp */
+    --background: #0E0F11;
+    --background-surface: #16181C;
+    --background-elevated: #1E2128;
+    --background-input: #272B33;
+
+    /* Surface Hierarchy */
+    --bg-base: #0A0A0C;
+    --bg-elevated: #141417;
+    --bg-muted: #1C1C21;
+
+    /* Text Ramp */
+    --foreground: #F2F3F5;
+    --foreground-secondary: #9BA3AF;
+    --foreground-tertiary: #5C6370;
+
+    /* Brand Accent - Warm Amber */
+    --primary: #F5A623;
+    --primary-foreground: #1A1200;
+
+    /* Secondary - Elevated surface */
+    --secondary: #1E2128;
+    --secondary-foreground: #F2F3F5;
+
+    /* Muted */
+    --muted: #16181C;
+    --muted-foreground: #9BA3AF;
+
+    /* Accent (Amber) */
+    --accent: #F5A623;
+    --accent-foreground: #1A1200;
+
+    /* Semantic Colors */
+    --success: #4ADE80;
+    --success-foreground: #052E16;
+    --destructive: #FF6B6B;
+    --destructive-foreground: #FFFFFF;
+    --info: #60A5FA;
+    --info-foreground: #1E3A5F;
+    --challenge: #A78BFA;
+    --challenge-foreground: #2E1065;
+
+    /* Borders */
+    --border: rgba(255, 255, 255, 0.07);
+    --border-strong: rgba(255, 255, 255, 0.12);
+    --border-focus: rgba(245, 166, 35, 0.5);
+    --border-subtle: #27272A;
+    --border-emphasis: #3F3F46;
+
+    /* Input */
+    --input: #272B33;
+    --input-border: rgba(255, 255, 255, 0.12);
+
+    /* Ring */
+    --ring: #F5A623;
+    --ring-error: #FF6B6B;
+
+    /* Card */
+    --card: #16181C;
+    --card-foreground: #F2F3F5;
+
+    /* Popover */
+    --popover: #1E2128;
+    --popover-foreground: #F2F3F5;
+
+    /* Chart colors */
+    --chart-1: #F5A623;
+    --chart-2: #4ADE80;
+    --chart-3: #60A5FA;
+    --chart-4: #A78BFA;
+    --chart-5: #2DD4BF;
+
+    /* Sidebar (Web wrapper) */
+    --sidebar: #16181C;
+    --sidebar-foreground: #F2F3F5;
+    --sidebar-primary: #F5A623;
+    --sidebar-primary-foreground: #1A1200;
+    --sidebar-accent: #1E2128;
+    --sidebar-accent-foreground: #F2F3F5;
+    --sidebar-border: rgba(255, 255, 255, 0.07);
+    --sidebar-ring: #F5A623;
+
+    /* Selection state */
+    --selected-bg: rgba(245, 166, 35, 0.12);
+    --selected-border: #F5A623;
 }
 
 @theme inline {
-  /* Typography - DM Sans for Achievno */
-  --font-sans: 'DM Sans', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-mono: 'DM Mono', 'Geist Mono', monospace;
-  
-  /* Core Colors */
-  --color-background: var(--background);
-  --color-background-surface: var(--background-surface);
-  --color-background-elevated: var(--background-elevated);
-  --color-background-input: var(--background-input);
-  
-  /* Surface Hierarchy */
-  --color-bg-base: var(--bg-base);
-  --color-bg-elevated: var(--bg-elevated);
-  --color-bg-muted: var(--bg-muted);
-  
-  --color-foreground: var(--foreground);
-  --color-foreground-secondary: var(--foreground-secondary);
-  --color-foreground-tertiary: var(--foreground-tertiary);
-  
-  /* Card & Popover */
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  
-  /* Primary (Amber) */
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  
-  /* Secondary */
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  
-  /* Muted */
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  
-  /* Accent (Amber) */
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  
-  /* Semantic Colors */
-  --color-success: var(--success);
-  --color-success-foreground: var(--success-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
-  --color-info: var(--info);
-  --color-info-foreground: var(--info-foreground);
-  --color-challenge: var(--challenge);
-  --color-challenge-foreground: var(--challenge-foreground);
-  
-  /* Borders */
-  --color-border: var(--border);
-  --color-border-strong: var(--border-strong);
-  --color-border-focus: var(--border-focus);
-  --color-border-subtle: var(--border-subtle);
-  --color-border-emphasis: var(--border-emphasis);
-  
-  /* Input */
-  --color-input: var(--input);
-  --color-input-border: var(--input-border);
-  --color-ring: var(--ring);
-  --color-ring-error: var(--ring-error);
-  
-  /* Charts */
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-  
-  /* Selection */
-  --color-selected-bg: var(--selected-bg);
-  --color-selected-border: var(--selected-border);
-  
-  /* Radius */
-  --radius-sm: var(--radius-sm);
-  --radius-md: var(--radius-md);
-  --radius-lg: var(--radius-lg);
-  --radius-xl: var(--radius-xl);
-  --radius-2xl: var(--radius-2xl);
-  --radius-full: var(--radius-full);
-  
-  /* Sidebar (Web wrapper) */
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
+    /* Typography - DM Sans for Achievno */
+    --font-sans: 'DM Sans', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-mono: 'DM Mono', 'Geist Mono', monospace;
+
+    /* Core Colors */
+    --color-background: var(--background);
+    --color-background-surface: var(--background-surface);
+    --color-background-elevated: var(--background-elevated);
+    --color-background-input: var(--background-input);
+
+    /* Surface Hierarchy */
+    --color-bg-base: var(--bg-base);
+    --color-bg-elevated: var(--bg-elevated);
+    --color-bg-muted: var(--bg-muted);
+
+    --color-foreground: var(--foreground);
+    --color-foreground-secondary: var(--foreground-secondary);
+    --color-foreground-tertiary: var(--foreground-tertiary);
+
+    /* Card & Popover */
+    --color-card: var(--card);
+    --color-card-foreground: var(--card-foreground);
+    --color-popover: var(--popover);
+    --color-popover-foreground: var(--popover-foreground);
+
+    /* Primary (Amber) */
+    --color-primary: var(--primary);
+    --color-primary-foreground: var(--primary-foreground);
+
+    /* Secondary */
+    --color-secondary: var(--secondary);
+    --color-secondary-foreground: var(--secondary-foreground);
+
+    /* Muted */
+    --color-muted: var(--muted);
+    --color-muted-foreground: var(--muted-foreground);
+
+    /* Accent (Amber) */
+    --color-accent: var(--accent);
+    --color-accent-foreground: var(--accent-foreground);
+
+    /* Semantic Colors */
+    --color-success: var(--success);
+    --color-success-foreground: var(--success-foreground);
+    --color-destructive: var(--destructive);
+    --color-destructive-foreground: var(--destructive-foreground);
+    --color-info: var(--info);
+    --color-info-foreground: var(--info-foreground);
+    --color-challenge: var(--challenge);
+    --color-challenge-foreground: var(--challenge-foreground);
+
+    /* Borders */
+    --color-border: var(--border);
+    --color-border-strong: var(--border-strong);
+    --color-border-focus: var(--border-focus);
+    --color-border-subtle: var(--border-subtle);
+    --color-border-emphasis: var(--border-emphasis);
+
+    /* Input */
+    --color-input: var(--input);
+    --color-input-border: var(--input-border);
+    --color-ring: var(--ring);
+    --color-ring-error: var(--ring-error);
+
+    /* Charts */
+    --color-chart-1: var(--chart-1);
+    --color-chart-2: var(--chart-2);
+    --color-chart-3: var(--chart-3);
+    --color-chart-4: var(--chart-4);
+    --color-chart-5: var(--chart-5);
+
+    /* Selection */
+    --color-selected-bg: var(--selected-bg);
+    --color-selected-border: var(--selected-border);
+
+    /* Radius */
+    --radius-sm: var(--radius-sm);
+    --radius-md: var(--radius-md);
+    --radius-lg: var(--radius-lg);
+    --radius-xl: var(--radius-xl);
+    --radius-2xl: var(--radius-2xl);
+    --radius-full: var(--radius-full);
+
+    /* Sidebar (Web wrapper) */
+    --color-sidebar: var(--sidebar);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-ring: var(--sidebar-ring);
 }
 
 @layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
-  
-  html {
-    /* Achievno is light-mode first */
-    color-scheme: light;
-  }
-  
-  html.dark {
-    color-scheme: dark;
-  }
-  
-  body {
-    @apply bg-bg-base text-foreground antialiased;
-    font-feature-settings: "rlig" 1, "calt" 1;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
-  
-  /* Safe area handling for mobile */
-  .safe-area-top {
-    padding-top: env(safe-area-inset-top, 0);
-  }
-  
-  .safe-area-bottom {
-    padding-bottom: env(safe-area-inset-bottom, 0);
-  }
-  
-  .safe-area-inset {
-    padding-top: env(safe-area-inset-top, 0);
-    padding-bottom: env(safe-area-inset-bottom, 0);
-    padding-left: env(safe-area-inset-left, 0);
-    padding-right: env(safe-area-inset-right, 0);
-  }
+    * {
+        @apply border-border outline-ring/50;
+    }
+
+    html {
+        /* Achievno is light-mode first */
+        color-scheme: light;
+    }
+
+    html.dark {
+        color-scheme: dark;
+    }
+
+    body {
+        @apply bg-bg-base text-foreground antialiased;
+        font-feature-settings: "rlig" 1, "calt" 1;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* Safe area handling for mobile */
+    .safe-area-top {
+        padding-top: env(safe-area-inset-top, 0);
+    }
+
+    .safe-area-bottom {
+        padding-bottom: env(safe-area-inset-bottom, 0);
+    }
+
+    .safe-area-inset {
+        padding-top: env(safe-area-inset-top, 0);
+        padding-bottom: env(safe-area-inset-bottom, 0);
+        padding-left: env(safe-area-inset-left, 0);
+        padding-right: env(safe-area-inset-right, 0);
+    }
 }
 
 /* 
@@ -362,105 +377,105 @@
  */
 
 @layer utilities {
-  /* Screen push transition (page navigation) */
-  .motion-screen-push {
-    animation: screenPush 200ms ease-out;
-  }
-  
-  @keyframes screenPush {
-    from {
-      opacity: 0;
-      transform: translateY(8px);
+    /* Screen push transition (page navigation) */
+    .motion-screen-push {
+        animation: screenPush 200ms ease-out;
     }
-    to {
-      opacity: 1;
-      transform: translateY(0);
+
+    @keyframes screenPush {
+        from {
+            opacity: 0;
+            transform: translateY(8px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
-  }
-  
-  /* Progress bar animation */
-  .motion-progress {
-    transition: width 200ms ease-out;
-  }
-  
-  /* Success feedback animation */
-  .motion-success {
-    animation: successPop 200ms ease-out;
-  }
-  
-  @keyframes successPop {
-    0% {
-      transform: scale(0.98);
+
+    /* Progress bar animation */
+    .motion-progress {
+        transition: width 200ms ease-out;
     }
-    100% {
-      transform: scale(1);
+
+    /* Success feedback animation */
+    .motion-success {
+        animation: successPop 200ms ease-out;
     }
-  }
-  
-  /* Checkmark fade in */
-  .motion-checkmark {
-    animation: checkmarkFade 200ms ease-out;
-  }
-  
-  @keyframes checkmarkFade {
-    from {
-      opacity: 0;
-      transform: scale(0.8);
+
+    @keyframes successPop {
+        0% {
+            transform: scale(0.98);
+        }
+        100% {
+            transform: scale(1);
+        }
     }
-    to {
-      opacity: 1;
-      transform: scale(1);
+
+    /* Checkmark fade in */
+    .motion-checkmark {
+        animation: checkmarkFade 200ms ease-out;
     }
-  }
-  
-  /* Tab content crossfade (no layout shift) */
-  .motion-tab-content {
-    animation: tabFade 150ms ease-out;
-  }
-  
-  @keyframes tabFade {
-    from {
-      opacity: 0;
+
+    @keyframes checkmarkFade {
+        from {
+            opacity: 0;
+            transform: scale(0.8);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
     }
-    to {
-      opacity: 1;
+
+    /* Tab content crossfade (no layout shift) */
+    .motion-tab-content {
+        animation: tabFade 150ms ease-out;
     }
-  }
-  
-  /* Skeleton shimmer */
-  .motion-skeleton {
-    animation: skeletonShimmer 1.5s ease-in-out infinite;
-    background: linear-gradient(
-      90deg,
-      var(--bg-muted) 0%,
-      var(--bg-elevated) 50%,
-      var(--bg-muted) 100%
-    );
-    background-size: 200% 100%;
-  }
-  
-  @keyframes skeletonShimmer {
-    0% {
-      background-position: 200% 0;
+
+    @keyframes tabFade {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
     }
-    100% {
-      background-position: -200% 0;
+
+    /* Skeleton shimmer */
+    .motion-skeleton {
+        animation: skeletonShimmer 1.5s ease-in-out infinite;
+        background: linear-gradient(
+                90deg,
+                var(--bg-muted) 0%,
+                var(--bg-elevated) 50%,
+                var(--bg-muted) 100%
+        );
+        background-size: 200% 100%;
     }
-  }
-  
-  /* Spinner rotation */
-  .motion-spinner {
-    animation: spinnerRotate 600ms linear infinite;
-  }
-  
-  @keyframes spinnerRotate {
-    from {
-      transform: rotate(0deg);
+
+    @keyframes skeletonShimmer {
+        0% {
+            background-position: 200% 0;
+        }
+        100% {
+            background-position: -200% 0;
+        }
     }
-    to {
-      transform: rotate(360deg);
+
+    /* Spinner rotation */
+    .motion-spinner {
+        animation: spinnerRotate 600ms linear infinite;
     }
-  }
+
+    @keyframes spinnerRotate {
+        from {
+            transform: rotate(0deg);
+        }
+        to {
+            transform: rotate(360deg);
+        }
+    }
 }
 
 /* 
@@ -470,175 +485,175 @@
  */
 
 @layer utilities {
-  /* Text hierarchy */
-  .text-display {
-    @apply text-[1.75rem] font-semibold tracking-[-0.05em] leading-[1.15];
-  }
-  
-  .text-heading {
-    @apply text-[1.375rem] font-semibold tracking-[-0.03em] leading-[1.2];
-  }
-  
-  .text-title {
-    @apply text-[1.0625rem] font-semibold tracking-[-0.01em] leading-[1.3];
-  }
-  
-  .text-body {
-    @apply text-[0.9375rem] font-normal tracking-normal leading-[1.55];
-  }
-  
-  .text-label {
-    @apply text-[0.8125rem] font-medium tracking-normal leading-[1.4];
-  }
-  
-  .text-caption {
-    @apply text-[0.6875rem] font-medium tracking-[0.02em] leading-[1.4] uppercase;
-  }
-  
-  /* Achievno semantic text colors */
-  .text-secondary {
-    color: var(--foreground-secondary);
-  }
-  
-  .text-tertiary {
-    color: var(--foreground-tertiary);
-  }
-  
-  /* Surface layers */
-  .bg-surface {
-    background-color: var(--background-surface);
-  }
-  
-  .bg-elevated {
-    background-color: var(--background-elevated);
-  }
-  
-  .bg-input-surface {
-    background-color: var(--background-input);
-  }
-  
-  /* Surface hierarchy */
-  .bg-base {
-    background-color: var(--bg-base);
-  }
-  
-  /* Semantic backgrounds */
-  .bg-success-subtle {
-    background-color: rgba(22, 163, 74, 0.1);
-  }
-  
-  .bg-destructive-subtle {
-    background-color: rgba(220, 38, 38, 0.1);
-  }
-  
-  .bg-info-subtle {
-    background-color: rgba(37, 99, 235, 0.1);
-  }
-  
-  .bg-challenge-subtle {
-    background-color: rgba(124, 58, 237, 0.1);
-  }
-  
-  .bg-accent-subtle {
-    background-color: rgba(224, 148, 0, 0.08);
-  }
-  
-  .dark .bg-success-subtle {
-    background-color: rgba(74, 222, 128, 0.15);
-  }
-  
-  .dark .bg-destructive-subtle {
-    background-color: rgba(255, 107, 107, 0.15);
-  }
-  
-  .dark .bg-info-subtle {
-    background-color: rgba(96, 165, 250, 0.15);
-  }
-  
-  .dark .bg-challenge-subtle {
-    background-color: rgba(167, 139, 250, 0.15);
-  }
-  
-  .dark .bg-accent-subtle {
-    background-color: rgba(245, 166, 35, 0.12);
-  }
-  
-  /* Border variants */
-  .border-strong {
-    border-color: var(--border-strong);
-  }
-  
-  .border-subtle {
-    border-color: var(--border-subtle);
-  }
-  
-  .border-emphasis {
-    border-color: var(--border-emphasis);
-  }
-  
-  /* Selection states */
-  .selected {
-    border-color: var(--selected-border);
-    background-color: var(--selected-bg);
-  }
-  
-  /* Focus states */
-  .focus-ring-amber {
-    @apply focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background;
-  }
-  
-  .focus-ring-error {
-    @apply ring-2 ring-ring-error ring-offset-2 ring-offset-background;
-  }
-  
-  /* Mobile-first container */
-  .container-mobile {
-    @apply w-full max-w-[390px] mx-auto;
-  }
-  
-  /* Screen padding (Achievno standard: 20px sides) */
-  .px-screen {
-    @apply px-5;
-  }
-  
-  /* Header height */
-  .h-header {
-    height: 48px;
-  }
-  
-  /* Bottom nav height */
-  .h-bottomnav {
-    height: 48px;
-  }
-  
-  /* Line clamping utilities */
-  .line-clamp-1 {
-    display: -webkit-box;
-    -webkit-line-clamp: 1;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-  
-  .line-clamp-2 {
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-  
-  /* Single-line metadata (no wrap) */
-  .meta-single-line {
-    @apply truncate whitespace-nowrap font-medium text-foreground/70;
-    font-size: 0.8125rem;
-    line-height: 1.5;
-  }
-  
-  /* Density variants */
-  .density-comfortable {
-    @apply p-4;
-  }
-  
-  .density-compact {
-    @apply p-3;
-  }
+    /* Text hierarchy */
+    .text-display {
+        @apply text-[1.75rem] font-semibold tracking-[-0.05em] leading-[1.15];
+    }
+
+    .text-heading {
+        @apply text-[1.375rem] font-semibold tracking-[-0.03em] leading-[1.2];
+    }
+
+    .text-title {
+        @apply text-[1.0625rem] font-semibold tracking-[-0.01em] leading-[1.3];
+    }
+
+    .text-body {
+        @apply text-[0.9375rem] font-normal tracking-normal leading-[1.55];
+    }
+
+    .text-label {
+        @apply text-[0.8125rem] font-medium tracking-normal leading-[1.4];
+    }
+
+    .text-caption {
+        @apply text-[0.6875rem] font-medium tracking-[0.02em] leading-[1.4] uppercase;
+    }
+
+    /* Achievno semantic text colors */
+    .text-secondary {
+        color: var(--foreground-secondary);
+    }
+
+    .text-tertiary {
+        color: var(--foreground-tertiary);
+    }
+
+    /* Surface layers */
+    .bg-surface {
+        background-color: var(--background-surface);
+    }
+
+    .bg-elevated {
+        background-color: var(--background-elevated);
+    }
+
+    .bg-input-surface {
+        background-color: var(--background-input);
+    }
+
+    /* Surface hierarchy */
+    .bg-base {
+        background-color: var(--bg-base);
+    }
+
+    /* Semantic backgrounds */
+    .bg-success-subtle {
+        background-color: rgba(22, 163, 74, 0.1);
+    }
+
+    .bg-destructive-subtle {
+        background-color: rgba(220, 38, 38, 0.1);
+    }
+
+    .bg-info-subtle {
+        background-color: rgba(37, 99, 235, 0.1);
+    }
+
+    .bg-challenge-subtle {
+        background-color: rgba(124, 58, 237, 0.1);
+    }
+
+    .bg-accent-subtle {
+        background-color: rgba(224, 148, 0, 0.08);
+    }
+
+    .dark .bg-success-subtle {
+        background-color: rgba(74, 222, 128, 0.15);
+    }
+
+    .dark .bg-destructive-subtle {
+        background-color: rgba(255, 107, 107, 0.15);
+    }
+
+    .dark .bg-info-subtle {
+        background-color: rgba(96, 165, 250, 0.15);
+    }
+
+    .dark .bg-challenge-subtle {
+        background-color: rgba(167, 139, 250, 0.15);
+    }
+
+    .dark .bg-accent-subtle {
+        background-color: rgba(245, 166, 35, 0.12);
+    }
+
+    /* Border variants */
+    .border-strong {
+        border-color: var(--border-strong);
+    }
+
+    .border-subtle {
+        border-color: var(--border-subtle);
+    }
+
+    .border-emphasis {
+        border-color: var(--border-emphasis);
+    }
+
+    /* Selection states */
+    .selected {
+        border-color: var(--selected-border);
+        background-color: var(--selected-bg);
+    }
+
+    /* Focus states */
+    .focus-ring-amber {
+        @apply focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background;
+    }
+
+    .focus-ring-error {
+        @apply ring-2 ring-ring-error ring-offset-2 ring-offset-background;
+    }
+
+    /* Mobile-first container */
+    .container-mobile {
+        @apply w-full max-w-[390px] mx-auto;
+    }
+
+    /* Screen padding (Achievno standard: 20px sides) */
+    .px-screen {
+        @apply px-5;
+    }
+
+    /* Header height */
+    .h-header {
+        height: 48px;
+    }
+
+    /* Bottom nav height */
+    .h-bottomnav {
+        height: 48px;
+    }
+
+    /* Line clamping utilities */
+    .line-clamp-1 {
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    /* Single-line metadata (no wrap) */
+    .meta-single-line {
+        @apply truncate whitespace-nowrap font-medium text-foreground/70;
+        font-size: 0.8125rem;
+        line-height: 1.5;
+    }
+
+    /* Density variants */
+    .density-comfortable {
+        @apply p-4;
+    }
+
+    .density-compact {
+        @apply p-3;
+    }
 }

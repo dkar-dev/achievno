@@ -11,6 +11,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { ROUTES, APP_NAME, APP_TAGLINE } from '@/lib/achievno/constants'
 import { IconAchievnoLogo } from '@/lib/achievno/icons'
+import {TelegramMiniAppDebug} from "@/components/achievno/telegram-mini-app-debug";
 
 export default function WelcomePage() {
   return (
@@ -91,6 +92,7 @@ export default function WelcomePage() {
           By continuing, you agree to our Terms of Service and Privacy Policy
         </p>
       </div>
+        <TelegramMiniAppDebug/>
     </div>
   )
 }
