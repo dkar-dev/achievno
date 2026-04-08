@@ -114,9 +114,10 @@ export default function AchievementDetailPage() {
   const isCompleted = achievement.status === 'completed'
   const isArchived = achievement.status === 'archived'
   const badgeVariant = achievement.isOverdue ? 'overdue' : getAchievementBadgeVariant(achievement.status)
-  
-  // Use muted badge for active/info to respect color constraint
-  const displayBadgeVariant = (badgeVariant === 'primary' || badgeVariant === 'info') ? 'muted' : badgeVariant
+
+  // Use muted badge for primary status to keep progress bar as sole color carrier,
+  // but keep inProgress blue to maintain semantic clarity
+  const displayBadgeVariant = (badgeVariant === 'primary') ? 'muted' : badgeVariant
 
   // Build compact meta string
   const metaString = `${achievement.currentValue}/${achievement.targetValue}${achievement.dueDate ? ` · due ${formatDate(achievement.dueDate)}` : ''}`

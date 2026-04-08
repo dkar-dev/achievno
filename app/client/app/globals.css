@@ -628,8 +628,8 @@
   
   /* Single-line metadata (no wrap) */
   .meta-single-line {
-    @apply truncate whitespace-nowrap font-medium text-secondary;
-    font-size: 0.75rem;
+    @apply truncate whitespace-nowrap font-medium text-foreground/70;
+    font-size: 0.8125rem;
     line-height: 1.5;
   }
   

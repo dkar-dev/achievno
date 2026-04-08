@@ -154,8 +154,9 @@ export function AchievementCard({
   // Only use muted badge to respect color constraint (progress is color carrier)
   const badgeVariant = isOverdue ? 'overdue' : getAchievementBadgeVariant(achievement.status)
 
-  // Use muted badge for active/info status to keep progress bar as sole color carrier
-  const displayBadgeVariant = (badgeVariant === 'primary' || badgeVariant === 'info') ? 'muted' : badgeVariant
+  // Use muted badge for primary status to keep progress bar as sole color carrier,
+  // but keep inProgress blue to maintain semantic clarity
+  const displayBadgeVariant = (badgeVariant === 'primary') ? 'muted' : badgeVariant
 
   // Build meta string
   const metaString = buildMetaString(achievement)
@@ -218,11 +219,11 @@ export function AchievementCard({
       )}
 
       {/* Metadata Row - SINGLE LINE, no wrap */}
-      <div className="flex items-center justify-between gap-2 mt-1">
+      <div className="flex items-center justify-between gap-2 mt-1.5">
         {/* Meta string - truncate to single line */}
         <span className={cn(
-          'meta-single-line flex-1 font-medium',
-          isOverdue ? 'text-destructive' : 'text-secondary'
+          'meta-single-line flex-1',
+          isOverdue && 'text-destructive'
         )}>
           {metaString}
         </span>
@@ -286,7 +287,7 @@ export function AchievementListItem({
           {achievement.title}
         </span>
         <span className={cn(
-          'text-caption text-tertiary',
+          'text-caption text-foreground/55',
           isOverdue && 'text-destructive'
         )}>
           {metaString}

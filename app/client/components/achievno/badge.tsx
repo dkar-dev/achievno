@@ -22,6 +22,7 @@ interface AchievnoBadgeProps {
     | 'muted'
     | 'draft'
     | 'overdue'
+    | 'inProgress'
   children: React.ReactNode
   size?: 'sm' | 'md'
   dot?: boolean
@@ -37,6 +38,7 @@ const variantClasses = {
   muted: 'bg-background-elevated text-tertiary border-border-strong',
   draft: 'bg-primary/10 text-primary border-primary/20',
   overdue: 'bg-destructive/15 text-destructive border-destructive/25',
+  inProgress: 'bg-sky-100 text-sky-700 border-sky-200 dark:bg-sky-900/30 dark:text-sky-300 dark:border-sky-800',
 }
 
 const sizeClasses = {
@@ -71,7 +73,8 @@ export function AchievnoBadge({
             variant === 'challenge' && 'bg-challenge',
             variant === 'muted' && 'bg-foreground-tertiary',
             variant === 'draft' && 'bg-primary',
-            variant === 'overdue' && 'bg-destructive'
+            variant === 'overdue' && 'bg-destructive',
+            variant === 'inProgress' && 'bg-sky-500'
           )}
         />
       )}
@@ -87,7 +90,7 @@ export function getAchievementBadgeVariant(status: AchievementStatus | 'not_star
     case 'not_started':
       return 'muted'
     case 'active':
-      return 'info'
+      return 'inProgress'
     case 'completed':
       return 'success'
     case 'archived':
