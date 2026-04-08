@@ -33,7 +33,16 @@ async def telegram_bootstrap(
         authDate=verification_result.auth_date,
     )
 
-    return TelegramBootstrapResponse(
+    print(
+        "telegram_bootstrap_request",
+        {
+            "has_init_data": bool(payload.initData),
+            "start_param": payload.initDataUnsafe.start_param if payload.initDataUnsafe else None,
+            "user_id": payload.initDataUnsafe.user.id if payload.initDataUnsafe and payload.initDataUnsafe.user else None,
+        },
+    )
+
+    response = TelegramBootstrapResponse(
         ok=True,
         telegram=TelegramBootstrapTelegramPayload(
             hasInitData=has_init_data,
@@ -45,3 +54,10 @@ async def telegram_bootstrap(
             status="verified_stub" if verification_result.ok else "unverified_stub",
         ),
     )
+
+    print(
+        "telegram_bootstrap_response",
+        response.model_dump(),
+    )
+
+    return response

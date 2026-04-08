@@ -9,6 +9,7 @@ import {TelegramBackButtonBridge} from "@/components/providers/telegram-back-but
 import {TelegramBootstrapProvider} from "@/components/providers/telegram-bootstrap-provider";
 import {TelegramStartParamRedirect} from "@/components/providers/telegram-start-param-redirect";
 import {TelegramBootstrapStateProvider} from "@/components/providers/telegram-bootstrap-state-provider";
+import {TelegramBootstrapDebug} from "@/components/providers/telegram-bootstrap-debug";
 
 /**
  * ═══════════════════════════════════════════════════════════════
@@ -108,6 +109,7 @@ export default function RootLayout({
                 {process.env.NODE_ENV === "production" && <Analytics />}
             </TelegramBootstrapStateProvider>
         </TelegramMiniAppProvider>
+        <TelegramBootstrapDebug/>
         </body>
         </html>
     )
