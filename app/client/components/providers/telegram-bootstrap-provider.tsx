@@ -11,7 +11,7 @@ type TelegramBootstrapProviderProps = {
 export function TelegramBootstrapProvider({
   children,
 }: TelegramBootstrapProviderProps) {
-  const { setLoading, setData, setError } = useTelegramBootstrapState()
+  const { setLoading, setLoaded, setData, setError } = useTelegramBootstrapState()
 
   useEffect(() => {
     let cancelled = false
@@ -19,6 +19,7 @@ export function TelegramBootstrapProvider({
     async function run() {
       try {
         setLoading(true)
+        setLoaded(false)
         setError(null)
 
         const result = await bootstrapTelegramSession()
@@ -33,6 +34,7 @@ export function TelegramBootstrapProvider({
       } finally {
         if (!cancelled) {
           setLoading(false)
+          setLoaded(true)
         }
       }
     }
@@ -42,7 +44,7 @@ export function TelegramBootstrapProvider({
     return () => {
       cancelled = true
     }
-  }, [setLoading, setData, setError])
+  }, [setLoading, setLoaded, setData, setError])
 
   return <>{children}</>
 }

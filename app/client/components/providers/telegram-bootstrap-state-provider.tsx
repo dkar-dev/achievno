@@ -9,6 +9,7 @@ type TelegramBootstrapState = {
   data: TelegramBootstrapResponse | null
   error: string | null
   setLoading: (value: boolean) => void
+  setLoaded: (value: boolean) => void
   setData: (value: TelegramBootstrapResponse | null) => void
   setError: (value: string | null) => void
 }
@@ -24,20 +25,22 @@ export function TelegramBootstrapStateProvider({
   children,
 }: TelegramBootstrapStateProviderProps) {
   const [isLoading, setLoading] = useState(false)
+  const [isLoaded, setLoaded] = useState(false)
   const [data, setData] = useState<TelegramBootstrapResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const value = useMemo<TelegramBootstrapState>(
     () => ({
       isLoading,
-      isLoaded: !isLoading && (data !== null || error !== null),
+      isLoaded,
       data,
       error,
       setLoading,
+      setLoaded,
       setData,
       setError,
     }),
-    [isLoading, data, error],
+    [isLoading, isLoaded, data, error],
   )
 
   return (

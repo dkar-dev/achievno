@@ -1,4 +1,4 @@
-import { getTelegramPlatformContext } from "@/lib/platform/telegram"
+import { getTelegramPlatformContext } from "./runtime"
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, "") ?? ""

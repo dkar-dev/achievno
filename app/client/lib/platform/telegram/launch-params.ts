@@ -1,4 +1,4 @@
-import { getTelegramPlatformContext } from "@/lib/platform/telegram"
+import { getTelegramPlatformContext } from "./runtime"
 
 export type TelegramLaunchParams = {
   startParam: string | null
