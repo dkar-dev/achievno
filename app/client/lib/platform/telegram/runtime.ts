@@ -1,67 +1,69 @@
 import type {
-  TelegramPlatformContext,
-  TelegramWebApp,
-  TelegramWindow,
+    TelegramPlatformContext,
+    TelegramWebApp,
+    TelegramWindow,
 } from "./types"
 
 function getTelegramWebApp(): TelegramWebApp | null {
-  if (typeof window === "undefined") return null
-  const telegramWindow = window as TelegramWindow
-  return telegramWindow.Telegram?.WebApp ?? null
+    if (typeof window === "undefined") return null
+    const telegramWindow = window as TelegramWindow
+    return telegramWindow.Telegram?.WebApp ?? null
 }
 
-function isRealTelegramMiniApp(webApp: TelegramWebApp | null): boolean {
-  return Boolean(webApp?.initData && webApp.initData.trim().length > 0)
+function hasTelegramInitData(webApp: TelegramWebApp | null): boolean {
+    return Boolean(webApp?.initData && webApp.initData.trim().length > 0)
 }
 
 export function isTelegramMiniApp(): boolean {
-  return isRealTelegramMiniApp(getTelegramWebApp())
+    return hasTelegramInitData(getTelegramWebApp())
 }
 
 export function getTelegramPlatformContext(): TelegramPlatformContext {
-  const webApp = getTelegramWebApp()
+    const webApp = getTelegramWebApp()
 
-  if (!isRealTelegramMiniApp(webApp)) {
-    return {
-      isTelegramMiniApp: false,
-      webApp: null,
-      initData: null,
-      initDataUnsafe: null,
-      colorScheme: null,
-      themeParams: null,
-      viewport: null,
-      platform: null,
-      version: null,
+    if (!webApp) {
+        return {
+            isTelegramMiniApp: false,
+            webApp: null,
+            initData: null,
+            initDataUnsafe: null,
+            colorScheme: null,
+            themeParams: null,
+            viewport: null,
+            platform: null,
+            version: null,
+        }
     }
-  }
 
-  return {
-    isTelegramMiniApp: true,
-    webApp,
-    initData: webApp.initData ?? null,
-    initDataUnsafe: webApp.initDataUnsafe ?? null,
-    colorScheme: webApp.colorScheme ?? null,
-    themeParams: webApp.themeParams ?? null,
-    viewport: {
-      height: webApp.viewportHeight ?? 0,
-      stableHeight: webApp.viewportStableHeight,
-      isExpanded: webApp.isExpanded,
-    },
-    platform: webApp.platform ?? null,
-    version: webApp.version ?? null,
-  }
+    return {
+        isTelegramMiniApp: hasTelegramInitData(webApp),
+        webApp,
+        initData: webApp.initData ?? null,
+        initDataUnsafe: webApp.initDataUnsafe ?? null,
+        colorScheme: webApp.colorScheme ?? null,
+        themeParams: webApp.themeParams ?? null,
+        viewport: {
+            height: webApp.viewportHeight ?? 0,
+            stableHeight: webApp.viewportStableHeight,
+            isExpanded: webApp.isExpanded,
+        },
+        platform: webApp.platform ?? null,
+        version: webApp.version ?? null,
+    }
 }
 
 export function initTelegramMiniApp(): TelegramPlatformContext {
-  const context = getTelegramPlatformContext()
+    const webApp = getTelegramWebApp()
 
-  if (!context.webApp) return context
+    if (!webApp) {
+        return getTelegramPlatformContext()
+    }
 
-  context.webApp.ready()
+    webApp.ready()
 
-  if (typeof context.webApp.expand === "function") {
-    context.webApp.expand()
-  }
+    if (typeof webApp.expand === "function") {
+        webApp.expand()
+    }
 
-  return context
+    return getTelegramPlatformContext()
 }

@@ -1,10 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import {
-    getTelegramPlatformContext,
-    isTelegramMiniApp,
-} from "@/lib/platform/telegram"
+import { getTelegramPlatformContext } from "@/lib/platform/telegram"
 import type { TelegramPlatformContext } from "@/lib/platform/telegram"
 
 type UseTelegramMiniAppResult = TelegramPlatformContext & {
@@ -18,15 +15,39 @@ export function useTelegramMiniApp(): UseTelegramMiniAppResult {
     const [isReady, setIsReady] = useState(false)
 
     useEffect(() => {
-        const nextContext = getTelegramPlatformContext()
-        setContext(nextContext)
-        setIsReady(true)
+        let attempts = 0
+        const maxAttempts = 20
+
+        const sync = () => {
+            const nextContext = getTelegramPlatformContext()
+            setContext(nextContext)
+
+            attempts += 1
+
+            if (nextContext.initData || attempts >= maxAttempts) {
+                setIsReady(true)
+                return true
+            }
+
+            return false
+        }
+
+        if (sync()) return
+
+        const interval = window.setInterval(() => {
+            if (sync()) {
+                window.clearInterval(interval)
+            }
+        }, 150)
+
+        return () => {
+            window.clearInterval(interval)
+        }
     }, [])
 
     return useMemo(
         () => ({
             ...context,
-            isTelegramMiniApp: isTelegramMiniApp(),
             isReady,
         }),
         [context, isReady],
