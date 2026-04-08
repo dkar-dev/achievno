@@ -1,5 +1,6 @@
 from fastapi import APIRouter
 
+from app.config import settings
 from app.schemas.telegram import (
     TelegramBootstrapRequest,
     TelegramBootstrapResponse,
@@ -7,6 +8,7 @@ from app.schemas.telegram import (
     TelegramSessionPayload,
     TelegramVerificationPayload,
 )
+from app.services.telegram_init_data import verify_telegram_webapp_init_data
 
 router = APIRouter(prefix="/telegram", tags=["telegram"])
 
@@ -19,18 +21,17 @@ async def telegram_bootstrap(
     start_param = payload.initDataUnsafe.start_param if payload.initDataUnsafe else None
     user = payload.initDataUnsafe.user if payload.initDataUnsafe else None
 
-    verification = TelegramVerificationPayload(
-        ok=False,
-        reason="missing_bot_token",
-        authDate=payload.initDataUnsafe.auth_date if payload.initDataUnsafe else None,
+    verification_result = verify_telegram_webapp_init_data(
+        payload.initData,
+        settings.telegram_bot_token,
+        max_age_seconds=3600,
     )
 
-    if not has_init_data:
-        verification = TelegramVerificationPayload(
-            ok=False,
-            reason="missing_init_data",
-            authDate=None,
-        )
+    verification = TelegramVerificationPayload(
+        ok=verification_result.ok,
+        reason=verification_result.reason,
+        authDate=verification_result.auth_date,
+    )
 
     return TelegramBootstrapResponse(
         ok=True,
@@ -41,6 +42,6 @@ async def telegram_bootstrap(
         ),
         verification=verification,
         session=TelegramSessionPayload(
-            status="bootstrap_stub",
+            status="verified_stub" if verification_result.ok else "unverified_stub",
         ),
     )
