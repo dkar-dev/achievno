@@ -2,14 +2,8 @@ import type {Metadata, Viewport} from 'next'
 import {DM_Sans, DM_Mono} from 'next/font/google'
 import {Analytics} from '@vercel/analytics/next'
 import Script from "next/script"
-import {TelegramMiniAppProvider} from "@/components/providers/telegram-mini-app-provider"
 import './globals.css'
-import {TelegramThemeSync} from "@/components/providers/telegram-theme-sync";
-import {TelegramBackButtonBridge} from "@/components/providers/telegram-back-button-bridge";
-import {TelegramBootstrapProvider} from "@/components/providers/telegram-bootstrap-provider";
-import {TelegramStartParamRedirect} from "@/components/providers/telegram-start-param-redirect";
-import {TelegramBootstrapStateProvider} from "@/components/providers/telegram-bootstrap-state-provider";
-import {TelegramBootstrapDebug} from "@/components/providers/telegram-bootstrap-debug";
+import {AppProviders} from "@/components/providers/app-providers";
 
 /**
  * ═══════════════════════════════════════════════════════════════
@@ -99,17 +93,10 @@ export default function RootLayout({
             src="https://telegram.org/js/telegram-web-app.js"
             strategy="beforeInteractive"
         />
-        <TelegramMiniAppProvider>
-            <TelegramBootstrapStateProvider>
-                <TelegramThemeSync />
-                <TelegramBackButtonBridge />
-                <TelegramBootstrapProvider />
-                <TelegramStartParamRedirect />
-                {children}
-                {process.env.NODE_ENV === "production" && <Analytics />}
-            </TelegramBootstrapStateProvider>
-        </TelegramMiniAppProvider>
-        <TelegramBootstrapDebug/>
+        <AppProviders>
+            {children}
+            {process.env.NODE_ENV === "production" && <Analytics />}
+        </AppProviders>
         </body>
         </html>
     )

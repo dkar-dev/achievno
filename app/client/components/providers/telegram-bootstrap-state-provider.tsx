@@ -14,8 +14,22 @@ type TelegramBootstrapState = {
   setError: (value: string | null) => void
 }
 
-const TelegramBootstrapStateContext =
-  createContext<TelegramBootstrapState | null>(null)
+const noop = () => {}
+
+const defaultTelegramBootstrapState: TelegramBootstrapState = {
+  isLoading: false,
+  isLoaded: true,
+  data: null,
+  error: null,
+  setLoading: noop,
+  setLoaded: noop,
+  setData: noop,
+  setError: noop,
+}
+
+const TelegramBootstrapStateContext = createContext<TelegramBootstrapState>(
+  defaultTelegramBootstrapState,
+)
 
 type TelegramBootstrapStateProviderProps = {
   children: React.ReactNode
@@ -51,13 +65,5 @@ export function TelegramBootstrapStateProvider({
 }
 
 export function useTelegramBootstrapState() {
-  const context = useContext(TelegramBootstrapStateContext)
-
-  if (!context) {
-    throw new Error(
-      "useTelegramBootstrapState must be used within TelegramBootstrapStateProvider",
-    )
-  }
-
-  return context
+  return useContext(TelegramBootstrapStateContext)
 }
