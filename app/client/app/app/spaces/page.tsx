@@ -30,12 +30,14 @@ const PILL_NAV_ITEMS = [
         label: 'Notifications',
         icon: IconBell,
         route: ROUTES.notifications,
+        emphasized: false,
     },
     {
         id: 'discover',
         label: 'Discover Groups',
         icon: IconCompass,
         route: ROUTES.discover,
+        emphasized: false,
     },
     {
         id: 'create-group',
@@ -49,6 +51,7 @@ const PILL_NAV_ITEMS = [
         label: 'Settings',
         icon: IconSettings,
         route: ROUTES.settings,
+        emphasized: false,
     },
 ] as const
 
