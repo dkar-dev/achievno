@@ -3,17 +3,16 @@
 import * as React from 'react'
 import { useRouter } from 'next/navigation'
 import { NoGroups } from '@/components/achievno'
-import { GroupSpaceItem, PersonalSpaceItem } from '@/components/achievno/space-item'
+import { GroupSpaceItem, PersonalSpaceItem, SpaceItem } from '@/components/achievno/space-item'
 import { TabBar } from '@/components/achievno/tabs'
 import { Button } from '@/components/ui/button'
 import {
   AchievnoIcon,
   IconBell,
-  IconChevronDown,
-  IconChevronUp,
   IconCompass,
   IconPlus,
   IconSettings,
+  IconTarget,
   IconUsers,
 } from '@/lib/achievno/icons'
 import { AVATAR_COLORS, ROUTES, type RootShellSurface } from '@/lib/achievno/constants'
@@ -65,16 +64,29 @@ const DEMO_PERSONAL_SPACE: Space = {
   lastActivityAt: new Date().toISOString(),
 }
 
-const DEMO_ARCHIVED_ACHIEVEMENTS = [
-  { id: 'arch-1', title: 'Learn Spanish basics', completedAt: '2025-12-15' },
-  { id: 'arch-2', title: 'Run 5K', completedAt: '2025-11-20' },
-  { id: 'arch-3', title: 'Read 10 books', completedAt: '2025-10-05' },
-]
-
-
-const DEMO_FRIENDS = [
-  { id: 'fr-1', name: 'Alex Morgan', handle: '@alexm' },
-  { id: 'fr-2', name: 'Nina Chen', handle: '@ninac' },
+const DEMO_FRIENDS: Space[] = [
+  {
+    id: 'fr-1',
+    type: 'personal',
+    name: 'Alex Morgan',
+    avatarInitials: 'AM',
+    avatarColor: AVATAR_COLORS[4],
+    activeCount: 2,
+    completedCount: 6,
+    hasUnread: false,
+    lastActivityAt: new Date().toISOString(),
+  },
+  {
+    id: 'fr-2',
+    type: 'personal',
+    name: 'Nina Chen',
+    avatarInitials: 'NC',
+    avatarColor: AVATAR_COLORS[5],
+    activeCount: 3,
+    completedCount: 5,
+    hasUnread: true,
+    lastActivityAt: new Date().toISOString(),
+  },
 ]
 
 const DEMO_GROUPS: Space[] = [
@@ -159,13 +171,16 @@ function RootPillNav() {
 }
 
 function MainSurface({
-  isArchiveOpen,
-  onArchiveToggle,
+  friendSearch,
+  onFriendSearchChange,
 }: {
-  isArchiveOpen: boolean
-  onArchiveToggle: () => void
+  friendSearch: string
+  onFriendSearchChange: (value: string) => void
 }) {
   const router = useRouter()
+  const filteredFriends = DEMO_FRIENDS.filter((friend) =>
+    friend.name.toLowerCase().includes(friendSearch.toLowerCase()),
+  )
 
   return (
     <div className="space-y-6">
@@ -177,14 +192,6 @@ function MainSurface({
             </p>
             <h3 className="text-title font-semibold">Continue your own space</h3>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            className="rounded-full"
-            onClick={() => router.push(ROUTES.personalWorkspace)}
-          >
-            Open
-          </Button>
         </div>
 
         <PersonalSpaceItem
@@ -199,53 +206,28 @@ function MainSurface({
             <p className="text-caption font-semibold uppercase tracking-[0.24em] text-tertiary">Friends</p>
             <h3 className="text-title font-semibold">1-on-1 relations</h3>
           </div>
-          <input placeholder="Search friend" className="h-9 w-32 rounded-full border border-border-subtle px-3 text-sm" />
+          <input
+            placeholder="Search friend"
+            value={friendSearch}
+            onChange={(event) => onFriendSearchChange(event.target.value)}
+            className="h-9 w-44 rounded-full border border-border-subtle px-3 text-sm"
+          />
         </div>
         <div className="space-y-2">
-          {DEMO_FRIENDS.map((friend) => (
-            <button key={friend.id} type="button" onClick={() => router.push(ROUTES.friend(friend.id))} className="w-full rounded-2xl border border-border-subtle p-3 text-left">
-              <p className="font-medium">{friend.name}</p>
-              <p className="text-xs text-tertiary">{friend.handle}</p>
-            </button>
+          {filteredFriends.map((friend) => (
+            <SpaceItem
+              key={friend.id}
+              space={friend}
+              onPress={() => router.push(ROUTES.friend(friend.id))}
+            />
           ))}
-        </div>
-      </section>
-
-      {DEMO_ARCHIVED_ACHIEVEMENTS.length > 0 && (
-        <section className="space-y-2">
-          <button
-            type="button"
-            onClick={onArchiveToggle}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-border-subtle px-4 py-3 text-label text-tertiary transition-colors hover:border-border-emphasis hover:text-secondary"
-          >
-            {isArchiveOpen ? <IconChevronUp size={16} /> : <IconChevronDown size={16} />}
-            <span>Archive ({DEMO_ARCHIVED_ACHIEVEMENTS.length})</span>
-          </button>
-
-          {isArchiveOpen && (
-            <div className="rounded-2xl border border-border-subtle bg-bg-elevated p-2">
-              {DEMO_ARCHIVED_ACHIEVEMENTS.map((achievement) => (
-                <button
-                  key={achievement.id}
-                  type="button"
-                  onClick={() => router.push(ROUTES.achievement(achievement.id))}
-                  className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left transition-colors hover:bg-bg-muted"
-                >
-                  <span className="truncate text-label text-secondary line-through">
-                    {achievement.title}
-                  </span>
-                  <span className="ml-3 shrink-0 text-caption text-tertiary">
-                    {new Date(achievement.completedAt).toLocaleDateString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                    })}
-                  </span>
-                </button>
-              ))}
+          {filteredFriends.length === 0 && (
+            <div className="rounded-xl border border-dashed border-border-subtle px-4 py-3 text-sm text-tertiary">
+              No friends found
             </div>
           )}
-        </section>
-      )}
+        </div>
+      </section>
     </div>
   )
 }
@@ -313,7 +295,7 @@ function GroupsSurface() {
 
 export default function RootShellPage() {
   const router = useRouter()
-  const [isArchiveOpen, setIsArchiveOpen] = React.useState(false)
+  const [friendSearch, setFriendSearch] = React.useState('')
   const [activeSurface, setActiveSurface] = React.useState<RootShellSurface>('main')
 
   React.useEffect(() => {
@@ -338,10 +320,16 @@ export default function RootShellPage() {
                 <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-primary">
                   Main / Groups
                 </p>
-                <span className="text-xs text-foreground-secondary">Shell</span>
+                {activeSurface === 'main' ? (
+                  <AchievnoIcon icon={IconTarget} size="sm" className="text-primary" />
+                ) : (
+                  <AchievnoIcon icon={IconUsers} size="sm" className="text-secondary" />
+                )}
               </div>
               <p className="mt-2 text-sm text-foreground-secondary">
-                Switch surface
+                {activeSurface === 'main'
+                  ? 'Main keeps personal progress and friend activity in focus.'
+                  : 'Groups keeps shared spaces and team progress in one surface.'}
               </p>
               <div className="mt-3">
                 <TabBar
@@ -361,8 +349,8 @@ export default function RootShellPage() {
         >
           {activeSurface === 'main' ? (
             <MainSurface
-              isArchiveOpen={isArchiveOpen}
-              onArchiveToggle={() => setIsArchiveOpen((prev) => !prev)}
+              friendSearch={friendSearch}
+              onFriendSearchChange={setFriendSearch}
             />
           ) : (
             <GroupsSurface />
