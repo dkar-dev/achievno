@@ -1,13 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { BackHeader } from '@/components/achievno/header'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 
-export default function CreateAchievementPage() {
+function CreateAchievementContent() {
   const router = useRouter()
   const params = useSearchParams()
   const context = (params.get('context') ?? 'personal') as 'personal' | 'friend' | 'group'
@@ -30,8 +30,24 @@ export default function CreateAchievementPage() {
           <label className="text-sm">Description</label>
           <Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={4} />
         </div>
-        <Button className="w-full" disabled={!title.trim()} onClick={() => router.push('/app/spaces')}>Create</Button>
+        <Button className="w-full" disabled={!title.trim()} onClick={() => router.push('/app/spaces')}>
+          Create
+        </Button>
       </div>
     </div>
+  )
+}
+
+export default function CreateAchievementPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-background">
+          <div className="px-screen py-5 text-sm text-secondary">Loading…</div>
+        </div>
+      }
+    >
+      <CreateAchievementContent />
+    </Suspense>
   )
 }
