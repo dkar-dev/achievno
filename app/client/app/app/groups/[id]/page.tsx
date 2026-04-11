@@ -495,7 +495,7 @@ export default function GroupWorkspacePage() {
             <div className="min-h-screen bg-bg-base flex flex-col">
                 <BackHeader
                     title={MOCK_GROUP.name}
-                    onBack={() => router.push(ROUTES.spaces)}
+                    onBack={() => router.push(ROUTES.rootShell('groups'))}
                     rightActions={
                         <HeaderActionsMenu onMembersPress={() => setIsMembersOpen(true)} />
                     }

@@ -1,0 +1,2035 @@
+schema_version: 1.2.0
+artifact_type: mvp_delivery_contract
+artifact_id: achievno-mvp-delivery-contract-v1-2
+generated_at: '2026-04-11T04:08:15.912697'
+language: ru
+project:
+  name: Achievno
+  target_version: MVP
+  product_type: mobile-first social achievement tracking app
+  primary_platforms:
+  - mobile_web
+  - telegram_mini_app
+  secondary_platforms:
+  - desktop_web
+  current_delivery_rule: yaml_driven_execution_loop__frontend_first_then_database_then_backend_then_final_polish
+  academic_context:
+    course_project_mode: true
+    coursework_document_is_axiom: true
+    notes: Database and program deliverables must satisfy the coursework structure and required DB artifacts exactly, except
+      the database is designed from scratch on PostgreSQL rather than migrated from MySQL.
+  execution_model: yaml_is_single_source_of_truth__linear_is_work_queue__codex_is_implementer__chatgpt_is_reviewer
+source_registry:
+  SRC-FRONTEND-CONTRACT:
+    type: uploaded_file
+    path: /mnt/data/frontend-contract.yaml
+    role: current_live_state
+    notes: Live mobile frontend contract captured from running application
+  SRC-CONTRACT-EXAMPLE:
+    type: uploaded_file
+    path: /mnt/data/architecture_contract.md
+    role: structure_reference
+    notes: Formatting and sectioning reference only
+  SRC-LIN-ACH-13:
+    type: linear_feature
+    id: ACH-13
+    title: Функционал
+    status: In Progress
+  SRC-LIN-ACH-14:
+    type: linear_issue
+    id: ACH-14
+    title: '[Функционал] design notes'
+    status: In Progress
+  SRC-LIN-ACH-15:
+    type: linear_issue
+    id: ACH-15
+    title: '[Функционал] Друзья'
+    status: Done
+  SRC-LIN-ACH-16:
+    type: linear_issue
+    id: ACH-16
+    title: '[Функционал] Типы ачивок и челленджи'
+    status: Done
+  SRC-LIN-ACH-17:
+    type: linear_issue
+    id: ACH-17
+    title: '[Функционал] Модерация групп'
+    status: Done
+  SRC-LIN-ACH-18:
+    type: linear_issue
+    id: ACH-18
+    title: '[Функционал] Подтверждение'
+    status: Done
+  SRC-LIN-ACH-19:
+    type: linear_issue
+    id: ACH-19
+    title: '[Функционал] Страница ачивок'
+    status: Done
+  SRC-LIN-ACH-20:
+    type: linear_issue
+    id: ACH-20
+    title: '[Функционал] Формы добавления ачивок'
+    status: Done
+  SRC-LIN-ACH-21:
+    type: linear_issue
+    id: ACH-21
+    title: '[Функционал] Навигационные кнопки'
+    status: Todo
+  SRC-LIN-ACH-9:
+    type: linear_feature
+    id: ACH-9
+    title: БД
+    status: Todo
+  SRC-LIN-ACH-10:
+    type: linear_issue
+    id: ACH-10
+    title: '[БД] Проектирование'
+    status: Todo
+  SRC-LIN-ACH-11:
+    type: linear_issue
+    id: ACH-11
+    title: '[БД] Заполнение'
+    status: Todo
+  SRC-LIN-ACH-12:
+    type: linear_issue
+    id: ACH-12
+    title: '[БД] Процедуры'
+    status: Todo
+  SRC-MEM-ACHIEVNO-PRODUCT:
+    type: conversation_memory
+    role: confirmed_product_direction
+    notes: Includes previously fixed MVP direction, mobile-first testing assumptions, design review issues, and existence
+      of current achievement-creation wizard
+  SRC-KP-2026-DOC:
+    type: uploaded_file
+    path: /mnt/data/Пояснения к разделам КП_2026.doc
+    role: academic_non_negotiable_constraint
+    notes: Coursework requirements doc is axiomatic for DB/client/system deliverables and mandatory DB artifacts.
+current_state:
+  live_frontend:
+    status: partially_built
+    documented_screen_count: 20
+    implemented_screen_ids:
+    - welcome_guest
+    - auth_sign_up
+    - auth_sign_in
+    - error_404_not_found
+    - spaces_home
+    - notifications_center
+    - achievement_detail
+    - personal_space
+    - create_group
+    - group_detail_overview
+    - group_detail_achievements
+    - group_detail_challenges
+    - challenge_detail
+    - discover_groups
+    - discover_challenges
+    - profile_screen
+    - settings_home
+    - settings_notifications
+    - settings_privacy
+    - settings_account
+    current_root_routes:
+    - /welcome
+    - /app/spaces
+    implemented_surface_families:
+    - guest_onboarding_and_auth
+    - spaces_and_groups
+    - personal_achievements
+    - notifications
+    - discover
+    - profile_and_settings
+    - create_group
+    - intermediate_achievement_creation_wizard
+    confirmed_existing_creation_surface:
+      status: implemented
+      wizard_steps_total: 4
+      current_observed_step: 1
+      current_observed_title: Choose Type
+      current_observed_options:
+      - Individual Task
+      - Shared Goal
+      - Race Challenge
+    key_live_gaps_from_contract:
+    - no_bottom_navigation_bar_on_authenticated_root
+    - friends_are_not_yet_a_first_class_surface
+    - achievement_create_flow_from_personal_space_not_fully_contract_verified
+    - personal_completed_tab_switch_is_unreliable
+    - group_create_and_secondary_card_destinations_not_fully_verified
+    - discover_card_destinations_not_fully_verified
+    - achievement_detail_actions_not_fully_verified
+    - settings_account_subflows_not_fully_verified
+    contract_unknown_topics:
+    - sign_up_success_flow
+    - sign_up_inline_validation
+    - spaces_menu_sheet_pointer_reliability
+    - book_club_card_destination
+    - achievement_detail_overflow_and_actions
+    - personal_completed_tab
+    - create_group_private_visibility_selection
+    - group_actions_and_see_all_outcomes
+    - group_create_and_secondary_card_destinations
+    - challenge_full_leaderboard_measurements
+    - discover_card_destinations
+    - profile_edit_and_overflow
+    - settings_privacy_selected_visibility_option
+    - settings_account_subflows
+  linear_backlog_snapshot:
+    functional_feature:
+      id: ACH-13
+      status: In Progress
+      subtasks:
+      - id: ACH-14
+        status: In Progress
+        title: '[Функционал] design notes'
+      - id: ACH-15
+        status: Done
+        title: '[Функционал] Друзья'
+      - id: ACH-16
+        status: Done
+        title: '[Функционал] Типы ачивок и челленджи'
+      - id: ACH-17
+        status: Done
+        title: '[Функционал] Модерация групп'
+      - id: ACH-18
+        status: Done
+        title: '[Функционал] Подтверждение'
+      - id: ACH-19
+        status: Done
+        title: '[Функционал] Страница ачивок'
+      - id: ACH-20
+        status: Done
+        title: '[Функционал] Формы добавления ачивок'
+      - id: ACH-21
+        status: Todo
+        title: '[Функционал] Навигационные кнопки'
+    database_feature:
+      id: ACH-9
+      status: Todo
+      subtasks:
+      - id: ACH-10
+        status: Todo
+        title: '[БД] Проектирование'
+      - id: ACH-11
+        status: Todo
+        title: '[БД] Заполнение'
+      - id: ACH-12
+        status: Todo
+        title: '[БД] Процедуры'
+    backend_feature:
+      status: not_explicitly_decomposed_in_linear
+      notes: Backend and API work have to be derived from confirmed product scope and DB design
+  confirmed_product_direction:
+    mvp_policy: full_mvp_product__not_split_into_multiple_frontend_versions
+    primary_modes:
+    - personal
+    - friends
+    - groups
+    navigation_target:
+      top_level_tabs:
+      - Main
+      - Groups
+      bottom_pill_actions:
+      - Notifications
+      - Discover Groups
+      - Create Group
+      - Settings
+    platform_direction:
+      shared_design_system_for_web_and_tg_mini_app: true
+      mobile_first: true
+      default_test_device: iPhone 16 Pro
+    friend_model:
+      relation_type: standalone_friend_relation
+      surface_tabs:
+      - Overview
+      - Achievements
+      - Challenges
+      overview_style: simplified_one_to_one
+      removed_list_name: Removed Friends
+      profile_entry_behavior: tap_name_or_avatar_opens_compact_profile_plus_friend_specific_options
+      friend_specific_options:
+      - notifications_toggle
+      - remove_friend
+      removal_lifecycle:
+        first_removal: hidden_for_remover_moved_to_removed_friends_visible_and_usable_for_other_side
+        restore: available_to_both_sides_requires_acceptance_reactivates_same_relation_and_same_history
+        double_removal: immediate_product_level_destruction_of_shared_history_and_shared_entities
+        database_strategy: tombstoned_hidden_from_product
+    auth_and_entry:
+      email_verification_hard_gate: true
+      telegram_can_create_standalone_account: true
+      connected_sign_in_methods_ui: true
+      onboarding: none_for_mvp
+      pre_auth_language_and_appearance_corner_buttons: true
+      connected_methods_last_unlink_forbidden: true
+      occupied_identity_behavior: show_error_and_offer_sign_in_with_existing_account
+      telegram_only_recovery: telegram_sign_in_only_until_email_or_google_connected
+    no_app_admin_surface_for_mvp: true
+    yaml_is_single_source_of_truth: true
+coursework_constraints:
+  source: SRC-KP-2026-DOC
+  rule: document_is_axiom
+  mandatory_report_sections:
+  - subject_domain_analysis
+  - task_statement_and_detailed_problem_description
+  - solution_means
+  - logical_relational_database_structure
+  - database_administration
+  - use_case_diagram
+  - database_protection
+  - stored_procedures_triggers_and_views
+  - system_structure
+  - user_instruction
+  - appendix_a_created_tables
+  - appendix_b_procedures_triggers_views
+  - appendix_c_client_application_listing
+  mandatory_database_artifacts:
+  - formal_logical_description_for_each_table
+  - relationship_schema
+  - user_groups_roles_and_privileges
+  - database_protection_mechanisms
+  - stored_procedures_or_postgresql_equivalent_sql_functions
+  - triggers
+  - views
+  architecture_interpretation_rules:
+  - PostgreSQL_from_scratch_is_allowed
+  - no_deviation_from_required_coursework_artifacts_is_allowed
+  - database_logic_must_use_hybrid_split_between_postgresql_and_fastapi
+delivery_policy:
+  hard_sequence:
+  - PHASE-1-FRONTEND-MVP must complete before PHASE-2-DATABASE
+  - PHASE-2-DATABASE must complete before PHASE-3-BACKEND
+  - PHASE-3-BACKEND must complete before PHASE-4-POLISH
+  - No backend implementation may redefine already approved MVP UI flows without creating a contract issue
+  - Frontend phase is allowed to use mock data, local fixtures, and temporary adapters
+  - Database and backend phases must implement the contract produced by PHASE-1, not redesign the product
+  non_negotiable_technology_constraints:
+    backend_framework: FastAPI
+    orm: SQLAlchemy 2.x
+    database: PostgreSQL
+    api_style: REST_JSON_first
+    architecture_style: modular_monolith
+  decision_hierarchy:
+  - yaml_contract_only_as_source_of_truth
+  - live_frontend_contract_only_for_describing_current_state
+  - linear_only_for_task_tracking_and_history
+  - conversation_only_when_explicitly_written_back_into_yaml
+  contract_change_rule: If a better idea appears during implementation, it cannot change execution until it is explicitly
+    discussed and written into YAML.
+  divergence_rule: If implementation diverges from YAML, the implementation must be corrected before moving to the next step
+    unless YAML itself is explicitly updated first.
+  phase_crossing_rule: A single implementation task must stay inside one phase/status boundary. Do not mix frontend, database,
+    and backend work in one task unless the phase contract explicitly allows it.
+  payload_freeze_rule: PHASE-1 must end with frozen screen payload contracts. PHASE-2 and PHASE-3 implement those contracts,
+    not redesign them.
+  risk_resolution:
+    frontend_first_rework_risk: accepted_and_mitigated_by_payload_freeze_and_yaml_priority
+    backend_linear_gap: resolved_by_explicit_linear_governance_defined_in_this_contract
+target_mvp:
+  product_identity:
+    statement: 'Achievno MVP is a mobile-first social achievement product with three equally important modes: for yourself,
+      with one friend, inside a group.'
+    pillars:
+    - achievements
+    - progress_tracking
+    - history
+    - social_visibility
+    - approvals_and_evidence
+    - challenges
+    - lightweight_group_governance
+    - discoverability
+  mandatory_mvp_capabilities:
+  - personal_done_achievements
+  - personal_progress_achievements
+  - friend_invites
+  - friend_scoped_achievements_and_challenges
+  - group_creation
+  - group_roles_and_moderation
+  - group_achievements
+  - group_challenges
+  - approval_and_evidence_flows_where_configured
+  - achievement_detail_with_log_history
+  - discover_groups_and_challenges
+  - notifications_center
+  - profile_and_settings
+  - telegram_mini_app_compatible_mobile_ui
+  achievement_taxonomy:
+    personal:
+    - done
+    - with_progress
+    friends:
+    - done_both
+    - progress_both
+    - done_assign_to_friend
+    - progress_assign_to_friend
+    - challenge_first_wins
+    - challenge_top_by_progress
+    groups:
+    - done_all
+    - progress_all
+    - done_assign_to_subgroup
+    - progress_assign_to_subgroup
+    - challenge_first_wins
+    - challenge_done_with_history
+    - challenge_top_by_progress
+  achievement_attributes:
+  - title
+  - type
+  - assignees_when_relevant
+  - short_definition
+  - description
+  - deadline
+  - area_scope
+  - rank
+  - progress_configuration
+  - progress_logs
+  - status
+  achievement_statuses:
+  - in_progress
+  - completed
+  - overdue
+  - archived
+  - in_review
+  challenge_attributes:
+  - title
+  - challenge_type
+  - start_date
+  - end_date
+  - personal_progress_view
+  - leaderboard_or_winner_logic
+  - rules_section
+  - join
+  - leave
+  friend_surface_contract:
+    relation_type: standalone_friend_relation
+    tabs:
+    - Overview
+    - Achievements
+    - Challenges
+    overview_style: simplified_pair_view
+    excluded_features:
+    - roles
+    - participants_list
+    - group_settings
+    - moderation
+    - subgroup_logic
+    name_or_avatar_action: open_compact_profile_with_notifications_toggle_and_remove_friend
+  friend_removal_contract:
+    removed_list_name: Removed Friends
+    first_side_removal:
+      remover_active_chat: removed
+      other_side_active_chat: kept
+      other_side_permissions:
+      - create_new_shared_entities
+      - act_in_existing_entities
+      silent_to_other_side: true
+    restore_flow:
+      available_to_both_sides: true
+      requires_acceptance: true
+      reactivates_old_relation: true
+      restores_old_history: true
+    double_removal:
+      effect: immediate_logical_destruction
+      db_strategy: tombstoned_not_user_visible
+  challenge_state_contract:
+    user_facing_state: derived_from_dates_and_rules
+    internal_lifecycle_state: true
+    done_with_history_definition:
+      type_class: challenge
+      uses_regular_progress_logs: false
+      history_model: completion_order_events
+  auth_and_identity_contract:
+    email_signup_requires_verification_before_access: true
+    telegram_can_create_standalone_account: true
+    connected_methods_ui:
+      list_all_methods: true
+      supported_mvp_methods:
+      - email
+      - telegram
+      planned_next_method: google
+      cannot_unlink_last_method: true
+      no_primary_method_concept: true
+    linking_rules:
+      no_merge_in_mvp: true
+      occupied_identity_behavior: show_error_and_offer_sign_in_with_existing_account
+    recovery_rules:
+      telegram_only_account_recovery: sign_in_with_telegram_only_until_email_or_google_is_connected
+  entry_and_settings_contract:
+    onboarding: none_for_mvp
+    language_options:
+    - en
+    - ru
+    appearance_options:
+    - light
+    - dark
+    - system
+    pre_auth_controls:
+      language: small_corner_button
+      appearance: small_corner_button
+    app_admin_surface: absent_for_mvp
+locked_decisions_recent:
+- id: DEC-001
+  title: Friend context is a standalone relation, not a group alias
+  status: locked
+  contract:
+    surface_model: one_to_one_view
+    tabs:
+    - Overview
+    - Achievements
+    - Challenges
+    overview_style: simplified_for_pair
+    excluded_features:
+    - roles
+    - participants_list
+    - group_settings
+    - moderation
+    - subgroup_logic
+- id: DEC-002
+  title: Friend profile entry and friend-specific actions
+  status: locked
+  contract:
+    tap_target: friend_name_or_avatar
+    opens: compact_profile_with_friend_specific_options
+    options:
+    - notifications_toggle
+    - remove_friend
+- id: DEC-003
+  title: Friend removal lifecycle
+  status: locked
+  contract:
+    removed_list_name: Removed Friends
+    first_side_removal:
+      remover_view: hidden_from_active_chat_and_moved_to_removed_friends
+      other_side_view: connection_remains_visible_and_fully_usable
+      notify_other_side: false
+      other_side_can_create_new_friend_scoped_entities: true
+      other_side_can_update_existing_entities: true
+    restore_flow:
+      available_to_both_sides: true
+      entrypoint: Restore connection
+      requires_acceptance: true
+      reactivates_old_connection: true
+      restores_old_history_after_acceptance: true
+    double_removal:
+      trigger: second_side_removal_while_first_side_already_removed
+      effect: immediate_global_logical_destruction
+      user_visible_result: no_shared_history_no_shared_entities
+      db_strategy: tombstoned_hidden_from_product
+- id: DEC-004
+  title: Challenge state model
+  status: locked
+  contract:
+    user_facing_status_model: derived_from_dates_and_rules
+    no_primary_domain_status_chip: true
+    internal_backend_lifecycle_state_required: true
+    group_done_with_history:
+      remains_challenge: true
+      regular_progress_logs: false
+      history_model: completion_order_history
+      leaderboard_basis: completion_order
+      example_rule: first_n_finishers_receive_reward
+- id: DEC-005
+  title: Email verification and account access gate
+  status: locked
+  contract:
+    email_signup_requires_verification_before_product_access: true
+    gate_type: hard_gate
+    google_oauth_planned_later: true
+    telegram_auth_planned_and_supported: true
+- id: DEC-006
+  title: Connected sign-in methods model
+  status: locked
+  contract:
+    telegram_can_create_standalone_account: true
+    ui_model: connected_sign_in_methods_list
+    no_primary_method_concept: true
+    cannot_unlink_last_remaining_method: true
+    no_account_merge_in_mvp: true
+    occupied_identity_link_behavior: show_error_and_offer_sign_in_with_existing_account
+    telegram_only_account_recovery_until_other_method_added: true
+- id: DEC-007
+  title: Onboarding and entry controls
+  status: locked
+  contract:
+    onboarding: none_for_mvp
+    pre_auth_language_control: small_corner_button
+    pre_auth_appearance_control: small_corner_button
+    language_options:
+    - en
+    - ru
+    appearance_options:
+    - light
+    - dark
+    - system
+- id: DEC-008
+  title: Backend architecture boundary
+  status: locked
+  contract:
+    backend_shape: modular_monolith
+    patterns_and_exact_domain_module_set: to_be_detailed_later
+    no_app_admin_surface_for_mvp: true
+- id: DEC-009
+  title: Database and backend logic split
+  status: locked
+  contract:
+    database_responsibility: invariants_and_data_side_automation
+    fastapi_responsibility: application_logic_and_orchestration
+    coursework_requirement_effect: procedures_triggers_views_roles_protection_are_mandatory
+- id: DEC-010
+  title: Creation wizard context behavior
+  status: locked
+  contract:
+    context_not_asked_explicitly: true
+    context_comes_from_entry_surface: true
+    no_generic_achievement_vs_challenge_choice_step: true
+    friend_group_first_step_shows_concrete_type_options: true
+- id: DEC-011
+  title: YAML source-of-truth and execution governance
+  status: locked
+  contract:
+    yaml_is_single_source_of_truth: true
+    linear_is_tracking_queue_not_truth: true
+    implementation_may_not_outrun_yaml: true
+    idea_changes_require_explicit_yaml_update: true
+    implementation_divergence_requires_fix_before_next_step: true
+- id: DEC-012
+  title: Linear decomposition model
+  status: locked
+  contract:
+    feature_means: user_scenario_or_vertical_slice
+    task_means: bounded_implementation_subissue
+    design_notes_means: questions_decisions_open_points
+    area_field_is_multi_value: true
+    allowed_areas:
+    - frontend
+    - backend
+    - db
+    - infra
+    - docs
+    - ci/cd
+- id: DEC-013
+  title: Frontend task granularity
+  status: locked
+  contract:
+    default_unit: screen_or_surface
+    single_screen_task_preferred: true
+    task_may_bundle_connected_work_inside_same_status: true
+    cross_phase_mixing_forbidden: true
+    shared_component_refactor_policy: allowed_only_when_required_for_the_current_screen_and_kept_inside_same_task_scope
+- id: DEC-014
+  title: Pre-auth and settings controls
+  status: locked
+  contract:
+    language_options:
+    - en
+    - ru
+    appearance_options:
+    - light
+    - dark
+    - system
+    pre_auth_controls_style: small_non_prominent_corner_buttons
+    settings_contains:
+    - Profile
+    - Notification
+    - Privacy
+    - Account
+    - About
+    - Logout
+    - Language
+    - Appearance
+- id: DEC-015
+  title: Friend restore and deletion semantics
+  status: locked
+  contract:
+    restore_available_to_deleted_and_deleted_by_user: true
+    restore_requires_acceptance: true
+    restore_reactivates_same_relation: true
+    double_removal_effect: immediate_global_destruction_at_product_level
+    physical_db_strategy: tombstone_not_raw_delete
+- id: DEC-016
+  title: Backend backlog tracking gap resolution
+  status: locked
+  contract:
+    lack_of_existing_backend_linear_tree_is_not_blocker: true
+    new_backend_linear_items_must_be_generated_from_yaml_when_phase_reaches_backend: true
+    backend_is_tracked_as_product_features_with_subtasks_not_as_freeform_technical_dump: true
+phase_contract:
+  PHASE-1-FRONTEND-MVP:
+    goal: Deliver the full functional frontend shape of the MVP and all explicitly requested major UI refactors before any
+      DB or backend implementation starts.
+    status: planned
+    depends_on: []
+    sources:
+    - SRC-FRONTEND-CONTRACT
+    - SRC-LIN-ACH-13
+    - SRC-LIN-ACH-14
+    - SRC-LIN-ACH-15
+    - SRC-LIN-ACH-16
+    - SRC-LIN-ACH-17
+    - SRC-LIN-ACH-18
+    - SRC-LIN-ACH-19
+    - SRC-LIN-ACH-20
+    - SRC-LIN-ACH-21
+    - SRC-MEM-ACHIEVNO-PRODUCT
+    frontend_workstreams:
+      FE-WS-01-information_architecture_and_navigation:
+        priority: P0
+        outcomes:
+        - Replace current authenticated root model based on spaces with target model Main + Groups
+        - 'Main tab must contain: top search, personal block first, friend list below personal block'
+        - Groups tab must contain group-related content only
+        - Archive must be removed from the main screen
+        - Authenticated app must gain bottom iOS-like pill navigation
+        affected_current_surfaces:
+        - spaces_home
+        - personal_space
+        - discover_groups
+        - settings_home
+        acceptance_criteria:
+        - There is no remaining primary dependence on /app/spaces as the user-facing IA label
+        - Main and Groups can be reached with one tap from authenticated root
+        - Archive is no longer rendered inline on main root feed
+        - Bottom pill is visible and stable on the main authenticated experience
+      FE-WS-02-bottom_pill_and_settings_activity:
+        priority: P0
+        outcomes:
+        - 'Create bottom pill actions: Notifications, Discover Groups, Create Group, Settings'
+        - Move current top-right notifications/menu actions into bottom pill
+        - Remove separate settings button from current menu model
+        - 'Settings action must open one settings activity/sheet with entries: Profile, Notification settings, Privacy, Account,
+          About, Logout, Language, Appearance'
+        - Create Group must move into bottom pill
+        affected_current_surfaces:
+        - spaces_home
+        - settings_home
+        - profile_screen
+        - settings_notifications
+        - settings_privacy
+        - settings_account
+        source_issue: ACH-21
+        acceptance_criteria:
+        - Top-level notifications/menu buttons are not the primary navigation anymore
+        - Settings is opened from bottom pill and acts as the new consolidated settings entry
+        - Language and Appearance exist in the settings activity
+      FE-WS-03-group_header_and_group_entry_ui:
+        priority: P0
+        outcomes:
+        - Refactor group header to Telegram iOS-like composition
+        - Remove redundant top Dev Team title row from group header layout
+        - Make back button more Telegram-like in shape and placement
+        - Remove trailing three-dots action from group header
+        - Open group settings screen by tapping group name or avatar instead of overflow button
+        - Keep target layout wider and cleaner than current implementation
+        affected_current_surfaces:
+        - group_detail_overview
+        - group_detail_achievements
+        - group_detail_challenges
+        source_issue: ACH-21
+        acceptance_criteria:
+        - Group header no longer depends on trailing three-dot overflow
+        - Tapping name or avatar enters group settings surface
+        - Group top region matches the intended Telegram-like visual direction
+      FE-WS-04-friends_surface:
+        priority: P0
+        outcomes:
+        - Introduce friends as a first-class surface in Main
+        - Add explicit Add Friend entry point
+        - Friend invite UI must support email input and copy-link invite
+        - Friends must render as people rows under personal block, not as group cards
+        - Friend-scoped surfaces must support achievements and challenges flows
+        - Friend detail must use Overview/Achievements/Challenges tabs, not a mini-group or generic chat-only screen
+        - Friend Overview must be simplified for one-to-one context
+        - Tapping friend name or avatar must open compact profile with notifications toggle and remove-friend action
+        - Removed Friends section must exist for one-sided removals
+        - Restore connection flow must exist and require acceptance before old history returns
+        affected_current_surfaces:
+        - spaces_home
+        - discover_groups
+        source_issue: ACH-15
+        acceptance_criteria:
+        - Friends are visible on Main and are not mixed with groups
+        - Add Friend flow exists and can be fully exercised with mock data
+        - Friend invite form supports email and link invite paths
+        - Friend detail uses Overview/Achievements/Challenges and excludes group-only settings/roles/moderation
+        - Removed Friends exists and Restore connection flow is navigable with mock data
+        - One-sided remove and accepted restore flows are demonstrable in frontend fixtures
+      FE-WS-05-personal_achievements_experience:
+        priority: P0
+        outcomes:
+        - Achievement lists must support search, filter, and sort
+        - Archived achievements must move into a separate tab near active/completed
+        - Achievement cards must render final MVP fields
+        - Done and progress achievement cards must have clearly different presentation
+        - Completed and in-progress states must be visually distinguishable
+        affected_current_surfaces:
+        - personal_space
+        - achievement_detail
+        source_issue: ACH-19
+        acceptance_criteria:
+        - Search/filter/sort are accessible in achievement list views
+        - Archive is no longer only an inline reveal block
+        - Card state differences are visible without opening detail view
+      FE-WS-06-achievement_detail_and_progress_modal:
+        priority: P0
+        outcomes:
+        - Achievement detail must show compact top card view, expandable description, log history, deadline, and bottom action
+          bar
+        - Progress logging bottom sheet must support future bar preview
+        - Progress logging must support quick add, custom value, note, save, save and complete
+        - Negative progress values must be supported
+        - Quick-add values must adapt to target size
+        affected_current_surfaces:
+        - achievement_detail
+        source_issue: ACH-19
+        acceptance_criteria:
+        - Log history is visible in detail page
+        - Progress modal supports subtract mode
+        - Quick-add button values are not static across all achievements
+      FE-WS-07-creation_flows_unification:
+        priority: P0
+        outcomes:
+        - Use existing wizard as baseline instead of designing from zero
+        - Align creation wizard with final taxonomy for personal, friends, and groups
+        - Unify creation entry location across contexts
+        - Keep bottom-right floating primary create action as the default daily-use entry
+        - Make create action available from overview where relevant
+        - Redesign mobile stepper into a centered and readable pill-like component
+        - Resolve semantic conflict between create plus and quick-progress plus
+        - Do not ask Personal/Friend/Group explicitly in wizard; context must come from entry surface
+        - Do not present generic Achievement/Challenge split as the main first step; present concrete options for the current
+          context
+        affected_current_surfaces:
+        - personal_space
+        - group_detail_achievements
+        - group_detail_challenges
+        - group_detail_overview
+        source_issue: ACH-20
+        acceptance_criteria:
+        - Creation flows exist for all required personal/friend/group variants using mock data
+        - Wizard top stepper is mobile-safe and visually balanced
+        - There is one clearly primary create control pattern across contexts
+        - Personal/Friend/Group context is inferred from current surface rather than selected manually
+        - Friend and Group flows expose concrete contextual type options immediately
+      FE-WS-08-group_moderation_and_invites_ui:
+        priority: P0
+        outcomes:
+        - Expose group visibility, category, roles, base permission, and invite mechanics in frontend flows
+        - Invite flow must support choosing friends, entering emails, and copy link
+        - Role-based settings screens must differ for owner, admin, and member
+        - Members must have leave, report, and notifications settings
+        - Owner must not have leave/report actions for own group
+        affected_current_surfaces:
+        - create_group
+        - group_detail_overview
+        source_issue: ACH-17
+        acceptance_criteria:
+        - 'Create group flow includes missing fields: base permission and invite mechanics'
+        - Group settings screens reflect role-based capability differences
+        - Invite flow supports internal-friend and external-email paths
+      FE-WS-09-approval_and_evidence_ui:
+        priority: P0
+        outcomes:
+        - Expose configuration for approval requirement where relevant
+        - Expose configuration for evidence requirement where relevant
+        - Friend achievements must support friend approval and evidence options
+        - Group achievements must support approver scope selection and minimum approval count
+        - Evidence upload UI must support photo, video, document, and comment metadata at the contract level
+        affected_current_surfaces:
+        - achievement_detail
+        - creation_flows
+        - group_settings
+        source_issue: ACH-18
+        acceptance_criteria:
+        - Personal achievements do not show approval configuration
+        - Friend and group forms can be configured with approval/evidence policies
+        - Review-required achievements visibly surface in-review state
+      FE-WS-10-discover_and_notifications:
+        priority: P1
+        outcomes:
+        - Keep discover for groups and challenges as part of MVP
+        - Discover ordering must become category-aware
+        - Notifications must support special invite card structures and social activity states
+        - Notification center must remain reachable from bottom pill
+        affected_current_surfaces:
+        - discover_groups
+        - discover_challenges
+        - notifications_center
+        acceptance_criteria:
+        - Discover supports search and target surfaces for groups and challenges
+        - Invite notifications are actionable in UI shape
+        - Notifications are not stranded behind deprecated top-right-only buttons
+      FE-WS-11-profile_and_settings_retention:
+        priority: P1
+        outcomes:
+        - Preserve profile/account/privacy/notification/about surfaces as support surfaces
+        - Re-home them under new settings activity instead of old current page graph
+        - Add Language and Appearance entries
+        - Expose connected sign-in methods list in settings/account surfaces
+        - Block unlinking of the last remaining sign-in method
+        - No dedicated onboarding flow may be introduced in MVP scope
+        affected_current_surfaces:
+        - profile_screen
+        - settings_home
+        - settings_notifications
+        - settings_privacy
+        - settings_account
+        source_issue: ACH-21
+        acceptance_criteria:
+        - All previous support surfaces remain reachable after nav refactor
+        - Language and Appearance exist in settings
+        - Settings displays connected sign-in methods and their connection state
+        - Attempting to unlink the last remaining sign-in method is blocked in UI
+      FE-WS-12-major_ui_corrections_already_flagged:
+        priority: P0
+        outcomes:
+        - Fix segmented slider overlap on group page tabs
+        - Center-align stats card text
+        - Improve contrast/readability of metadata under progress bars
+        - Remove duplicate create buttons on Personal and keep one primary bottom FAB
+        - Differentiate Archived vs In Progress more clearly, likely with blue for In Progress
+        - Fix group achievements/challenges stats text overflow and centering
+        affected_current_surfaces:
+        - group_detail_overview
+        - group_detail_achievements
+        - group_detail_challenges
+        - personal_space
+        source_memory: SRC-MEM-ACHIEVNO-PRODUCT
+        acceptance_criteria:
+        - No tab overlap remains in group segmented control
+        - Text in stats cards does not overflow card bounds
+        - Only one primary create-achievement button remains in Personal
+        - Archived and In Progress are distinguishable at a glance
+      FE-WS-13-auth_identity_and_entry_experience:
+        priority: P0
+        outcomes:
+        - Email sign-up must end in verification gate before product access
+        - Telegram must be able to create a standalone account path in MVP UI
+        - Pre-auth language and appearance controls must exist as small corner buttons
+        - Connected sign-in methods list must exist in settings
+        - No account-merge flow is introduced in MVP
+        - No onboarding flow is introduced in MVP
+        affected_current_surfaces:
+        - welcome_guest
+        - auth_sign_up
+        - auth_sign_in
+        - settings_account
+        - settings_home
+        acceptance_criteria:
+        - A newly signed-up email account cannot reach main product before verification succeeds
+        - Telegram-created accounts can later see connected methods UI
+        - Language and appearance can be changed before auth through subtle corner controls
+        - There is no onboarding blocker between successful auth and product access
+    frontend_delivery_constraints:
+      mocking_policy: Allowed and expected for PHASE-1
+      api_dependency: No real API dependency required during PHASE-1
+      required_output:
+      - updated frontend route map
+      - updated screen inventory
+      - all major user flows navigable with mock data
+      - explicit UI contracts for backend payloads
+      task_granularity: screen_or_surface_by_default
+      screen_task_policy: Prefer one bounded task per screen/surface while it remains reviewable by Codex.
+      shared_ui_refactor_policy: Refactor shared UI only when necessary for the current screen task and keep the refactor
+        bounded.
+      completion_gate: No PHASE-1 step is accepted until the implemented screen matches YAML and its Linear issue.
+  PHASE-2-DATABASE:
+    goal: Design and implement the full MVP database contract after frontend flows are fixed and before backend implementation.
+    status: planned
+    depends_on:
+    - PHASE-1-FRONTEND-MVP
+    sources:
+    - SRC-LIN-ACH-9
+    - SRC-LIN-ACH-10
+    - SRC-LIN-ACH-11
+    - SRC-LIN-ACH-12
+    - SRC-LIN-ACH-15
+    - SRC-LIN-ACH-16
+    - SRC-LIN-ACH-17
+    - SRC-LIN-ACH-18
+    - SRC-LIN-ACH-19
+    - SRC-LIN-ACH-20
+    - SRC-MEM-ACHIEVNO-PRODUCT
+    - SRC-KP-2026-DOC
+    database_stack:
+      engine: PostgreSQL 16+
+      extensions:
+      - pgcrypto
+      - citext
+      - pg_trgm
+      migration_tool: Alembic
+      orm_integration_target: SQLAlchemy 2.x
+      sql_style: explicit_schema_first
+      naming_conventions:
+        primary_keys: pk_<table>
+        foreign_keys: fk_<table>__<column>__<ref_table>
+        unique_constraints: uq_<table>__<column_set>
+        indexes: ix_<table>__<column_set>
+        check_constraints: ck_<table>__<rule>
+    database_design_decisions:
+    - Use UUID primary keys generated via gen_random_uuid()
+    - Use timestamptz for all temporal columns
+    - Use soft delete only where product recovery matters; otherwise use explicit status fields
+    - Keep achievements and challenges as separate tables; do not force one polymorphic mega-table
+    - Keep permissions role-based through membership rows; do not introduce ABAC for MVP
+    - Store heavy files outside PostgreSQL; keep only metadata in DB
+    - Use DB constraints for invariants where practical, application services for cross-aggregate rules
+    - Use context ownership model with dedicated friend_connection lifecycle; friend is a standalone relation, not a group
+      alias.
+    - Stored procedures or PostgreSQL-equivalent SQL functions, triggers, and views are mandatory due to coursework constraints.
+    - Database roles, privileges, and protection mechanisms are mandatory deliverables due to coursework constraints.
+    - 'Keep DB logic hybrid: invariants and data-side automation in PostgreSQL, orchestration and API scenario logic in FastAPI.'
+    - Database is designed from zero on PostgreSQL; no MySQL migration path is required.
+    - Database owns invariants and data-side automation; FastAPI owns application orchestration and broader business flows.
+    - Coursework-mandated procedures/functions, triggers, views, roles/privileges, and DB protection are mandatory outputs
+      rather than optional enhancements.
+    logical_model:
+      lookup_tables:
+        areas:
+          purpose: System-defined category/area catalog for user preferences, groups, and items
+          columns:
+          - id
+          - code
+          - label
+          - sort_order
+          - is_active
+          constraints:
+          - unique(code)
+        rank_definitions:
+          purpose: Rank catalog for system, user, or space-specific rank sets
+          columns:
+          - id
+          - scope_type
+          - scope_user_id
+          - scope_space_id
+          - code
+          - label
+          - sort_order
+          - color_token
+          - is_active
+          constraints:
+          - unique(scope_type, scope_user_id, scope_space_id, code)
+          - scope_user_id required when scope_type=user
+          - scope_space_id required when scope_type=space
+      identity_and_user_tables:
+        users:
+          purpose: Core account and profile record
+          columns:
+          - id
+          - email
+          - email_normalized
+          - email_verified_at
+          - password_hash
+          - display_name
+          - username
+          - avatar_url
+          - bio
+          - language_code
+          - appearance
+          - status
+          - created_at
+          - updated_at
+          - deleted_at
+          constraints:
+          - unique(email_normalized) where email_normalized is not null
+          - unique(username) where username is not null
+          - email/password fields may be null for standalone telegram-origin accounts
+          - at least one sign-in method must exist at account level
+          indexes:
+          - email_normalized
+          - username
+          - status
+        user_external_identities:
+          purpose: Linked external sign-in identities such as Telegram and Google
+          columns:
+          - id
+          - user_id
+          - provider
+          - provider_user_id
+          - provider_username
+          - provider_payload_json
+          - linked_at
+          constraints:
+          - unique(provider, provider_user_id)
+          - provider in (telegram, google)
+          indexes:
+          - user_id
+          - provider
+        user_sessions:
+          purpose: Refresh/session tracking for web and mini-app auth continuity
+          columns:
+          - id
+          - user_id
+          - refresh_token_hash
+          - user_agent
+          - ip_address
+          - created_at
+          - last_seen_at
+          - expires_at
+          - revoked_at
+          constraints:
+          - unique(refresh_token_hash)
+          indexes:
+          - user_id
+          - expires_at
+          - revoked_at
+        user_area_preferences:
+          purpose: User interests for recommendations and profile preferences
+          columns:
+          - user_id
+          - area_id
+          - weight
+          - created_at
+          constraints:
+          - primary key(user_id, area_id)
+          indexes:
+          - area_id
+        email_verification_tokens:
+          purpose: Verification tokens for email-based account activation gate
+          columns:
+          - id
+          - user_id
+          - email
+          - token_hash
+          - expires_at
+          - used_at
+          - created_at
+          constraints:
+          - unique(token_hash)
+          indexes:
+          - user_id
+          - expires_at
+          - used_at
+      space_tables:
+        spaces:
+          purpose: Technical context owner for personal, friend, and group read models; friend semantics are governed by dedicated
+            friend_connection tables.
+          columns:
+          - id
+          - type
+          - owner_user_id
+          - title
+          - description
+          - visibility
+          - area_id
+          - avatar_url
+          - avatar_bg_token
+          - status
+          - created_at
+          - updated_at
+          - archived_at
+          constraints:
+          - type in (personal, friend, group)
+          - owner_user_id required for personal and group where creator ownership applies
+          - friend contexts must be backed by exactly one friend_connections row
+          indexes:
+          - type
+          - owner_user_id
+          - visibility
+          - area_id
+          - status
+        space_members:
+          purpose: Membership, role, and per-space member settings for personal/group contexts and technical participant mapping
+            where needed
+          columns:
+          - space_id
+          - user_id
+          - role
+          - membership_status
+          - notifications_enabled
+          - joined_at
+          - left_at
+          - invited_by_user_id
+          - created_at
+          - updated_at
+          constraints:
+          - primary key(space_id, user_id)
+          indexes:
+          - user_id
+          - role
+          - membership_status
+        space_invites:
+          purpose: Invite records for friend and group contexts
+          columns:
+          - id
+          - space_id
+          - invite_type
+          - target_user_id
+          - target_email
+          - invite_token
+          - invited_by_user_id
+          - status
+          - expires_at
+          - accepted_at
+          - created_at
+          constraints:
+          - invite_type in (internal_user, email, link)
+          indexes:
+          - space_id
+          - target_user_id
+          - target_email
+          - status
+          - invite_token
+        space_join_requests:
+          purpose: Public-group join requests when group is discoverable but moderated
+          columns:
+          - id
+          - space_id
+          - requester_user_id
+          - status
+          - message
+          - reviewed_by_user_id
+          - reviewed_at
+          - created_at
+          indexes:
+          - space_id
+          - requester_user_id
+          - status
+      achievement_tables:
+        achievements:
+          purpose: Achievement aggregate root
+          columns:
+          - id
+          - space_id
+          - created_by_user_id
+          - base_type
+          - assignment_mode
+          - title
+          - short_definition
+          - description
+          - area_id
+          - rank_id
+          - status
+          - deadline_at
+          - progress_current
+          - progress_target
+          - unit_label
+          - allow_negative_progress
+          - approval_policy_id
+          - completed_at
+          - archived_at
+          - created_at
+          - updated_at
+          constraints:
+          - base_type in (done, progress)
+          - status in (in_progress, completed, overdue, archived, in_review)
+          - progress_target required when base_type=progress
+          indexes:
+          - space_id
+          - status
+          - deadline_at
+          - area_id
+          - rank_id
+          - created_by_user_id
+        achievement_assignees:
+          purpose: Explicit assignee list for friend/group achievements
+          columns:
+          - achievement_id
+          - user_id
+          - can_log_progress
+          - can_complete
+          - assigned_by_user_id
+          - assigned_at
+          constraints:
+          - primary key(achievement_id, user_id)
+          indexes:
+          - user_id
+        achievement_logs:
+          purpose: User-visible log history for achievements
+          columns:
+          - id
+          - achievement_id
+          - actor_user_id
+          - action_type
+          - delta_value
+          - resulting_progress
+          - note
+          - created_at
+          indexes:
+          - achievement_id
+          - actor_user_id
+          - action_type
+          - created_at
+      challenge_tables:
+        challenges:
+          purpose: Challenge aggregate root
+          columns:
+          - id
+          - space_id
+          - created_by_user_id
+          - challenge_type
+          - title
+          - short_definition
+          - description
+          - rules_text
+          - area_id
+          - rank_id
+          - start_at
+          - end_at
+          - progress_target
+          - unit_label
+          - lifecycle_state
+          - winner_user_id
+          - created_at
+          - updated_at
+          - archived_at
+          constraints:
+          - challenge_type in (first_wins, top_by_progress, done_with_history)
+          indexes:
+          - space_id
+          - challenge_type
+          - start_at
+          - end_at
+          - lifecycle_state
+          - winner_user_id
+        challenge_participants:
+          purpose: Join/leave and current progress state per user
+          columns:
+          - challenge_id
+          - user_id
+          - state
+          - current_progress
+          - current_rank
+          - joined_at
+          - left_at
+          - completed_at
+          - winner_position
+          constraints:
+          - primary key(challenge_id, user_id)
+          indexes:
+          - user_id
+          - state
+          - current_rank
+        challenge_completion_events:
+          purpose: Minimal history table for done_with_history challenges without turning challenges into achievement-log
+            clones
+          columns:
+          - id
+          - challenge_id
+          - user_id
+          - event_type
+          - payload_json
+          - created_at
+          indexes:
+          - challenge_id
+          - user_id
+          - event_type
+          - created_at
+      approval_and_evidence_tables:
+        approval_policies:
+          purpose: Optional review/evidence requirement policy
+          columns:
+          - id
+          - space_id
+          - mode
+          - min_approvals
+          - require_evidence
+          - allowed_approver_scope
+          - created_by_user_id
+          - created_at
+          - updated_at
+          indexes:
+          - space_id
+          - mode
+          - allowed_approver_scope
+        approval_policy_approvers:
+          purpose: Explicit allowed approver set when scope=selected_users
+          columns:
+          - policy_id
+          - user_id
+          constraints:
+          - primary key(policy_id, user_id)
+        achievement_reviews:
+          purpose: Review records for completion/proof approval
+          columns:
+          - id
+          - achievement_id
+          - submitted_by_user_id
+          - reviewer_user_id
+          - status
+          - comment
+          - created_at
+          - decided_at
+          indexes:
+          - achievement_id
+          - submitted_by_user_id
+          - reviewer_user_id
+          - status
+        evidence_assets:
+          purpose: Metadata for uploaded files stored outside PostgreSQL
+          columns:
+          - id
+          - owner_user_id
+          - storage_provider
+          - storage_key
+          - file_name
+          - mime_type
+          - size_bytes
+          - checksum_sha256
+          - created_at
+          indexes:
+          - owner_user_id
+          - storage_key
+          - checksum_sha256
+        evidence_links:
+          purpose: Attach uploaded assets to logs or review submissions
+          columns:
+          - id
+          - target_kind
+          - target_id
+          - asset_id
+          - caption
+          - created_at
+          indexes:
+          - target_kind
+          - target_id
+          - asset_id
+      social_and_support_tables:
+        comments:
+          purpose: Comments on achievements and optionally challenges if enabled
+          columns:
+          - id
+          - target_kind
+          - target_id
+          - author_user_id
+          - body
+          - created_at
+          - updated_at
+          - deleted_at
+          indexes:
+          - target_kind
+          - target_id
+          - author_user_id
+          - created_at
+        notifications:
+          purpose: In-app notification inbox
+          columns:
+          - id
+          - user_id
+          - type
+          - title
+          - body
+          - action_url
+          - payload_json
+          - is_read
+          - created_at
+          - read_at
+          indexes:
+          - user_id
+          - is_read
+          - type
+          - created_at
+        outbox_events:
+          purpose: Background delivery queue for notifications, emails, and asynchronous side effects
+          columns:
+          - id
+          - event_type
+          - aggregate_type
+          - aggregate_id
+          - payload_json
+          - status
+          - available_at
+          - attempt_count
+          - last_error
+          - created_at
+          - processed_at
+          indexes:
+          - status
+          - available_at
+          - event_type
+          - aggregate_type
+          - aggregate_id
+      friend_tables:
+        friend_connections:
+          purpose: Canonical standalone 1-on-1 relation between exactly two users; not a group alias
+          columns:
+          - id
+          - space_id
+          - user_a_id
+          - user_b_id
+          - state
+          - created_at
+          - updated_at
+          - tombstoned_at
+          constraints:
+          - unique(sorted_user_pair(user_a_id, user_b_id))
+          - user_a_id != user_b_id
+          - state in (active, one_sided_removed, tombstoned)
+          indexes:
+          - space_id
+          - user_a_id
+          - user_b_id
+          - state
+          - tombstoned_at
+        friend_connection_sides:
+          purpose: Per-side visibility and notification state for asymmetric friend removal/restore behavior
+          columns:
+          - friend_connection_id
+          - user_id
+          - side_state
+          - notifications_enabled
+          - removed_at
+          - updated_at
+          constraints:
+          - primary key(friend_connection_id, user_id)
+          - side_state in (active, removed)
+          indexes:
+          - user_id
+          - side_state
+          - removed_at
+        friend_restore_invites:
+          purpose: Restore-connection invitations for previously removed friend links
+          columns:
+          - id
+          - friend_connection_id
+          - initiated_by_user_id
+          - recipient_user_id
+          - status
+          - expires_at
+          - created_at
+          - responded_at
+          constraints:
+          - status in (pending, accepted, declined, expired)
+          indexes:
+          - friend_connection_id
+          - recipient_user_id
+          - status
+          - expires_at
+    database_constraints_and_invariants:
+    - Each user must have exactly one personal space
+    - Friend spaces must contain exactly two active members after invite acceptance
+    - Personal spaces must not create achievement_assignees rows
+    - Group and friend achievements may require explicit assignees depending on assignment_mode
+    - Only group spaces may have admin role
+    - Challenge participants must belong to the parent space membership set
+    - Approval review rows are only valid for achievements that reference an approval_policy
+    - Evidence links must only point to allowed target kinds
+    seed_strategy:
+      required_seed_types:
+      - areas
+      - system_rank_definitions
+      - demo_users
+      - personal_spaces
+      - friend_spaces
+      - group_spaces
+      - achievements
+      - challenges
+      - notifications
+      mock_data_target: enough data to exercise all MVP flows on staging and local development
+      linear_alignment:
+      - ACH-11
+    procedure_policy:
+      position: mandatory_due_to_coursework_constraint
+      architecture_rule: Use meaningful database-side procedures/functions, triggers, and views for data-side automation,
+        protection, and reporting; do not move all application orchestration into the database.
+      mandatory_db_artifacts:
+      - stored_procedures_or_postgresql_equivalent_functions
+      - triggers
+      - views
+      - roles_and_privileges
+      - database_protection_description
+      preferred_db_side_responsibilities:
+      - updated_at helpers
+      - password or credential safety helpers when justified
+      - invite token or verification token helpers when justified
+      - audit and history maintenance
+      - consistency-preserving status or counter maintenance
+      - reporting views for coursework and admin scenarios
+    required_database_outputs:
+    - formal_logical_description_for_every_table
+    - relationship_schema
+    - ER model
+    - Alembic migration chain
+    - seed scripts and mock json sources
+    - constraint list
+    - index list
+    - database role and privilege matrix
+    - database protection design
+    - procedure_or_function_catalog
+    - trigger_catalog
+    - view_catalog
+    - test fixtures
+    - appendix_ready_sql_listings
+    - DB contract document aligned with frontend payload needs
+    coursework_alignment:
+      mandatory: true
+      required_sections_supported_by_phase:
+      - logical_database_structure
+      - administration
+      - database_protection
+      - stored_procedures_triggers_views
+      - appendix_ready_sql_artifacts
+      rule: No DB design deviation from the coursework requirements is allowed, except using PostgreSQL from scratch instead
+        of MySQL migration.
+  PHASE-3-BACKEND:
+    goal: Implement the server side strictly on top of the approved frontend contract and approved database design.
+    status: planned
+    depends_on:
+    - PHASE-2-DATABASE
+    sources:
+    - SRC-LIN-ACH-15
+    - SRC-LIN-ACH-16
+    - SRC-LIN-ACH-17
+    - SRC-LIN-ACH-18
+    - SRC-LIN-ACH-19
+    - SRC-LIN-ACH-20
+    - SRC-LIN-ACH-21
+    - SRC-MEM-ACHIEVNO-PRODUCT
+    - SRC-KP-2026-DOC
+    backend_stack:
+      framework: FastAPI
+      data_validation: Pydantic v2
+      orm: SQLAlchemy 2.x
+      postgres_driver: asyncpg
+      migrations: Alembic
+      authentication: short_lived_access_token_plus_rotating_refresh_session
+      password_hashing: Argon2id
+      file_storage: S3_compatible_adapter_with_local_dev_fallback
+      background_processing: app_worker_using_postgres_outbox
+      test_stack:
+      - pytest
+      - pytest-asyncio
+      - httpx
+      - factory-style fixtures
+      deployment_shape: single modular monolith API + worker process
+    backend_architecture:
+      style: modular_monolith
+      repo_shape:
+      - app/api/v1
+      - app/core
+      - app/domain
+      - app/models
+      - app/repositories
+      - app/services
+      - app/workers
+      - app/schemas
+      - app/tests
+      - alembic
+      module_boundaries:
+      - auth
+      - users
+      - spaces
+      - invites
+      - achievements
+      - challenges
+      - approvals
+      - evidence
+      - notifications
+      - discover
+      - settings
+      - friends
+      - account_linking
+      forbidden_architecture_moves:
+      - no_microservices_for_mvp
+      - no_generic_frameworkless_mega-service
+      - no_db_procedure_first_business_logic
+      - no_graphql_as_primary_api
+      tracking_policy: Linear backend work follows product features with design_notes and tasks.
+      modularity_statement: Implementation is a modular monolith; exact structural patterns and domain module breakdown may
+        be detailed later without breaking the current phase order.
+    service_contracts:
+      BE-SVC-01-auth_and_identity:
+        priority: P0
+        responsibilities:
+        - email signup with mandatory verification gate before product access
+        - email signin
+        - email verification
+        - session refresh
+        - logout
+        - telegram standalone sign-in/up
+        - connected sign-in method linking and unlinking
+        - me endpoint
+        - enforce no-merge policy and no-unlink-last-method rule
+        minimal_endpoints:
+        - POST /api/v1/auth/sign-up
+        - POST /api/v1/auth/sign-in
+        - POST /api/v1/auth/verify-email
+        - POST /api/v1/auth/refresh
+        - POST /api/v1/auth/sign-out
+        - POST /api/v1/auth/telegram/sign-in
+        - POST /api/v1/auth/methods/link/email
+        - POST /api/v1/auth/methods/link/google
+        - DELETE /api/v1/auth/methods/{method_id}
+        - GET /api/v1/auth/me
+      BE-SVC-02-main_and_spaces:
+        priority: P0
+        responsibilities:
+        - serve Main overview payload
+        - serve Groups list payload
+        - serve group details
+        - serve friend rows and friend one-to-one summaries
+        - serve Removed Friends list
+        - map frontend context to personal/friend/group payloads without treating friend as group settings surface
+        minimal_endpoints:
+        - GET /api/v1/main
+        - GET /api/v1/groups
+        - GET /api/v1/groups/{space_id}
+        - GET /api/v1/friends
+        - GET /api/v1/friends/{connection_id}
+        - GET /api/v1/friends/removed
+      BE-SVC-03-invites_and_membership:
+        priority: P0
+        responsibilities:
+        - friend invite by email
+        - friend invite by link
+        - group invite by internal user/email/link
+        - accept/decline/revoke invite
+        - join request handling for public groups
+        - friend restore-connection invite
+        - accept/decline restore connection
+        minimal_endpoints:
+        - POST /api/v1/friends/invites/email
+        - POST /api/v1/friends/invites/link
+        - POST /api/v1/groups/{space_id}/invites
+        - POST /api/v1/invites/{invite_id}/accept
+        - POST /api/v1/invites/{invite_id}/decline
+        - POST /api/v1/groups/{space_id}/join-requests
+        - POST /api/v1/friends/{connection_id}/restore
+        - POST /api/v1/friends/restore-invites/{invite_id}/accept
+        - POST /api/v1/friends/restore-invites/{invite_id}/decline
+      BE-SVC-04-group_management_and_rbac:
+        priority: P0
+        responsibilities:
+        - create/update group
+        - group membership listing
+        - role changes
+        - base permission configuration
+        - member settings
+        - group settings activity payload
+        minimal_endpoints:
+        - POST /api/v1/groups
+        - PATCH /api/v1/groups/{space_id}
+        - GET /api/v1/groups/{space_id}/members
+        - PATCH /api/v1/groups/{space_id}/members/{user_id}
+        - GET /api/v1/groups/{space_id}/settings
+        - PATCH /api/v1/groups/{space_id}/settings
+      BE-SVC-05-achievements:
+        priority: P0
+        responsibilities:
+        - list achievements with search/filter/sort
+        - create achievements for all supported contexts
+        - achievement detail
+        - achievement logs
+        - log progress
+        - complete
+        - archive
+        - review submission state transitions
+        minimal_endpoints:
+        - GET /api/v1/spaces/{space_id}/achievements
+        - POST /api/v1/spaces/{space_id}/achievements
+        - GET /api/v1/achievements/{achievement_id}
+        - PATCH /api/v1/achievements/{achievement_id}
+        - POST /api/v1/achievements/{achievement_id}/log
+        - POST /api/v1/achievements/{achievement_id}/complete
+        - POST /api/v1/achievements/{achievement_id}/archive
+        - GET /api/v1/achievements/{achievement_id}/logs
+      BE-SVC-06-challenges:
+        priority: P0
+        responsibilities:
+        - list challenges
+        - create challenge variants
+        - challenge detail payload
+        - join/leave flows
+        - progress update for applicable challenge types
+        - leaderboard payload
+        minimal_endpoints:
+        - GET /api/v1/spaces/{space_id}/challenges
+        - POST /api/v1/spaces/{space_id}/challenges
+        - GET /api/v1/challenges/{challenge_id}
+        - POST /api/v1/challenges/{challenge_id}/join
+        - POST /api/v1/challenges/{challenge_id}/leave
+        - POST /api/v1/challenges/{challenge_id}/progress
+        - GET /api/v1/challenges/{challenge_id}/leaderboard
+      BE-SVC-07-approvals_and_evidence:
+        priority: P0
+        responsibilities:
+        - approval policy configuration
+        - review request submission
+        - approve/reject actions
+        - evidence metadata upload handshake
+        - asset linkage to logs/reviews
+        minimal_endpoints:
+        - POST /api/v1/achievements/{achievement_id}/reviews
+        - POST /api/v1/reviews/{review_id}/approve
+        - POST /api/v1/reviews/{review_id}/reject
+        - POST /api/v1/evidence/upload-prepare
+        - POST /api/v1/evidence/upload-complete
+      BE-SVC-08-notifications_and_discover:
+        priority: P1
+        responsibilities:
+        - notification inbox
+        - mark as read
+        - mark all read
+        - discover groups
+        - discover challenges
+        - simple category-based ranking for discover
+        minimal_endpoints:
+        - GET /api/v1/notifications
+        - POST /api/v1/notifications/{notification_id}/read
+        - POST /api/v1/notifications/read-all
+        - GET /api/v1/discover/groups
+        - GET /api/v1/discover/challenges
+      BE-SVC-09-profile_and_settings:
+        priority: P1
+        responsibilities:
+        - profile read/update
+        - notification preferences
+        - privacy settings
+        - account settings
+        - language
+        - appearance
+        - connected sign-in methods list
+        - linkable-method status payload
+        minimal_endpoints:
+        - GET /api/v1/me/profile
+        - PATCH /api/v1/me/profile
+        - GET /api/v1/me/settings
+        - PATCH /api/v1/me/settings
+        - GET /api/v1/me/privacy
+        - PATCH /api/v1/me/privacy
+        - GET /api/v1/me/notifications-settings
+        - PATCH /api/v1/me/notifications-settings
+        - GET /api/v1/me/auth-methods
+        - PATCH /api/v1/me/language
+        - PATCH /api/v1/me/appearance
+    backend_cross_cutting_requirements:
+      authorization_model: space_type_plus_role_plus_item_policy
+      idempotency:
+      - invite acceptance
+      - join challenge
+      - leave challenge
+      - mark notification read
+      - progress log submission via client retry token
+      validation_rules:
+      - do not allow challenge participation outside parent space membership
+      - do not allow approval actions by users outside allowed approver scope
+      - do not allow progress subtraction below zero unless explicitly allowed and business rule permits
+      - do not allow archive/complete state transitions that contradict current state machine
+      - do not grant main product access to unverified email-signup accounts
+      - do not auto-merge accounts when linking an occupied email or external identity
+      - do not allow unlinking the last remaining sign-in method
+      - friend double-removal must tombstone shared 1-on-1 history immediately at product level
+      background_jobs:
+      - notification fanout
+      - email invite delivery
+      - cleanup of expired invites
+      - optional digest or reminder jobs later
+      - email verification delivery
+      observability:
+      - structured logs
+      - request_id propagation
+      - domain event logging
+      - health endpoint
+      - readiness endpoint
+    required_backend_outputs:
+    - API route inventory
+    - Pydantic schema inventory
+    - SQLAlchemy model inventory
+    - permission matrix
+    - outbox worker
+    - integration tests
+    - OpenAPI spec aligned with final frontend payloads
+  PHASE-4-POLISH:
+    goal: After backend integration, finish remaining frontend and design polish without changing approved MVP scope.
+    status: planned
+    depends_on:
+    - PHASE-3-BACKEND
+    polish_workstreams:
+      POL-01-desktop_stabilization:
+        priority: P1
+        items:
+        - desktop layout sanity pass
+        - desktop interaction regressions
+        - responsive edge-case fixes
+      POL-02-telegram_mini_app_polish:
+        priority: P1
+        items:
+        - theme handling
+        - fullscreen behavior
+        - button override polish
+        - home-screen/add-to-home-screen behavior clarification
+      POL-03-frontend_regression_cleanup:
+        priority: P1
+        items:
+        - interaction regressions after API integration
+        - loading states
+        - empty states
+        - error states
+        - animation and spacing consistency
+      POL-04-remaining_visual_details:
+        priority: P2
+        items:
+        - fine typography and spacing tuning
+        - final icon alignment
+        - final status color tuning
+        - final contrast pass
+    scope_rule: No new product pillars may be added in PHASE-4. Only stabilization and polish are allowed.
+api_and_payload_strategy:
+  payload_shape_policy:
+  - Frontend-first payload contracts must be fixed before backend implementation
+  - Each major screen family must have one documented aggregate payload
+  - Avoid chatty N+1 mobile APIs; prefer aggregated read models per screen
+  - Keep write APIs explicit and narrow
+  suggested_read_models:
+  - MainScreenPayload
+  - GroupsTabPayload
+  - FriendSpacePayload
+  - GroupOverviewPayload
+  - AchievementListPayload
+  - AchievementDetailPayload
+  - ChallengeDetailPayload
+  - SettingsActivityPayload
+  - NotificationsPayload
+  - DiscoverGroupsPayload
+  - DiscoverChallengesPayload
+  - RemovedFriendsPayload
+  - ConnectedMethodsPayload
+  - AuthVerificationGatePayload
+  - FriendCompactProfilePayload
+acceptance_definition:
+  mvp_done_when:
+  - A user can create and complete personal achievements with history
+  - A user can invite a friend and run friend-scoped achievements or challenges
+  - A user can create or join a group, manage membership roles, and participate in group achievements and challenges
+  - Approval and evidence flows work where configured
+  - Main/Groups navigation and bottom pill are fully functional
+  - Discover and notifications are functional enough to support social loops
+  - Web and Telegram Mini App share one coherent mobile-first experience
+  - Email sign-up is blocked from main product access until verification succeeds
+  - Telegram can create a standalone account and connected sign-in methods are visible in settings
+  - Friend 1-on-1 surface works with Overview/Achievements/Challenges and Removed Friends restore semantics
+  - Language and appearance controls work both before auth and inside settings
+  not_done_when:
+  - friends are still absent as first-class product surface
+  - archive still lives only as an inline legacy reveal on main root
+  - group navigation/settings are still split across old menu patterns
+  - backend API shape forces a redesign of approved frontend flows
+  - email sign-up still bypasses verification gate into the product
+  - friend remove/restore lifecycle is missing or behaves like simple hard delete on first removal
+  - language and appearance are unavailable before auth
+resolved_issues:
+- id: OI-001
+  title: Friend detail screen model
+  status: resolved
+  resolution: Friend uses standalone 1-on-1 surface with Overview/Achievements/Challenges, simplified Overview, no group roles/settings/moderation.
+- id: OI-002
+  title: Challenge done_with_history vs no progress logs
+  status: resolved
+  resolution: done_with_history remains a challenge and uses completion-order history events instead of regular achievement
+    progress logs.
+- id: OI-003
+  title: Challenge lifecycle state
+  status: resolved
+  resolution: User-facing challenge state remains derived from dates/rules, but backend keeps internal lifecycle_state.
+- id: OI-004
+  title: Email verification
+  status: resolved
+  resolution: Email sign-up is blocked by hard verification gate before main product access.
+- id: OI-005
+  title: Telegram/email linking
+  status: resolved
+  resolution: Telegram can create standalone account; linked methods are optional; no merge in MVP; occupied identities produce
+    error plus sign-in suggestion.
+- id: OI-007
+  title: DB procedures justification
+  status: resolved
+  resolution: Procedures/functions, triggers, views, roles, and DB protection are mandatory because the coursework document
+    is axiomatic; DB-side logic stays hybrid, not all-in-DB.
+- id: OI-009
+  title: Creation wizard taxonomy mismatch
+  status: resolved
+  resolution: Context is inferred from entry surface; no generic Personal/Friend/Group or Achievement/Challenge question;
+    show concrete contextual creation options.
+- id: OI-006
+  title: Frontend-first sequencing increases rework risk for DB/API contracts
+  status: resolved
+  resolution: Accepted as a fixed project rule; mitigated by frozen PHASE-1 payload contracts, YAML priority over implementation,
+    and a ban on backend-led redesign of approved frontend flows.
+- id: OI-008
+  title: Backend technical backlog is not explicitly decomposed in Linear
+  status: resolved
+  resolution: 'Resolved by governance: backend tracking uses product features plus tasks plus design notes with multi-area
+    tags; backend Linear issues will be generated directly from YAML when PHASE-3 is reached.'
+immediate_actions:
+- id: ACT-001
+  what: Use this YAML v1.2.0 as the only source of truth for future planning and reviews
+  why: The contract is now closed and no longer depends on unresolved OI handling.
+- id: ACT-002
+  what: When a new execution step is needed, derive it from YAML first and then create the corresponding Linear issue
+  why: The agreed delivery loop is YAML -> Linear -> Codex -> Review -> Fix/Next.
+- id: ACT-003
+  what: Keep frontend implementation tasks screen-based by default
+  why: This matches the agreed task granularity and keeps Codex work reviewable.
+- id: ACT-004
+  what: When PHASE-3 begins, generate backend Linear features and subissues directly from the backend section of this YAML
+  why: Backend tracking is now contract-defined even if the current Linear tree is still sparse.
+execution_loop:
+  source_of_truth: yaml_contract
+  review_authority: chatgpt_review_against_yaml_and_linear_task
+  implementer: codex
+  task_queue: linear
+  loop:
+  - read_yaml_and_select_next_step
+  - create_or_update_linear_issue_for_that_step
+  - user_feeds_issue_to_codex
+  - codex_implements_and_pushes_to_repo
+  - chatgpt_reviews_result_against_yaml_and_issue
+  - if_not_ok_create_fix_and_repeat_same_step
+  - if_ok_move_to_next_yaml_step
+  move_forward_rule: No next step may start until the current step is accepted or fixed.
+  task_sizing_rule: A task may combine several tightly connected steps if they remain inside one phase and one status and
+    still form one reviewable bounded contract.
+  frontend_task_granularity: by_screen_or_surface_by_default
+  frontend_screen_task_shape: one_screen_task_may_include_layout_navigation_content_states_actions_modals_and_required_local_integration
+  shared_component_refactor_policy: Allowed inside the same screen task only when required to make that screen correct; avoid
+    broad cross-app refactors unless YAML creates a dedicated task.
+linear_governance:
+  issue_model:
+    feature:
+      meaning: user_scenario_or_vertical_product_slice
+      template_sections:
+      - Что делаем
+      - Зачем
+      - Готово, если
+      - Ограничения / зависимости
+      - Ссылки
+    task:
+      meaning: bounded_implementation_subissue_inside_feature
+      template_sections:
+      - Что сделать
+      - Готово, если
+    design_notes:
+      meaning: design_discussion_decisions_and_open_questions
+      template_sections:
+      - Нужно решить
+      - Принятые решения
+      - Открытые вопросы
+  area_model:
+    field_type: multi_value
+    allowed_values:
+    - frontend
+    - backend
+    - db
+    - infra
+    - docs
+    - ci/cd
+    multiple_values_allowed: true
+  backend_tracking_policy:
+    tracking_shape: product_feature_plus_tasks_plus_design_notes
+    not_by_pure_technical_layer_only: true
+    recommended_backend_feature_families:
+    - auth_and_identity
+    - friends
+    - groups
+    - achievements
+    - challenges
+    - notifications
+    - settings_and_connected_methods
+    - integrations
+  frontend_tracking_policy:
+    default_unit: screen_or_surface
+    do_not_split_screen_unnecessarily: true
+contract_closure:
+  open_issues_remaining: 0
+  status: closed_contract_ready_for_execution
+  notes: Further changes are allowed only through explicit YAML updates after discussion.

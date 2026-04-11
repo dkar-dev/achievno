@@ -79,6 +79,8 @@ export const AVATAR_COLORS = [
 // NAVIGATION
 // ─────────────────────────────────────────────────────────────────
 
+export type RootShellSurface = 'main' | 'groups'
+
 export const ROUTES = {
   // System
   splash: '/',
@@ -103,6 +105,8 @@ export const ROUTES = {
   
   // Main App
   spaces: '/app/spaces',
+  rootShell: (surface: RootShellSurface = 'main') =>
+    surface === 'main' ? '/app/spaces' : `/app/spaces?surface=${surface}`,
   personalWorkspace: '/app/me',
   discover: '/app/discover',
   notifications: '/app/notifications',

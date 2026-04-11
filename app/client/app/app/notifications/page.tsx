@@ -24,6 +24,7 @@ import {
   IconCheck,
   IconActivity
 } from "@/lib/achievno/icons"
+import { ROUTES } from "@/lib/achievno/constants"
 import { cn } from "@/lib/utils"
 
 type NotificationType = "achievement" | "challenge" | "group" | "invite" | "comment"
@@ -159,7 +160,7 @@ export default function NotificationsPage() {
     <div className="min-h-screen bg-background flex flex-col">
       <BackHeader
         title="Notifications"
-        onBack={() => router.push("/app/spaces")}
+        onBack={() => router.push(ROUTES.rootShell())}
         rightActions={
           unreadCount > 0 ? (
             <button

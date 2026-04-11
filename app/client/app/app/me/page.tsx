@@ -229,7 +229,7 @@ export default function PersonalWorkspacePage() {
       {/* Header - Fixed */}
       <BackHeader
         title="Personal"
-        onBack={() => router.push(ROUTES.spaces)}
+        onBack={() => router.push(ROUTES.rootShell())}
       />
 
       {/* Content */}

@@ -42,7 +42,7 @@ export default function WelcomePage() {
         <div className="relative z-10 text-center max-w-sm">
           {/* Logo */}
           <div className="inline-flex items-center justify-center size-20 rounded-2xl bg-primary/15 mb-6">
-            <IconAchievnoLogo size={40} className="text-primary" />
+            <IconAchievnoLogo size={52} className="text-primary" />
           </div>
 
           {/* Brand */}

@@ -24,6 +24,7 @@ import {
   IconChevronRight,
   IconGlobe
 } from "@/lib/achievno/icons"
+import { ROUTES } from "@/lib/achievno/constants"
 import { cn } from "@/lib/utils"
 
 const DISCOVER_TABS = [
@@ -104,7 +105,7 @@ export default function DiscoverPage() {
     <div className="min-h-screen bg-background flex flex-col">
       <BackHeader
         title="Discover"
-        onBack={() => router.push("/app/spaces")}
+        onBack={() => router.push(ROUTES.rootShell())}
       />
 
       {/* Search */}

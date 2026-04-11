@@ -1,46 +1,58 @@
 'use client'
 
-/**
- * ═══════════════════════════════════════════════════════════════
- * ACHIEVNO SPACES LIST
- * ═══════════════════════════════════════════════════════════════
- * Route: /app/spaces
- * Main entry screen after auth - spaces-first navigation
- * 
- * Features:
- * - Skeleton loading states (3-5 items)
- * - Light theme primary (bg-bg-base)
- * - Reduced vertical spacing
- * - Inline collapsible archive section
- * ═══════════════════════════════════════════════════════════════
- */
-
 import * as React from 'react'
-import { useRouter } from 'next/navigation'
-import { SpacesHeader } from '@/components/achievno/header'
-import { PersonalSpaceItem, GroupSpaceItem } from '@/components/achievno/space-item'
-import { SpaceListSkeleton } from '@/components/achievno/skeleton'
-import { AsyncBoundary } from '@/components/achievno/loading-states'
-import { MenuSheet } from '@/components/achievno/menu-sheet'
-import { LogoutModal, NoGroups } from '@/components/achievno'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { NoGroups } from '@/components/achievno'
+import { GroupSpaceItem, PersonalSpaceItem } from '@/components/achievno/space-item'
+import { TabBar } from '@/components/achievno/tabs'
 import { Button } from '@/components/ui/button'
-import { IconChevronDown, IconChevronUp, IconCompass } from '@/lib/achievno/icons'
-import { ROUTES, AVATAR_COLORS, UI } from '@/lib/achievno/constants'
-import type { Space, User } from '@/lib/achievno/types'
+import {
+  AchievnoIcon,
+  IconBell,
+  IconChevronDown,
+  IconChevronUp,
+  IconCompass,
+  IconPlus,
+  IconSettings,
+  IconTarget,
+  IconUsers,
+} from '@/lib/achievno/icons'
+import { AVATAR_COLORS, ROUTES, type RootShellSurface } from '@/lib/achievno/constants'
+import type { Space } from '@/lib/achievno/types'
 import { cn } from '@/lib/utils'
 
-// ─────────────────────────────────────────────────────────────────
-// DEMO DATA
-// ─────────────────────────────────────────────────────────────────
+const ROOT_SURFACE_TABS: { id: RootShellSurface; label: string }[] = [
+  { id: 'main', label: 'Main' },
+  { id: 'groups', label: 'Groups' },
+]
 
-const DEMO_USER: User = {
-  id: 'user-1',
-  email: 'alex@example.com',
-  displayName: 'Alex Johnson',
-  onboardingCompleted: true,
-  notificationsEnabled: true,
-  createdAt: new Date().toISOString(),
-}
+const PILL_NAV_ITEMS = [
+  {
+    id: 'notifications',
+    label: 'Notifications',
+    icon: IconBell,
+    route: ROUTES.notifications,
+  },
+  {
+    id: 'discover',
+    label: 'Discover Groups',
+    icon: IconCompass,
+    route: ROUTES.discover,
+  },
+  {
+    id: 'create-group',
+    label: 'Create Group',
+    icon: IconPlus,
+    route: ROUTES.groupCreate,
+    emphasized: true,
+  },
+  {
+    id: 'settings',
+    label: 'Settings',
+    icon: IconSettings,
+    route: ROUTES.settings,
+  },
+] as const
 
 const DEMO_PERSONAL_SPACE: Space = {
   id: 'personal',
@@ -62,7 +74,7 @@ const DEMO_ARCHIVED_ACHIEVEMENTS = [
 
 const DEMO_GROUPS: Space[] = [
   {
-    id: 'group-1',
+    id: 'dev-team',
     type: 'group',
     name: 'Dev Team',
     avatarInitials: 'DT',
@@ -76,7 +88,7 @@ const DEMO_GROUPS: Space[] = [
     lastActivityAt: new Date().toISOString(),
   },
   {
-    id: 'group-2',
+    id: 'fitness-club',
     type: 'group',
     name: 'Fitness Club',
     avatarInitials: 'FC',
@@ -89,7 +101,7 @@ const DEMO_GROUPS: Space[] = [
     lastActivityAt: new Date(Date.now() - 86400000).toISOString(),
   },
   {
-    id: 'group-3',
+    id: 'book-club',
     type: 'group',
     name: 'Book Club',
     avatarInitials: 'BC',
@@ -103,131 +115,291 @@ const DEMO_GROUPS: Space[] = [
   },
 ]
 
-// ─────────────────────────────────────────────────────────────────
-// MAIN COMPONENT
-// ─────────────────────────────────────────────────────────────────
-
-export default function SpacesListPage() {
+function RootPillNav() {
   const router = useRouter()
-  const [isLoading] = React.useState(false)
-  const [isMenuOpen, setIsMenuOpen] = React.useState(false)
-  const [isLogoutModalOpen, setIsLogoutModalOpen] = React.useState(false)
-  const [isArchiveOpen, setIsArchiveOpen] = React.useState(false)
-  const [hasNotifications] = React.useState(true)
 
-  const handleLogout = () => {
-    setIsLogoutModalOpen(false)
-    router.push(ROUTES.welcome)
+  return (
+    <div
+      className="fixed inset-x-0 bottom-0 z-40 px-screen"
+      style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)' }}
+    >
+      <div className="rounded-[30px] border border-border-subtle bg-bg-elevated/95 p-2 shadow-[0_18px_40px_rgba(17,24,39,0.12)] backdrop-blur">
+        <div className="grid grid-cols-4 gap-1">
+          {PILL_NAV_ITEMS.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => router.push(item.route)}
+              className="flex min-h-[72px] flex-col items-center justify-center gap-2 rounded-[22px] px-2 py-2 text-center transition-colors hover:bg-bg-muted"
+            >
+              <span
+                className={cn(
+                  'flex size-10 items-center justify-center rounded-full',
+                  item.emphasized
+                    ? 'bg-primary text-primary-foreground shadow-sm'
+                    : 'bg-bg-muted text-secondary'
+                )}
+              >
+                <AchievnoIcon icon={item.icon} size="sm" />
+              </span>
+              <span className="text-[11px] font-medium leading-[1.15] text-foreground-secondary">
+                {item.label}
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function MainSurface({
+  isArchiveOpen,
+  onArchiveToggle,
+  onOpenGroups,
+}: {
+  isArchiveOpen: boolean
+  onArchiveToggle: () => void
+  onOpenGroups: () => void
+}) {
+  const router = useRouter()
+
+  return (
+    <div className="space-y-6">
+      <section className="rounded-[28px] border border-border-subtle bg-[linear-gradient(135deg,rgba(224,148,0,0.12),rgba(224,148,0,0.03))] p-5">
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-primary">
+              Main
+            </p>
+            <h2 className="mt-2 text-[24px] font-semibold tracking-tight text-foreground">
+              Personal progress stays in focus while the shell handles navigation.
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-foreground-secondary">
+              `Main` is now the default root surface. Secondary entry points moved into the lower
+              pill-nav, so the old top notifications and menu combo is no longer needed here.
+            </p>
+          </div>
+          <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-primary/15 text-primary">
+            <AchievnoIcon icon={IconTarget} />
+          </div>
+        </div>
+      </section>
+
+      <section className="space-y-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-caption font-semibold uppercase tracking-[0.24em] text-tertiary">
+              Personal
+            </p>
+            <h3 className="text-title font-semibold">Continue your own space</h3>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="rounded-full"
+            onClick={() => router.push(ROUTES.personalWorkspace)}
+          >
+            Open
+          </Button>
+        </div>
+
+        <PersonalSpaceItem
+          space={DEMO_PERSONAL_SPACE}
+          onPress={() => router.push(ROUTES.personalWorkspace)}
+        />
+      </section>
+
+      <section className="space-y-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-caption font-semibold uppercase tracking-[0.24em] text-tertiary">
+              Groups Preview
+            </p>
+            <h3 className="text-title font-semibold">Jump into shared spaces when you need them</h3>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="rounded-full text-primary hover:text-primary"
+            onClick={onOpenGroups}
+          >
+            See all groups
+          </Button>
+        </div>
+
+        <div className="space-y-2">
+          {DEMO_GROUPS.slice(0, 2).map((group) => (
+            <GroupSpaceItem
+              key={group.id}
+              space={group}
+              onPress={() => router.push(ROUTES.group(group.id))}
+            />
+          ))}
+        </div>
+      </section>
+
+      {DEMO_ARCHIVED_ACHIEVEMENTS.length > 0 && (
+        <section className="space-y-2">
+          <button
+            type="button"
+            onClick={onArchiveToggle}
+            className="flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-border-subtle px-4 py-3 text-label text-tertiary transition-colors hover:border-border-emphasis hover:text-secondary"
+          >
+            {isArchiveOpen ? <IconChevronUp size={16} /> : <IconChevronDown size={16} />}
+            <span>Archive ({DEMO_ARCHIVED_ACHIEVEMENTS.length})</span>
+          </button>
+
+          {isArchiveOpen && (
+            <div className="rounded-2xl border border-border-subtle bg-bg-elevated p-2">
+              {DEMO_ARCHIVED_ACHIEVEMENTS.map((achievement) => (
+                <button
+                  key={achievement.id}
+                  type="button"
+                  onClick={() => router.push(ROUTES.achievement(achievement.id))}
+                  className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left transition-colors hover:bg-bg-muted"
+                >
+                  <span className="truncate text-label text-secondary line-through">
+                    {achievement.title}
+                  </span>
+                  <span className="ml-3 shrink-0 text-caption text-tertiary">
+                    {new Date(achievement.completedAt).toLocaleDateString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                    })}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
+    </div>
+  )
+}
+
+function GroupsSurface() {
+  const router = useRouter()
+
+  return (
+    <div className="space-y-6">
+      <section className="rounded-[28px] border border-border-subtle bg-bg-elevated p-5">
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-primary">
+              Groups
+            </p>
+            <h2 className="mt-2 text-[24px] font-semibold tracking-tight text-foreground">
+              Shared spaces now live in their own root surface.
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-foreground-secondary">
+              This keeps `Groups` separate from `Main` without forcing a deep rewrite of group
+              detail screens in the current task.
+            </p>
+          </div>
+          <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-secondary text-foreground">
+            <AchievnoIcon icon={IconUsers} />
+          </div>
+        </div>
+      </section>
+
+      <section className="space-y-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-caption font-semibold uppercase tracking-[0.24em] text-tertiary">
+              Your Groups
+            </p>
+            <h3 className="text-title font-semibold">{DEMO_GROUPS.length} active spaces</h3>
+          </div>
+          <Button
+            size="sm"
+            className="rounded-full"
+            onClick={() => router.push(ROUTES.groupCreate)}
+          >
+            <AchievnoIcon icon={IconPlus} size="sm" className="mr-1" />
+            Create
+          </Button>
+        </div>
+
+        {DEMO_GROUPS.length > 0 ? (
+          <div className="space-y-2">
+            {DEMO_GROUPS.map((group) => (
+              <GroupSpaceItem
+                key={group.id}
+                space={group}
+                onPress={() => router.push(ROUTES.group(group.id))}
+              />
+            ))}
+          </div>
+        ) : (
+          <NoGroups onAction={() => router.push(ROUTES.groupCreate)} />
+        )}
+      </section>
+    </div>
+  )
+}
+
+export default function RootShellPage() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const [isArchiveOpen, setIsArchiveOpen] = React.useState(false)
+
+  const activeSurface: RootShellSurface =
+    searchParams.get('surface') === 'groups' ? 'groups' : 'main'
+
+  const handleSurfaceChange = (nextSurface: RootShellSurface) => {
+    if (nextSurface === activeSurface) return
+
+    router.replace(ROUTES.rootShell(nextSurface), { scroll: false })
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-bg-base">
-      {/* Header */}
-      <SpacesHeader
-        hasNotifications={hasNotifications}
-        onNotificationsPress={() => router.push(ROUTES.notifications)}
-        onMenuPress={() => setIsMenuOpen(true)}
-      />
-
-      {/* Content */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="px-screen py-3 motion-screen-push">
-          <AsyncBoundary
-            loading={isLoading}
-            loadingFallback={<SpaceListSkeleton count={UI.skeletonListCount} />}
-          >
-            {/* Pinned Personal Space */}
-            <PersonalSpaceItem
-              space={DEMO_PERSONAL_SPACE}
-              onPress={() => router.push(ROUTES.personalWorkspace)}
-            />
-
-            {/* Archive Collapsible */}
-            {DEMO_ARCHIVED_ACHIEVEMENTS.length > 0 && (
-              <div className="mt-3">
-                <button
-                  type="button"
-                  onClick={() => setIsArchiveOpen(!isArchiveOpen)}
-                  className={cn(
-                    'flex items-center justify-center w-full py-2 gap-1',
-                    'text-caption text-tertiary hover:text-secondary transition-colors'
-                  )}
-                >
-                  {isArchiveOpen ? <IconChevronUp size={14} /> : <IconChevronDown size={14} />}
-                  <span>Archive ({DEMO_ARCHIVED_ACHIEVEMENTS.length})</span>
-                </button>
-
-                {isArchiveOpen && (
-                  <div className="bg-bg-elevated rounded-xl border border-border-subtle p-2 space-y-1 motion-tab-content">
-                    {DEMO_ARCHIVED_ACHIEVEMENTS.map((achievement) => (
-                      <button
-                        key={achievement.id}
-                        type="button"
-                        onClick={() => router.push(ROUTES.achievement(achievement.id))}
-                        className="flex items-center justify-between w-full px-3 py-2 rounded-lg hover:bg-bg-muted transition-colors"
-                      >
-                        <span className="text-label text-secondary line-through truncate">{achievement.title}</span>
-                        <span className="text-caption text-tertiary shrink-0 ml-2">
-                          {new Date(achievement.completedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                )}
+    <>
+      <div className="min-h-screen bg-bg-base">
+        <div className="sticky top-0 z-30 border-b border-border-subtle bg-bg-base/95 backdrop-blur">
+          <div className="safe-area-top px-screen pb-4 pt-3">
+            <div className="flex items-start justify-between gap-4">
+              <div className="min-w-0">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-primary">
+                  Achievno
+                </p>
+                <h1 className="mt-2 text-[30px] font-semibold tracking-tight text-foreground">
+                  Root Shell
+                </h1>
+                <p className="mt-1 text-sm text-foreground-secondary">
+                  Switch between `Main` and `Groups` here. Open secondary surfaces from the lower
+                  pill-nav.
+                </p>
               </div>
-            )}
-
-            {/* Groups Section */}
-            <div className="mt-4">
-              <p className="text-caption text-tertiary mb-2">GROUPS</p>
-              
-              {DEMO_GROUPS.length > 0 ? (
-                <div className="space-y-2">
-                  {DEMO_GROUPS.map((group) => (
-                    <GroupSpaceItem
-                      key={group.id}
-                      space={group}
-                      onPress={() => router.push(ROUTES.group(group.id))}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <NoGroups onAction={() => router.push(ROUTES.groupCreate)} />
-              )}
             </div>
-          </AsyncBoundary>
+
+            <div className="mt-4">
+              <TabBar
+                tabs={ROOT_SURFACE_TABS}
+                value={activeSurface}
+                onChange={handleSurfaceChange}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div
+          className="px-screen py-5"
+          style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 132px)' }}
+        >
+          {activeSurface === 'main' ? (
+            <MainSurface
+              isArchiveOpen={isArchiveOpen}
+              onArchiveToggle={() => setIsArchiveOpen((prev) => !prev)}
+              onOpenGroups={() => handleSurfaceChange('groups')}
+            />
+          ) : (
+            <GroupsSurface />
+          )}
         </div>
       </div>
 
-      {/* Discover Link */}
-      <div className="px-screen pb-safe-area-bottom py-3 border-t border-border-subtle">
-        <Button
-          onClick={() => router.push(ROUTES.discover)}
-          variant="outline"
-          className="w-full h-11 rounded-xl border-border-subtle bg-bg-elevated hover:bg-bg-muted gap-2"
-        >
-          <IconCompass size={18} />
-          Discover Groups
-        </Button>
-      </div>
-
-      {/* Menu Sheet */}
-      <MenuSheet
-        open={isMenuOpen}
-        onOpenChange={setIsMenuOpen}
-        user={DEMO_USER}
-        onProfilePress={() => router.push(ROUTES.profile)}
-        onSettingsPress={() => router.push(ROUTES.settings)}
-        onCreateGroupPress={() => router.push(ROUTES.groupCreate)}
-        onLogoutPress={() => setIsLogoutModalOpen(true)}
-      />
-
-      {/* Logout Confirmation */}
-      <LogoutModal
-        open={isLogoutModalOpen}
-        onOpenChange={setIsLogoutModalOpen}
-        onConfirm={handleLogout}
-      />
-    </div>
+      <RootPillNav />
+    </>
   )
 }
