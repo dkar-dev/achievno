@@ -31,7 +31,7 @@ const TABS = [
 
 type TabId = (typeof TABS)[number]['id']
 
-const FRIEND = { id: 'fr-1', name: 'Alex Morgan', memberCount: 1 }
+const FRIEND = { id: 'fr-1', name: 'Alex Morgan', active: 2, completed: 6 }
 
 const MOCK_ACHIEVEMENTS: Achievement[] = [
   {
@@ -151,18 +151,17 @@ export default function FriendPage() {
   return (
     <div className="min-h-screen bg-bg-base flex flex-col">
       <div className="safe-area-top px-screen py-3 border-b border-border-subtle">
-        <div className="relative flex items-center gap-3 pr-14">
-          <button className="flex h-11 items-center gap-2 rounded-full border border-border-subtle bg-bg-elevated px-4" onClick={() => router.push(ROUTES.rootShell())}>
+        <div className="relative flex min-h-11 items-center justify-center">
+          <button className="absolute left-0 flex h-11 w-11 items-center justify-center rounded-full border border-border-subtle bg-bg-elevated" onClick={() => router.push(ROUTES.rootShell())}>
             <AchievnoIcon icon={IconChevronRight} className="rotate-180" />
-            <span className="text-sm font-semibold">1</span>
           </button>
-          <div className="flex h-11 flex-1 items-center rounded-full border border-border-subtle bg-bg-elevated px-5">
-            <div className="min-w-0 text-left">
-              <p className="truncate text-[34px] font-semibold leading-[0.65] scale-[0.5] origin-left">{FRIEND.name}</p>
-              <p className="truncate text-xs text-secondary">{FRIEND.memberCount} subscriber</p>
+          <div className="inline-flex h-11 items-center rounded-full border border-border-subtle bg-bg-elevated px-5">
+            <div className="text-center">
+              <p className="text-lg font-semibold leading-none">{FRIEND.name}</p>
+              <p className="truncate text-xs text-secondary">{FRIEND.active} active · {FRIEND.completed} completed</p>
             </div>
           </div>
-          <div className="absolute right-2 top-1/2 -translate-y-1/2"><AchievnoAvatar name={FRIEND.name} size="lg" variant="rounded" /></div>
+          <div className="absolute right-0 top-1/2 -translate-y-1/2"><AchievnoAvatar name={FRIEND.name} size="lg" variant="rounded" /></div>
         </div>
       </div>
 

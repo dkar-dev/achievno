@@ -246,13 +246,16 @@ function MainSurface({
             <p className="text-caption font-semibold uppercase tracking-[0.24em] text-tertiary">Friends</p>
             <h3 className="text-title font-semibold">1-on-1 relations</h3>
           </div>
-          <input
-            placeholder="Search friend"
-            value={friendSearch}
-            onChange={(event) => onFriendSearchChange(event.target.value)}
-            className="h-9 w-44 rounded-full border border-border-subtle px-3 text-sm"
-          />
+          <Button size="sm" className="rounded-full">
+            + Invite
+          </Button>
         </div>
+        <input
+          placeholder="Search friend"
+          value={friendSearch}
+          onChange={(event) => onFriendSearchChange(event.target.value)}
+          className="h-10 w-full rounded-full border border-border-subtle px-4 text-sm"
+        />
         <div className="space-y-2">
           {filteredFriends.map((friend) => (
             <SpaceItem
