@@ -348,9 +348,9 @@ export default function GroupWorkspacePage() {
         <>
             <div className="min-h-screen bg-bg-base flex flex-col">
                 <div className="safe-area-top px-screen py-3 border-b border-border-subtle">
-                    <div className="flex items-center gap-2">
+                    <div className="relative flex items-center gap-3 pr-14">
                         <button
-                            className="flex h-12 items-center gap-2 rounded-full border border-border-subtle bg-bg-elevated px-4"
+                            className="flex h-11 items-center gap-2 rounded-full border border-border-subtle bg-bg-elevated px-4"
                             onClick={() => router.push(ROUTES.rootShell('groups'))}
                             aria-label="Back"
                         >
@@ -358,16 +358,16 @@ export default function GroupWorkspacePage() {
                             <span className="text-sm font-semibold">{MOCK_GROUP.memberCount}</span>
                         </button>
 
-                        <button
-                            className="flex h-12 flex-1 items-center justify-between rounded-full border border-border-subtle bg-bg-elevated px-4"
-                            onClick={() => router.push(ROUTES.groupSettings(MOCK_GROUP.id))}
-                        >
+                        <div className="flex h-11 flex-1 items-center rounded-full border border-border-subtle bg-bg-elevated px-5">
                             <div className="min-w-0 text-left">
-                                <p className="truncate text-[20px] font-semibold leading-none">{MOCK_GROUP.name}</p>
+                                <p className="truncate text-[34px] font-semibold leading-[0.65] scale-[0.5] origin-left">{MOCK_GROUP.name}</p>
                                 <p className="truncate text-xs text-secondary">{MOCK_GROUP.memberCount} subscribers</p>
                             </div>
-                            <AchievnoAvatar name={MOCK_GROUP.name} size="sm" />
-                        </button>
+                        </div>
+
+                        <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                            <AchievnoAvatar name={MOCK_GROUP.name} size="lg" variant="rounded" />
+                        </div>
                     </div>
                 </div>
 
