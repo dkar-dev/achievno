@@ -89,6 +89,12 @@ const DEMO_FRIENDS: Space[] = [
   },
 ]
 
+
+const DEMO_FRIENDS = [
+  { id: 'fr-1', name: 'Alex Morgan', handle: '@alexm' },
+  { id: 'fr-2', name: 'Nina Chen', handle: '@ninac' },
+]
+
 const DEMO_GROUPS: Space[] = [
   {
     id: 'dev-team',
@@ -246,6 +252,26 @@ function MainSurface({
             <p className="text-caption font-semibold uppercase tracking-[0.24em] text-tertiary">Friends</p>
             <h3 className="text-title font-semibold">1-on-1 relations</h3>
           </div>
+          <input placeholder="Search friend" className="h-9 w-32 rounded-full border border-border-subtle px-3 text-sm" />
+        </div>
+        <div className="space-y-2">
+          {DEMO_FRIENDS.map((friend) => (
+            <button key={friend.id} type="button" onClick={() => router.push(ROUTES.friend(friend.id))} className="w-full rounded-2xl border border-border-subtle p-3 text-left">
+              <p className="font-medium">{friend.name}</p>
+              <p className="text-xs text-tertiary">{friend.handle}</p>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <section className="space-y-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-caption font-semibold uppercase tracking-[0.24em] text-tertiary">
+              Groups Preview
+            </p>
+            <h3 className="text-title font-semibold">Jump into shared spaces when you need them</h3>
+          </div>
           <Button size="sm" className="rounded-full">
             + Invite
           </Button>
@@ -280,6 +306,24 @@ function GroupsSurface() {
 
   return (
     <div className="space-y-6">
+      <section className="space-y-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-caption font-semibold uppercase tracking-[0.24em] text-tertiary">Friends</p>
+            <h3 className="text-title font-semibold">1-on-1 relations</h3>
+          </div>
+          <input placeholder="Search friend" className="h-9 w-32 rounded-full border border-border-subtle px-3 text-sm" />
+        </div>
+        <div className="space-y-2">
+          {DEMO_FRIENDS.map((friend) => (
+            <button key={friend.id} type="button" onClick={() => router.push(ROUTES.friend(friend.id))} className="w-full rounded-2xl border border-border-subtle p-3 text-left">
+              <p className="font-medium">{friend.name}</p>
+              <p className="text-xs text-tertiary">{friend.handle}</p>
+            </button>
+          ))}
+        </div>
+      </section>
+
       <section className="space-y-3">
         <div className="flex items-center justify-between">
           <div>

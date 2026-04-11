@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { BackHeader } from '@/components/achievno/header'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -9,24 +9,11 @@ import { Textarea } from '@/components/ui/textarea'
 
 export default function CreateAchievementPage() {
   const router = useRouter()
-  const [context, setContext] = useState<'personal' | 'friend' | 'group'>('personal')
-  const [entity, setEntity] = useState<'achievement' | 'challenge'>('achievement')
+  const params = useSearchParams()
+  const context = (params.get('context') ?? 'personal') as 'personal' | 'friend' | 'group'
+  const entity = (params.get('entity') ?? 'achievement') as 'achievement' | 'challenge'
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    const qContext = params.get('context')
-    const qEntity = params.get('entity')
-
-    if (qContext === 'friend' || qContext === 'group' || qContext === 'personal') {
-      setContext(qContext)
-    }
-
-    if (qEntity === 'challenge' || qEntity === 'achievement') {
-      setEntity(qEntity)
-    }
-  }, [])
 
   return (
     <div className="min-h-screen bg-background">
