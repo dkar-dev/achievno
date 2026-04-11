@@ -280,26 +280,6 @@ function GroupsSurface() {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-[28px] border border-border-subtle bg-bg-elevated p-5">
-        <div className="flex items-start justify-between gap-4">
-          <div className="min-w-0">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-primary">
-              Groups
-            </p>
-            <h2 className="mt-2 text-[24px] font-semibold tracking-tight text-foreground">
-              Shared spaces now live in their own root surface.
-            </h2>
-            <p className="mt-2 text-sm leading-6 text-foreground-secondary">
-              This keeps `Groups` separate from `Main` without forcing a deep rewrite of group
-              detail screens in the current task.
-            </p>
-          </div>
-          <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-secondary text-foreground">
-            <AchievnoIcon icon={IconUsers} />
-          </div>
-        </div>
-      </section>
-
       <section className="space-y-3">
         <div className="flex items-center justify-between">
           <div>
