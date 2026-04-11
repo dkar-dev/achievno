@@ -98,16 +98,13 @@ export const ROUTES = {
   resetPasswordInfo: '/auth/reset-password-info',
   resetPassword: '/auth/reset-password',
   
-  // Onboarding
-  onboardingProfile: '/onboarding/profile',
-  onboardingGoals: '/onboarding/goals',
-  onboardingNotifications: '/onboarding/notifications',
   
   // Main App
   spaces: '/app/spaces',
   rootShell: (surface: RootShellSurface = 'main') =>
     surface === 'main' ? '/app/spaces' : `/app/spaces?surface=${surface}`,
   personalWorkspace: '/app/me',
+  friendsRemoved: '/app/friends/removed',
   discover: '/app/discover',
   notifications: '/app/notifications',
   profile: '/app/profile',
@@ -120,6 +117,7 @@ export const ROUTES = {
   achievementEdit: (id: string) => `/app/achievements/${id}/edit`,
   achievementProgress: (id: string) => `/app/achievements/${id}/progress`,
   
+  friend: (id: string) => `/app/friends/${id}`,
   group: (id: string) => `/app/groups/${id}`,
   groupCreate: '/app/groups/create',
   groupAchievements: (id: string) => `/app/groups/${id}/achievements`,
