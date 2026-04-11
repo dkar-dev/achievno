@@ -14,7 +14,6 @@ import {
   IconCompass,
   IconPlus,
   IconSettings,
-  IconTarget,
   IconUsers,
 } from '@/lib/achievno/icons'
 import { AVATAR_COLORS, ROUTES, type RootShellSurface } from '@/lib/achievno/constants'
@@ -162,36 +161,14 @@ function RootPillNav() {
 function MainSurface({
   isArchiveOpen,
   onArchiveToggle,
-  onOpenGroups,
 }: {
   isArchiveOpen: boolean
   onArchiveToggle: () => void
-  onOpenGroups: () => void
 }) {
   const router = useRouter()
 
   return (
     <div className="space-y-6">
-      <section className="rounded-[28px] border border-border-subtle bg-[linear-gradient(135deg,rgba(224,148,0,0.12),rgba(224,148,0,0.03))] p-5">
-        <div className="flex items-start justify-between gap-4">
-          <div className="min-w-0">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-primary">
-              Main
-            </p>
-            <h2 className="mt-2 text-[24px] font-semibold tracking-tight text-foreground">
-              Personal progress stays in focus while the shell handles navigation.
-            </h2>
-            <p className="mt-2 text-sm leading-6 text-foreground-secondary">
-              `Main` is now the default root surface. Secondary entry points moved into the lower
-              pill-nav, so the old top notifications and menu combo is no longer needed here.
-            </p>
-          </div>
-          <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-primary/15 text-primary">
-            <AchievnoIcon icon={IconTarget} />
-          </div>
-        </div>
-      </section>
-
       <section className="space-y-3">
         <div className="flex items-center justify-between">
           <div>
@@ -230,35 +207,6 @@ function MainSurface({
               <p className="font-medium">{friend.name}</p>
               <p className="text-xs text-tertiary">{friend.handle}</p>
             </button>
-          ))}
-        </div>
-      </section>
-
-      <section className="space-y-3">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-caption font-semibold uppercase tracking-[0.24em] text-tertiary">
-              Groups Preview
-            </p>
-            <h3 className="text-title font-semibold">Jump into shared spaces when you need them</h3>
-          </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="rounded-full text-primary hover:text-primary"
-            onClick={onOpenGroups}
-          >
-            See all groups
-          </Button>
-        </div>
-
-        <div className="space-y-2">
-          {DEMO_GROUPS.slice(0, 2).map((group) => (
-            <GroupSpaceItem
-              key={group.id}
-              space={group}
-              onPress={() => router.push(ROUTES.group(group.id))}
-            />
           ))}
         </div>
       </section>
@@ -330,24 +278,6 @@ function GroupsSurface() {
       <section className="space-y-3">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-caption font-semibold uppercase tracking-[0.24em] text-tertiary">Friends</p>
-            <h3 className="text-title font-semibold">1-on-1 relations</h3>
-          </div>
-          <input placeholder="Search friend" className="h-9 w-32 rounded-full border border-border-subtle px-3 text-sm" />
-        </div>
-        <div className="space-y-2">
-          {DEMO_FRIENDS.map((friend) => (
-            <button key={friend.id} type="button" onClick={() => router.push(ROUTES.friend(friend.id))} className="w-full rounded-2xl border border-border-subtle p-3 text-left">
-              <p className="font-medium">{friend.name}</p>
-              <p className="text-xs text-tertiary">{friend.handle}</p>
-            </button>
-          ))}
-        </div>
-      </section>
-
-      <section className="space-y-3">
-        <div className="flex items-center justify-between">
-          <div>
             <p className="text-caption font-semibold uppercase tracking-[0.24em] text-tertiary">
               Your Groups
             </p>
@@ -403,27 +333,24 @@ export default function RootShellPage() {
       <div className="min-h-screen bg-bg-base">
         <div className="sticky top-0 z-30 border-b border-border-subtle bg-bg-base/95 backdrop-blur">
           <div className="safe-area-top px-screen pb-4 pt-3">
-            <div className="flex items-start justify-between gap-4">
-              <div className="min-w-0">
+            <div className="rounded-3xl border border-border-subtle bg-[linear-gradient(135deg,rgba(224,148,0,0.12),rgba(224,148,0,0.03))] p-4">
+              <div className="flex items-center justify-between gap-3">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-primary">
-                  Achievno
+                  Main / Groups
                 </p>
-                <h1 className="mt-2 text-[30px] font-semibold tracking-tight text-foreground">
-                  Root Shell
-                </h1>
-                <p className="mt-1 text-sm text-foreground-secondary">
-                  Switch between `Main` and `Groups` here. Open secondary surfaces from the lower
-                  pill-nav.
-                </p>
+                <span className="text-xs text-foreground-secondary">Shell</span>
               </div>
-            </div>
-
-            <div className="mt-4">
-              <TabBar
-                tabs={ROOT_SURFACE_TABS}
-                value={activeSurface}
-                onChange={handleSurfaceChange}
-              />
+              <p className="mt-2 text-sm text-foreground-secondary">
+                Switch surface
+              </p>
+              <div className="mt-3">
+                <TabBar
+                  tabs={ROOT_SURFACE_TABS}
+                  value={activeSurface}
+                  onChange={handleSurfaceChange}
+                  size="compact"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -436,7 +363,6 @@ export default function RootShellPage() {
             <MainSurface
               isArchiveOpen={isArchiveOpen}
               onArchiveToggle={() => setIsArchiveOpen((prev) => !prev)}
-              onOpenGroups={() => handleSurfaceChange('groups')}
             />
           ) : (
             <GroupsSurface />
