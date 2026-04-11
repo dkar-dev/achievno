@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { NoGroups } from '@/components/achievno'
 import { GroupSpaceItem, PersonalSpaceItem } from '@/components/achievno/space-item'
 import { TabBar } from '@/components/achievno/tabs'
@@ -383,15 +383,18 @@ function GroupsSurface() {
 
 export default function RootShellPage() {
   const router = useRouter()
-  const searchParams = useSearchParams()
   const [isArchiveOpen, setIsArchiveOpen] = React.useState(false)
+  const [activeSurface, setActiveSurface] = React.useState<RootShellSurface>('main')
 
-  const activeSurface: RootShellSurface =
-    searchParams.get('surface') === 'groups' ? 'groups' : 'main'
+  React.useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    setActiveSurface(params.get('surface') === 'groups' ? 'groups' : 'main')
+  }, [])
 
   const handleSurfaceChange = (nextSurface: RootShellSurface) => {
     if (nextSurface === activeSurface) return
 
+    setActiveSurface(nextSurface)
     router.replace(ROUTES.rootShell(nextSurface), { scroll: false })
   }
 
