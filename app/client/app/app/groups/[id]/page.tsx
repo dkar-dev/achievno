@@ -17,9 +17,11 @@
  * ═══════════════════════════════════════════════════════════════
  */
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
+import { BackHeader } from '@/components/achievno/header'
+import { AchievnoProgress } from '@/components/achievno/progress'
 import { AchievnoAvatar } from '@/components/achievno/avatar'
 import { AchievnoBadge } from '@/components/achievno/badge'
 import { AchievementCard } from '@/components/achievno/achievement-card'
@@ -39,6 +41,8 @@ import {
     IconActivity,
     IconCalendar,
     IconChevronRight,
+    IconMoreHorizontal,
+    IconX,
 } from '@/lib/achievno/icons'
 import { ROUTES } from '@/lib/achievno/constants'
 import type { Achievement } from '@/lib/achievno/types'
@@ -124,6 +128,13 @@ const MOCK_CHALLENGES = [
     },
 ]
 
+const MOCK_MEMBERS = [
+    { id: '1', name: 'Alex Chen', avatar: null, role: 'admin', completedCount: 24 },
+    { id: '2', name: 'Bella Rodriguez', avatar: null, role: 'member', completedCount: 18 },
+    { id: '3', name: 'Max Kim', avatar: null, role: 'member', completedCount: 15 },
+    { id: '4', name: 'Sophie Lee', avatar: null, role: 'member', completedCount: 12 },
+]
+
 const MOCK_ACTIVITY = [
     { id: 'a1', user: 'Alex', action: 'completed "Daily Workout"', time: '2h ago' },
     { id: 'a2', user: 'Bella', action: 'logged progress on "Launch"', time: '3h ago' },
@@ -133,6 +144,140 @@ const MOCK_ACTIVITY = [
 // ─────────────────────────────────────────────────────────────────
 // AUXILIARY COMPONENTS
 // ─────────────────────────────────────────────────────────────────
+
+function HeaderActionsMenu({
+                               onMembersPress,
+                           }: {
+    onMembersPress: () => void
+}) {
+    const [open, setOpen] = useState(false)
+    const menuRef = useRef<HTMLDivElement | null>(null)
+
+    useEffect(() => {
+        if (!open) return
+
+        function handlePointerDown(event: MouseEvent) {
+            if (!menuRef.current) return
+            if (!menuRef.current.contains(event.target as Node)) {
+                setOpen(false)
+            }
+        }
+
+        document.addEventListener('mousedown', handlePointerDown)
+        return () => document.removeEventListener('mousedown', handlePointerDown)
+    }, [open])
+
+    return (
+        <div ref={menuRef} className="relative">
+            <button
+                type="button"
+                aria-label="Open group actions"
+                onClick={() => setOpen((prev) => !prev)}
+                className="size-10 flex items-center justify-center rounded-xl hover:bg-bg-muted"
+            >
+                <AchievnoIcon icon={IconMoreHorizontal} />
+            </button>
+
+            {open && (
+                <div className="absolute right-0 top-12 z-30 min-w-[180px] rounded-2xl border border-border-subtle bg-bg-elevated p-1 shadow-lg">
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setOpen(false)
+                            onMembersPress()
+                        }}
+                        className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left hover:bg-bg-muted"
+                    >
+                        <AchievnoIcon icon={IconUsers} size="sm" className="text-secondary" />
+                        <span className="text-label font-medium">Members</span>
+                    </button>
+                </div>
+            )}
+        </div>
+    )
+}
+
+function MembersSheet({
+                          open,
+                          onClose,
+                      }: {
+    open: boolean
+    onClose: () => void
+}) {
+    if (!open) return null
+
+    return (
+        <div className="fixed inset-0 z-50">
+            <button
+                type="button"
+                aria-label="Close members sheet"
+                onClick={onClose}
+                className="absolute inset-0 bg-black/30"
+            />
+
+            <div className="absolute inset-x-0 bottom-0 max-h-[78vh] overflow-hidden rounded-t-3xl border-t border-border-subtle bg-bg-base shadow-2xl">
+                <div className="flex items-center justify-between border-b border-border-subtle px-screen py-3">
+                    <div>
+                        <h2 className="text-title font-semibold">Members</h2>
+                        <p className="text-caption text-secondary">
+                            {MOCK_MEMBERS.length} members
+                        </p>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                        {MOCK_GROUP.isAdmin && (
+                            <Button size="sm" variant="outline">
+                                <AchievnoIcon icon={IconPlus} size="sm" className="mr-1" />
+                                Invite
+                            </Button>
+                        )}
+
+                        <button
+                            type="button"
+                            aria-label="Close members"
+                            onClick={onClose}
+                            className="size-9 rounded-xl bg-bg-muted flex items-center justify-center"
+                        >
+                            <AchievnoIcon icon={IconX} size="sm" />
+                        </button>
+                    </div>
+                </div>
+
+                <div className="overflow-auto px-screen py-3">
+                    <div className="bg-bg-elevated rounded-xl border border-border-subtle divide-y divide-border-subtle">
+                        {MOCK_MEMBERS.map((member) => (
+                            <div key={member.id} className="p-3 flex items-center gap-3">
+                                <AchievnoAvatar name={member.name} size="md" />
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2">
+                    <span className="text-label font-medium truncate">
+                      {member.name}
+                    </span>
+                                        {member.role === 'admin' && (
+                                            <AchievnoBadge variant="muted" size="sm">
+                                                Admin
+                                            </AchievnoBadge>
+                                        )}
+                                    </div>
+                                    <span className="text-caption text-tertiary">
+                    {member.completedCount} achievements
+                  </span>
+                                </div>
+                                <button className="size-8 flex items-center justify-center rounded-lg hover:bg-bg-muted">
+                                    <AchievnoIcon
+                                        icon={IconChevronRight}
+                                        size="sm"
+                                        className="text-tertiary"
+                                    />
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        </div>
+    )
+}
 
 // ─────────────────────────────────────────────────────────────────
 // TAB CONTENT COMPONENTS
@@ -330,6 +475,7 @@ export default function GroupWorkspacePage() {
     const router = useRouter()
     const [activeTab, setActiveTab] = useState<TabId>('overview')
     const [isLoading] = useState(false)
+    const [isMembersOpen, setIsMembersOpen] = useState(false)
 
     const renderTabContent = () => {
         switch (activeTab) {
@@ -347,27 +493,27 @@ export default function GroupWorkspacePage() {
     return (
         <>
             <div className="min-h-screen bg-bg-base flex flex-col">
-                <div className="safe-area-top px-screen py-3 border-b border-border-subtle">
-                    <div className="relative flex min-h-11 items-center justify-center">
-                        <button
-                            className="absolute left-0 flex h-11 w-11 items-center justify-center rounded-full border border-border-subtle bg-bg-elevated"
-                            onClick={() => router.push(ROUTES.rootShell('groups'))}
-                            aria-label="Back"
-                        >
-                            <AchievnoIcon icon={IconChevronRight} className="rotate-180" />
-                        </button>
+                <BackHeader
+                    title={MOCK_GROUP.name}
+                    onBack={() => router.push(ROUTES.rootShell('groups'))}
+                    rightActions={
+                        <HeaderActionsMenu onMembersPress={() => setIsMembersOpen(true)} />
+                    }
+                />
 
-                        <div className="inline-flex h-11 items-center rounded-full border border-border-subtle bg-bg-elevated px-5">
-                            <div className="text-center">
-                                <p className="text-lg font-semibold leading-none">{MOCK_GROUP.name}</p>
-                                <p className="text-xs text-secondary">{MOCK_GROUP.memberCount} members</p>
-                            </div>
-                        </div>
-
-                        <div className="absolute right-0 top-1/2 -translate-y-1/2">
-                            <AchievnoAvatar name={MOCK_GROUP.name} size="lg" variant="rounded" />
+                <div className="px-screen py-3 border-b border-border-subtle">
+                    <div className="flex items-center gap-3 mb-3">
+                        <AchievnoAvatar name={MOCK_GROUP.name} size="lg" />
+                        <div className="flex-1 min-w-0">
+                            <h1 className="text-title font-semibold truncate">
+                                {MOCK_GROUP.name}
+                            </h1>
+                            <p className="text-caption text-secondary">
+                                {MOCK_GROUP.memberCount} members · {MOCK_GROUP.completionRate}%
+                            </p>
                         </div>
                     </div>
+                    <AchievnoProgress value={MOCK_GROUP.completionRate} size="sm" />
                 </div>
 
                 <div className="sticky top-0 z-10 bg-bg-base border-b border-border-subtle">
@@ -393,6 +539,11 @@ export default function GroupWorkspacePage() {
                     </div>
                 </div>
             </div>
+
+            <MembersSheet
+                open={isMembersOpen}
+                onClose={() => setIsMembersOpen(false)}
+            />
         </>
     )
 }

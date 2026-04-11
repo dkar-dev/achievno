@@ -69,29 +69,22 @@ export default function ProfilePage() {
 
       <div className="flex-1 overflow-auto">
         {/* Profile Header */}
-        <div className="px-5 py-4 border-b border-border">
-          <div className="relative flex min-h-11 items-center justify-center">
-            <div className="inline-flex h-11 items-center rounded-full border border-border-subtle bg-bg-elevated px-5">
-              <div className="text-center">
-                <p className="text-lg font-semibold leading-none">{MOCK_USER.displayName}</p>
-                <p className="text-xs text-secondary">{MOCK_USER.email}</p>
-              </div>
+        <div className="px-5 py-6 border-b border-border">
+          <div className="flex items-start gap-4">
+            <AchievnoAvatar name={MOCK_USER.displayName} size="xl" />
+            <div className="flex-1 min-w-0">
+              <h1 className="text-heading mb-1">{MOCK_USER.displayName}</h1>
+              <p className="text-label text-secondary mb-3">{MOCK_USER.email}</p>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => router.push(ROUTES.profileEdit)}
+                className="h-8 px-3"
+              >
+                <AchievnoIcon icon={IconEdit} size="sm" className="mr-1.5" />
+                Edit Profile
+              </Button>
             </div>
-            <div className="absolute right-0 top-1/2 -translate-y-1/2">
-              <AchievnoAvatar name={MOCK_USER.displayName} size="lg" variant="rounded" />
-            </div>
-          </div>
-
-          <div className="mt-4">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => router.push(ROUTES.profileEdit)}
-              className="h-8 px-3"
-            >
-              <AchievnoIcon icon={IconEdit} size="sm" className="mr-1.5" />
-              Edit Profile
-            </Button>
           </div>
 
           {MOCK_USER.bio && (
