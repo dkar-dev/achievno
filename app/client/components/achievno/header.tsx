@@ -64,7 +64,7 @@ export function Header({
             variant="ghost"
             size="icon"
             onClick={onBack}
-            className="h-11 w-11 rounded-full border border-border-subtle bg-bg-elevated shrink-0"
+            className="size-9 rounded-lg bg-background-elevated shrink-0"
           >
             <IconBack size={18} />
             <span className="sr-only">Go back</span>

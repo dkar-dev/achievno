@@ -16,15 +16,16 @@
 import * as React from 'react'
 import { useRouter } from 'next/navigation'
 import { BackHeader } from '@/components/achievno/header'
-import { TabBar } from '@/components/achievno/tabs'
+import { FilterPills } from '@/components/achievno/tabs'
 import { AchievementCard, AchievementCardSkeleton } from '@/components/achievno/achievement-card'
 import { LogProgressSheet } from '@/components/achievno/log-progress-sheet'
 import { NoAchievements, NeedsAttentionEmpty } from '@/components/achievno/empty-state'
 import { AsyncBoundary } from '@/components/achievno/loading-states'
 import { Button } from '@/components/ui/button'
-import { IconPlus } from '@/lib/achievno/icons'
+import { IconPlus, IconChevronDown, IconChevronUp } from '@/lib/achievno/icons'
 import { ROUTES, UI } from '@/lib/achievno/constants'
 import type { Achievement, PersonalWorkspaceSection } from '@/lib/achievno/types'
+import { cn } from '@/lib/utils'
 
 // ─────────────────────────────────────────────────────────────────
 // DEMO DATA
@@ -183,7 +184,6 @@ function getNeedsAttention(achievements: Achievement[]): Achievement[] {
 const FILTER_OPTIONS = [
   { id: 'active' as const, label: 'Active' },
   { id: 'completed' as const, label: 'Completed' },
-  { id: 'archived' as const, label: 'Archived' },
 ]
 
 // ─────────────────────────────────────────────────────────────────
@@ -194,8 +194,9 @@ export default function PersonalWorkspacePage() {
   const router = useRouter()
   
   // State
-  const [filter, setFilter] = React.useState<'active' | 'completed' | 'archived'>('active')
+  const [filter, setFilter] = React.useState<'active' | 'completed'>('active')
   const [isLoading] = React.useState(false)
+  const [isArchiveOpen, setIsArchiveOpen] = React.useState(false)
   const [selectedAchievement, setSelectedAchievement] = React.useState<Achievement | null>(null)
   const [isLogSheetOpen, setIsLogSheetOpen] = React.useState(false)
 
@@ -204,8 +205,7 @@ export default function PersonalWorkspacePage() {
   const completedAchievements = DEMO_ACHIEVEMENTS.filter((a) => a.status === 'completed')
   const needsAttention = getNeedsAttention(DEMO_ACHIEVEMENTS)
 
-  const filteredAchievements =
-    filter === 'active' ? activeAchievements : filter === 'completed' ? completedAchievements : DEMO_ARCHIVED
+  const filteredAchievements = filter === 'active' ? activeAchievements : completedAchievements
 
   // Handlers
   const handleLogProgress = (achievement: Achievement) => {
@@ -262,11 +262,10 @@ export default function PersonalWorkspacePage() {
 
           {/* Filter Pills */}
           <div className="mb-4">
-            <TabBar
+            <FilterPills
               value={filter}
               onChange={setFilter}
-              tabs={FILTER_OPTIONS}
-              size="compact"
+              options={FILTER_OPTIONS}
             />
           </div>
 
@@ -298,6 +297,35 @@ export default function PersonalWorkspacePage() {
             )}
           </AsyncBoundary>
 
+          {/* Archive Collapsible Section */}
+          {DEMO_ARCHIVED.length > 0 && (
+            <section className="mt-6">
+              <button
+                type="button"
+                onClick={() => setIsArchiveOpen(!isArchiveOpen)}
+                className={cn(
+                  'flex items-center justify-center w-full py-2 gap-2',
+                  'text-label text-tertiary hover:text-secondary transition-colors'
+                )}
+              >
+                {isArchiveOpen ? <IconChevronUp size={16} /> : <IconChevronDown size={16} />}
+                <span>Archive ({DEMO_ARCHIVED.length})</span>
+              </button>
+
+              {isArchiveOpen && (
+                <div className="mt-2 flex flex-col gap-2 motion-tab-content">
+                  {DEMO_ARCHIVED.map((achievement) => (
+                    <AchievementCard
+                      key={achievement.id}
+                      achievement={achievement}
+                      variant="compact"
+                      onPress={() => router.push(ROUTES.achievement(achievement.id))}
+                    />
+                  ))}
+                </div>
+              )}
+            </section>
+          )}
         </div>
       </div>
 
