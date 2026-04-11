@@ -89,8 +89,7 @@ const DEMO_FRIENDS: Space[] = [
   },
 ]
 
-
-const DEMO_FRIENDS = [
+const DEMO_FRIEND_CONTACTS = [
   { id: 'fr-1', name: 'Alex Morgan', handle: '@alexm' },
   { id: 'fr-2', name: 'Nina Chen', handle: '@ninac' },
 ]
@@ -255,7 +254,7 @@ function MainSurface({
           <input placeholder="Search friend" className="h-9 w-32 rounded-full border border-border-subtle px-3 text-sm" />
         </div>
         <div className="space-y-2">
-          {DEMO_FRIENDS.map((friend) => (
+          {DEMO_FRIEND_CONTACTS.map((friend) => (
             <button key={friend.id} type="button" onClick={() => router.push(ROUTES.friend(friend.id))} className="w-full rounded-2xl border border-border-subtle p-3 text-left">
               <p className="font-medium">{friend.name}</p>
               <p className="text-xs text-tertiary">{friend.handle}</p>
@@ -315,7 +314,7 @@ function GroupsSurface() {
           <input placeholder="Search friend" className="h-9 w-32 rounded-full border border-border-subtle px-3 text-sm" />
         </div>
         <div className="space-y-2">
-          {DEMO_FRIENDS.map((friend) => (
+          {DEMO_FRIEND_CONTACTS.map((friend) => (
             <button key={friend.id} type="button" onClick={() => router.push(ROUTES.friend(friend.id))} className="w-full rounded-2xl border border-border-subtle p-3 text-left">
               <p className="font-medium">{friend.name}</p>
               <p className="text-xs text-tertiary">{friend.handle}</p>
