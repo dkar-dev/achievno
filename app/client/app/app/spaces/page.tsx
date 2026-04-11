@@ -134,39 +134,79 @@ const DEMO_GROUPS: Space[] = [
 
 function RootPillNav() {
   const router = useRouter()
+  const [isSettingsOpen, setIsSettingsOpen] = React.useState(false)
+
+  const settingsItems = [
+    { id: 'profile', label: 'Profile', route: ROUTES.profile },
+    { id: 'notifications', label: 'Notifications', route: '/app/settings/notifications' },
+    { id: 'privacy', label: 'Privacy', route: '/app/settings/privacy' },
+    { id: 'account', label: 'Account', route: '/app/settings/account' },
+    { id: 'language', label: 'Language', route: '/app/settings' },
+    { id: 'appearance', label: 'Appearance', route: '/app/settings' },
+    { id: 'about', label: 'About', route: '/app/settings' },
+    { id: 'logout', label: 'Logout', route: ROUTES.welcome },
+  ] as const
 
   return (
-    <div
-      className="fixed inset-x-0 bottom-0 z-40 px-screen"
-      style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)' }}
-    >
-      <div className="rounded-[30px] border border-border-subtle bg-bg-elevated/95 p-2 shadow-[0_18px_40px_rgba(17,24,39,0.12)] backdrop-blur">
-        <div className="grid grid-cols-4 gap-1">
-          {PILL_NAV_ITEMS.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => router.push(item.route)}
-              className="flex min-h-[72px] flex-col items-center justify-center gap-2 rounded-[22px] px-2 py-2 text-center transition-colors hover:bg-bg-muted"
-            >
-              <span
-                className={cn(
-                  'flex size-10 items-center justify-center rounded-full',
-                  item.emphasized
-                    ? 'bg-primary text-primary-foreground shadow-sm'
-                    : 'bg-bg-muted text-secondary'
-                )}
+    <>
+      <div
+        className="fixed inset-x-0 bottom-0 z-40 px-screen"
+        style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)' }}
+      >
+        <div className="rounded-[30px] border border-border-subtle bg-bg-elevated/95 p-2 shadow-[0_18px_40px_rgba(17,24,39,0.12)] backdrop-blur">
+          <div className="grid grid-cols-4 gap-1">
+            {PILL_NAV_ITEMS.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => (item.id === 'settings' ? setIsSettingsOpen(true) : router.push(item.route))}
+                className="flex min-h-[72px] flex-col items-center justify-center gap-2 rounded-[22px] px-2 py-2 text-center transition-colors hover:bg-bg-muted"
               >
-                <AchievnoIcon icon={item.icon} size="sm" />
-              </span>
-              <span className="text-[11px] font-medium leading-[1.15] text-foreground-secondary">
-                {item.label}
-              </span>
-            </button>
-          ))}
+                <span
+                  className={cn(
+                    'flex size-10 items-center justify-center rounded-full',
+                    item.emphasized
+                      ? 'bg-primary text-primary-foreground shadow-sm'
+                      : 'bg-bg-muted text-secondary'
+                  )}
+                >
+                  <AchievnoIcon icon={item.icon} size="sm" />
+                </span>
+                <span className="text-[11px] font-medium leading-[1.15] text-foreground-secondary">
+                  {item.label}
+                </span>
+              </button>
+            ))}
+          </div>
         </div>
       </div>
-    </div>
+      {isSettingsOpen && (
+        <div className="fixed inset-0 z-50 bg-black/35">
+          <button className="absolute inset-0" onClick={() => setIsSettingsOpen(false)} aria-label="Close settings" />
+          <div className="absolute inset-x-0 bottom-0 rounded-t-3xl border-t border-border-subtle bg-bg-base">
+            <div className="border-b border-border-subtle px-screen py-4">
+              <p className="text-title font-semibold">Settings</p>
+              <p className="text-caption text-secondary">Profile, preferences and account</p>
+            </div>
+            <div className="px-screen py-2">
+              {settingsItems.map((item) => (
+                <button
+                  key={item.id}
+                  className="flex w-full items-center justify-between rounded-xl px-3 py-3 text-left hover:bg-bg-muted"
+                  onClick={() => {
+                    setIsSettingsOpen(false)
+                    router.push(item.route)
+                  }}
+                >
+                  <span className={cn('text-label', item.id === 'logout' && 'text-destructive')}>{item.label}</span>
+                  <span className="text-tertiary">›</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   )
 }
 
