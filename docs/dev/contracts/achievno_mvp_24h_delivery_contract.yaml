@@ -1,0 +1,815 @@
+meta:
+  document_name: achievno_mvp_24h_delivery_contract.yaml
+  contract_id: achievno_mvp_24h_delivery_001
+  contract_version: 0.1.0
+  status: canonical_planning_baseline
+  created_on: "2026-05-28"
+  language: ru-en-mixed-machine-readable
+  maintainer: user
+  optimized_for:
+    - codex_bounded_contract_generation
+    - linear_task_planning
+    - mvp_scope_control
+    - preprod_readiness_review
+  purpose: >
+    Define the canonical 24h MVP delivery contract for rebuilding Achievno as a Django + DRF modular monolith
+    connected to the existing PostgreSQL database dependency and the existing Next.js client.
+
+source_of_truth:
+  strategic:
+    notion:
+      - title: Achievno — Vision
+        role: product_vision
+      - title: Achievno — PRD
+        role: product_requirements
+  repository:
+    global_agent_rules: AGENTS.md
+    backend_architecture: docs/dev/architecture/mvp_backend_architecture.md
+    preprod_architecture: docs/dev/architecture/mvp_preprod_architecture.md
+    contract_template: docs/dev/contracts/_template.yaml
+  database:
+    operational_baseline: existing_local_podman_postgresql_container
+    recovery_artifact: achievno_softos_clean_v2_20260522.sql
+    dump_sha256: 177ed029f1086078ab2ce5e89eedec9c87d3e61a4a58c3a900d1c12
+  precedence_rules:
+    - This contract governs 24h MVP implementation scope.
+    - Product vision and PRD govern product intent when this contract is ambiguous.
+    - AGENTS.md governs Codex behavior for all implementation tasks.
+    - Existing PostgreSQL schema wins over speculative Django model redesign during MVP.
+    - If implementation discovers a schema mismatch, create a review item instead of silently changing schema.
+
+linear_tracking:
+  workspace_status: verified
+  team:
+    name: Achievno
+    id: f330bfd8-27bc-4e15-a1e3-a0ef8062a09c
+  project:
+    name: Achievno
+    status: exists
+    url_hint: https://linear.app/achievno/project/achievno-9ee43a604af2
+  existing_work_status:
+    frontend_issues_exist: true
+    known_existing_issue_range: ACH-22_to_ACH-39
+  workflow:
+    - Create or update one Linear issue per executable Codex contract.
+    - Use the existing Achievno team and Achievno project.
+    - Use Feature label for vertical product slices.
+    - Use Task label for infrastructure, contracts, smoke, and architecture tasks.
+    - Use Bug label for fix contracts.
+    - Keep issue descriptions short but include contract path, goal, scope, acceptance commands, and status.
+    - Do not use Linear as the canonical source for architecture; repo contracts are executable source.
+  issue_title_format: "[MVP][<phase_id>] <short title>"
+  issue_description_template: |
+    Contract: <repo-path>
+    Goal: <bounded goal>
+    Scope: <include/exclude summary>
+    Acceptance: <commands/manual checks>
+    Notes: Codex must follow AGENTS.md and the referenced YAML contract exactly.
+
+project_summary:
+  product: Achievno
+  positioning: mobile_first_social_achievement_tracker
+  core_contexts:
+    - personal
+    - friend_1_on_1
+    - group
+  core_entities:
+    - achievement
+    - challenge
+  product_principles:
+    - Achievements and challenges are separate domain objects.
+    - Personal, friend, and group contexts are first-class contexts.
+    - Friend context must not collapse into mini-group semantics.
+    - Approval and evidence are optional mechanics for social contexts, not mandatory for personal usage.
+    - MVP must feel like one product, not disconnected frontend screens.
+
+current_state_assessment:
+  repository:
+    frontend:
+      path: app/client
+      stack:
+        - Next.js
+        - React
+        - TypeScript
+        - Tailwind CSS
+      status: broad_mobile_first_mock_heavy_prototype
+      risk: core_screens_may_look_complete_while_not_connected_to_api
+    backend:
+      path: app/server
+      current_status: FastAPI_stub_to_be_replaced
+      target_status: Django_DRF_modular_monolith
+      risk: migration_must_not_leave_parallel_backends
+    database:
+      status: existing_full_postgresql_schema_running_locally_in_podman
+      ownership: external_dependency_for_mvp
+      migration_status: no_django_schema_ownership_during_mvp
+      risk: inspectdb_models_must_not_be_treated_as_schema_redesign
+  delivery_reality:
+    - The database is the strongest existing backend asset.
+    - The frontend has broad coverage but must be connected to real APIs.
+    - The server must be rebuilt around Django and the existing database.
+    - The 24h goal is not hosting; it is local pre-prod readiness.
+
+canonical_decisions:
+  backend:
+    framework: Django
+    api_framework: Django REST Framework
+    runtime_role: application_backend_layer
+    fastapi_status: removed_from_target_runtime
+  architecture:
+    style: modular_monolith_practical_hexagonal
+    bounded_contexts:
+      - accounts
+      - profiles
+      - friends
+      - groups
+      - achievements
+      - challenges
+      - notifications
+      - platform
+    internal_flow:
+      - drf_api_view
+      - serializer_validation
+      - application_command_or_query
+      - domain_policy_or_rule
+      - infrastructure_repository_or_selector
+      - django_orm_unmanaged_model
+      - postgresql
+  api:
+    reads: screen_oriented_aggregate_payloads
+    writes: explicit_command_endpoints
+    forbidden_primary_style: generic_crud_first_viewsets
+  database:
+    access_path: Django ORM
+    model_strategy: unmanaged_models_inside_domain_apps
+    ownership: existing_schema_baseline
+    schema_changes_during_mvp: forbidden_unless_explicit_sql_patch_contract
+  auth:
+    django_user_model: custom_account_model_over_existing_accounts_table
+    email_password_auth: p0
+    telegram_auth: p2_deferred
+    google_oauth2: p2_deferred
+    access_token: jwt_in_httponly_cookie
+    refresh_token: opaque_token_in_httponly_cookie
+    refresh_hash_storage: existing_user_sessions_table
+    refresh_rotation: deferred
+    frontend_token_storage: no_localstorage
+  frontend:
+    preprod_data_mode: api_only
+    mock_data: allowed_only_with_explicit_dev_flag
+    silent_mock_fallback: forbidden_for_core_screens
+  runtime:
+    container_runtime: podman_rootless
+    database: existing_postgresql_container_as_dependency
+    network: shared_podman_network
+    hosting: not_required_for_24h_mvp
+
+strict_scope:
+  p0_end_to_end:
+    - local_preprod_runtime
+    - django_backend_foundation
+    - db_connectivity_and_schema_sanity
+    - custom_account_auth_session_me_logout
+    - frontend_api_client_and_auth_wiring
+    - main_aggregate_screen
+    - personal_achievement_loop
+    - friend_surface_and_friend_achievement_loop
+    - group_surface_and_group_achievement_loop
+    - challenge_core_types_loop
+    - approval_review_basic_flow
+    - evidence_metadata_only
+    - notifications_basic
+    - smoke_checks
+    - ui_hardening_after_functional_green
+  p1_simplified_or_visible:
+    - invite_record_creation_without_real_delivery
+    - discover_basic_search_or_seed_read
+    - group_settings_minimal_update
+    - friend_restore_simplified
+    - settings_preferences_basic
+    - telegram_bootstrap_compatibility_stub_if_needed
+  p2_deferred:
+    - production_hosting
+    - real_email_delivery
+    - real_file_binary_upload
+    - telegram_account_lifecycle
+    - google_oauth2
+    - advanced_discover_ranking
+    - full_admin_surface
+    - full_schema_migration_baseline
+    - microservice_extraction
+  forbidden_for_24h:
+    - replacing_existing_postgresql_schema_with_django_owned_migrations
+    - adding_parallel_fastapi_runtime
+    - using_localstorage_for_auth_tokens
+    - using_silent_mock_fallback_for_p0_screens
+    - doing_ui_polish_before_core_functional_green
+    - creating_broad_unbounded_codex_prompts
+
+quality_bar:
+  good_form: preprod_ready_minimum
+  p0_rule: "If a flow is P0, it must work end-to-end. If it cannot work end-to-end, downgrade it to P1/P2/stub explicitly."
+  backend_requirements:
+    - endpoint_exists
+    - serializer_validation_exists
+    - application_command_or_query_exists
+    - orm_access_is_inside_infrastructure_layer
+    - domain_errors_are_mapped_to_api_errors
+    - db_dependency_failure_is_visible
+  frontend_requirements:
+    - api_adapter_exists
+    - loading_state_exists
+    - error_state_exists
+    - empty_state_exists_where_needed
+    - no_silent_mock_fallback
+  preprod_requirements:
+    - startup_is_documented
+    - health_endpoint_works
+    - db_health_or_schema_sanity_check_exists
+    - smoke_script_or_scripted_check_exists
+
+codex_execution_model:
+  strategy: bounded_yaml_contracts
+  global_rules_file: AGENTS.md
+  dynamic_task_file_policy:
+    decision: do_not_rewrite_AGENTS_for_each_task
+    reason: AGENTS.md should stay stable and global; per-task prompts belong in docs/dev/contracts/*.yaml and Linear issues.
+    allowed_exception: update_AGENTS_only_when_global_rules_change
+  recommended_codex_invocation: >
+    Read AGENTS.md, then execute docs/dev/contracts/<contract_id>.yaml exactly. Do not expand scope.
+  contract_lifecycle:
+    - draft
+    - ready_for_codex
+    - in_progress
+    - needs_fix
+    - accepted
+    - deferred
+  execution_loop:
+    - create_or_update_yaml_contract
+    - create_or_update_linear_issue
+    - run_codex_on_contract
+    - run_acceptance_commands
+    - review_diff_against_contract
+    - create_fix_contract_if_needed
+    - mark_linear_issue_done_when_accepted
+
+phase_plan:
+  - id: C0_PROJECT_EXECUTION_RULES
+    status: implemented
+    priority: P0
+    type: foundation
+    title: Repository execution rules and architecture baseline
+    goal: Establish stable rules for Codex and MVP implementation.
+    outputs:
+      - AGENTS.md
+      - docs/dev/contracts/README.md
+      - docs/dev/contracts/_template.yaml
+      - docs/dev/architecture/mvp_backend_architecture.md
+      - docs/dev/architecture/mvp_preprod_architecture.md
+    acceptance:
+      manual_checks:
+        - Codex rules exist in repo.
+        - Backend architecture is documented.
+        - Pre-prod architecture is documented.
+
+  - id: C1_MVP_DELIVERY_MASTER_CONTRACT
+    status: in_progress
+    priority: P0
+    type: planning
+    title: Canonical 24h MVP delivery contract
+    goal: Define phases, scope, priorities, Codex execution model, and Linear tracking model.
+    allowed_files:
+      - docs/dev/contracts/achievno_mvp_24h_delivery_contract.yaml
+      - README.md
+    acceptance:
+      manual_checks:
+        - Contract is committed to repo.
+        - Linear team/project existence is verified.
+        - Phase plan is concrete enough to generate child contracts.
+
+  - id: A0_DJANGO_SERVER_REPLACEMENT
+    status: ready_for_contract_generation
+    priority: P0
+    type: backend_foundation
+    title: Replace FastAPI with Django + DRF skeleton
+    goal: Replace app/server runtime with Django modular monolith foundation.
+    scope:
+      include:
+        - remove_fastapi_runtime_from_app_server
+        - create_django_project_config
+        - install_django_drf_dependencies
+        - create_bounded_context_app_skeletons
+        - add_health_endpoint
+        - add_env_driven_settings
+      exclude:
+        - auth_implementation
+        - inspectdb_models
+        - product_api_flows
+        - schema_migrations_for_existing_db
+    acceptance:
+      commands:
+        - cd app/server && python manage.py check
+        - cd app/server && python manage.py test
+      manual_checks:
+        - app/server is Django based.
+        - FastAPI is not part of target runtime.
+        - health endpoint exists.
+
+  - id: A1_PREPROD_PODMAN_RUNTIME
+    status: ready_for_contract_generation
+    priority: P0
+    type: runtime_foundation
+    title: Local Podman pre-prod runtime around existing DB
+    goal: Add scripts and env examples for Django and Next.js containers connected to existing DB container.
+    scope:
+      include:
+        - shared_podman_network_contract
+        - backend_containerfile
+        - client_containerfile_if_missing_or_needed
+        - preprod_env_example
+        - preprod_up_down_logs_scripts
+      exclude:
+        - automatic_db_reset_on_startup
+        - production_hosting
+        - kubernetes
+        - docker_only_assumptions
+    acceptance:
+      commands:
+        - ./scripts/preprod-smoke.sh
+      manual_checks:
+        - Existing DB container is treated as dependency.
+        - Startup does not destroy DB state.
+
+  - id: A2_DB_CONNECTION_AND_SCHEMA_SANITY
+    status: ready_for_contract_generation
+    priority: P0
+    type: backend_db_foundation
+    title: Django DB connection and schema sanity checks
+    goal: Connect Django to existing PostgreSQL via DATABASE_URL and verify critical schema objects.
+    scope:
+      include:
+        - DATABASE_URL_settings
+        - db_health_check
+        - schema_sanity_check_for_core_tables
+        - clear_failure_messages
+      exclude:
+        - schema_changes
+        - migrations_for_existing_schema
+        - data_seed_or_restore
+    critical_tables:
+      - accounts
+      - user_profiles
+      - auth_methods
+      - user_sessions
+      - achievements
+      - achievement_logs
+      - groups
+      - group_memberships
+      - friend_connections
+      - challenges
+      - notifications
+    acceptance:
+      commands:
+        - cd app/server && python manage.py check
+        - cd app/server && python manage.py achievno_check_db
+      manual_checks:
+        - DB unreachable state fails clearly.
+        - Critical schema sanity passes against current local DB.
+
+  - id: A3_UNMANAGED_DOMAIN_MODELS
+    status: ready_for_contract_generation
+    priority: P0
+    type: backend_db_mapping
+    title: Inspect and map existing schema to unmanaged domain models
+    goal: Generate inspectdb draft, split required unmanaged models into bounded context infrastructure layers.
+    scope:
+      include:
+        - inspectdb_draft_as_temporary_artifact_or_reference
+        - unmanaged_models_for_p0_tables
+        - domain_app_model_modules
+        - no_schema_ownership
+      exclude:
+        - full_33_table_perfect_model_cleanup_if_not_needed_for_p0
+        - django_owned_migration_baseline
+    acceptance:
+      commands:
+        - cd app/server && python manage.py check
+      manual_checks:
+        - Existing tables are managed = False.
+        - P0 models live inside domain apps.
+        - No model migration attempts to create existing schema.
+
+  - id: A4_ACCOUNTS_AUTH_SESSIONS
+    status: ready_for_contract_generation
+    priority: P0
+    type: auth_vertical_slice
+    title: Email/password auth with JWT access cookie and opaque refresh cookie
+    goal: Implement real MVP auth/session flow using existing account/session tables.
+    scope:
+      include:
+        - custom_account_user_model
+        - email_password_sign_up
+        - email_password_sign_in
+        - dev_email_verification
+        - jwt_access_httponly_cookie
+        - opaque_refresh_httponly_cookie
+        - refresh_hash_in_user_sessions
+        - auth_me
+        - sign_out_revocation
+      exclude:
+        - refresh_rotation
+        - real_email_delivery
+        - telegram_auth_lifecycle
+        - google_oauth2
+    api_endpoints:
+      - POST /api/v1/auth/sign-up
+      - POST /api/v1/auth/sign-in
+      - POST /api/v1/auth/verify-email
+      - POST /api/v1/auth/refresh
+      - POST /api/v1/auth/sign-out
+      - GET /api/v1/auth/me
+    acceptance:
+      commands:
+        - cd app/server && python manage.py test apps.accounts
+      manual_checks:
+        - Tokens are httpOnly cookies.
+        - No token is stored in localStorage.
+        - request.user works in protected DRF views.
+
+  - id: B0_FRONTEND_API_CLIENT_AND_AUTH_WIRING
+    status: ready_for_contract_generation
+    priority: P0
+    type: frontend_foundation
+    title: Frontend API client and auth wiring
+    goal: Replace core auth mock assumptions with real Django API calls and cookie credentials.
+    scope:
+      include:
+        - central_api_client
+        - credentials_include
+        - auth_state_provider
+        - sign_in_sign_up_verify_me_logout_wiring
+        - explicit_mock_flag
+        - error_loading_states
+      exclude:
+        - full_ui_polish
+        - localstorage_token_storage
+        - silent_mock_fallback
+    acceptance:
+      commands:
+        - cd app/client && npm run build
+      manual_checks:
+        - NEXT_PUBLIC_USE_MOCKS=false uses API only for auth.
+        - Auth screens can reach Django API.
+
+  - id: P0_MAIN_AGGREGATE_AND_PROFILE
+    status: ready_for_contract_generation
+    priority: P0
+    type: vertical_slice
+    title: Main aggregate and profile/me surface
+    goal: Provide the first authenticated screen-oriented payload for the root app surface.
+    scope:
+      include:
+        - GET /api/v1/main
+        - current_profile_summary
+        - personal_space_summary
+        - friends_summary
+        - groups_summary
+        - unread_notifications_summary
+        - frontend_app_spaces_api_integration
+      exclude:
+        - advanced_search
+        - advanced_recommendations
+    acceptance:
+      manual_checks:
+        - /app/spaces renders from API payload in pre-prod.
+        - No demo constants are used when mocks are disabled.
+
+  - id: P1_PERSONAL_ACHIEVEMENTS
+    status: ready_for_contract_generation
+    priority: P0
+    type: vertical_slice
+    title: Personal achievements end-to-end
+    goal: Implement personal achievement list/create/detail/progress/complete/archive using API and DB.
+    scope:
+      include:
+        - list_active_completed_archived
+        - create_done_achievement
+        - create_progress_achievement
+        - detail_payload
+        - progress_log_positive
+        - progress_log_negative_when_allowed
+        - complete
+        - archive
+        - log_history
+      exclude:
+        - personal_approval
+        - real_file_evidence_upload
+        - recurrence
+        - bulk_actions
+    api_commands:
+      - POST /api/v1/achievements
+      - POST /api/v1/achievements/{id}/log
+      - POST /api/v1/achievements/{id}/complete
+      - POST /api/v1/achievements/{id}/archive
+    acceptance:
+      manual_checks:
+        - A user can create a personal progress achievement.
+        - A user can log progress and see updated state.
+        - A user can complete and archive it.
+
+  - id: P2_FRIENDS_AND_FRIEND_ACHIEVEMENTS
+    status: ready_for_contract_generation
+    priority: P0
+    type: vertical_slice
+    title: Friend surface and friend achievement loop
+    goal: Implement friend 1-on-1 surface and real friend-scoped achievement commands.
+    scope:
+      include:
+        - friends_list
+        - friend_detail_aggregate
+        - friend_achievement_list
+        - create_friend_achievement
+        - assign_to_friend_variants_where_schema_supports
+        - log_or_complete_friend_achievement
+        - remove_friend
+        - removed_friends_read
+        - restore_simplified
+      exclude:
+        - real_email_invite_delivery
+        - public_invite_link_acceptance_as_p0
+    acceptance:
+      manual_checks:
+        - Existing demo friend connection can be opened.
+        - Friend achievement can be created and updated.
+        - Remove friend affects visible active friend list.
+
+  - id: P3_GROUPS_AND_GROUP_ACHIEVEMENTS
+    status: ready_for_contract_generation
+    priority: P0
+    type: vertical_slice
+    title: Group surface and group achievement loop
+    goal: Implement groups list/create/detail/members and group achievement commands.
+    scope:
+      include:
+        - groups_list
+        - create_group
+        - group_detail_aggregate
+        - members_read
+        - owner_admin_member_permissions_minimum
+        - create_group_achievement
+        - log_or_complete_group_achievement
+        - invite_record_creation_stub
+      exclude:
+        - real_invite_delivery
+        - complex_rbac_matrix
+        - moderation_reports
+    acceptance:
+      manual_checks:
+        - User can create a group.
+        - User can open group detail from API.
+        - User can create/update a group achievement.
+
+  - id: P4_CHALLENGES_CORE_TYPES
+    status: ready_for_contract_generation
+    priority: P0
+    type: vertical_slice
+    title: Challenge core types end-to-end
+    goal: Implement challenge creation, participation, progress, leaderboard, and state for core challenge types.
+    scope:
+      include:
+        - friend_first_wins
+        - friend_top_by_progress
+        - group_first_wins
+        - group_done_with_history
+        - group_top_by_progress
+        - join
+        - leave
+        - log_progress_where_applicable
+        - leaderboard
+        - completion_or_winner_history_where_applicable
+        - upcoming_active_finished_state
+      exclude:
+        - realtime_updates
+        - anti_cheat
+        - advanced_analytics
+        - reminder_jobs
+    acceptance:
+      manual_checks:
+        - At least one friend challenge can be created and progressed.
+        - At least one group challenge can be created and progressed.
+        - Leaderboard/state changes are visible in UI.
+
+  - id: P5_APPROVAL_AND_EVIDENCE_METADATA
+    status: ready_for_contract_generation
+    priority: P0
+    type: vertical_slice
+    title: Approval lifecycle and metadata-only evidence
+    goal: Implement basic review lifecycle and evidence metadata records for friend/group achievements.
+    scope:
+      include:
+        - approval_policy_read_write_where_supported
+        - submit_for_review
+        - approve
+        - reject
+        - in_review_status
+        - review_history
+        - evidence_asset_metadata
+        - evidence_link_to_log_or_review
+      exclude:
+        - binary_file_upload
+        - external_storage
+        - image_video_processing
+    acceptance:
+      manual_checks:
+        - Friend/group achievement can enter review.
+        - Reviewer can approve or reject.
+        - Evidence metadata can be attached without binary upload.
+
+  - id: P6_NOTIFICATIONS_AND_SECONDARY_SURFACES
+    status: ready_for_contract_generation
+    priority: P1
+    type: vertical_slice
+    title: Notifications and secondary surfaces
+    goal: Wire basic notifications, discover, settings/preferences enough for MVP cohesion.
+    scope:
+      include:
+        - notifications_list
+        - notification_read_state_if_schema_supports
+        - basic_invite_notifications
+        - basic_activity_notifications
+        - discover_groups_read_or_search
+        - settings_profile_preferences_basic
+      exclude:
+        - advanced_ranking
+        - notification_delivery_jobs
+        - push_notifications
+    acceptance:
+      manual_checks:
+        - Notifications screen loads from API.
+        - Discover does not block core MVP if simplified.
+
+  - id: S0_PREPROD_SMOKE_AND_DEBUG
+    status: ready_for_contract_generation
+    priority: P0
+    type: quality_gate
+    title: End-to-end smoke and debug gate
+    goal: Add scripted checks for client -> API -> DB and core P0 flows.
+    scope:
+      include:
+        - preprod_smoke_script
+        - server_health_check
+        - db_schema_sanity_check
+        - auth_smoke
+        - personal_achievement_smoke
+        - one_social_flow_smoke
+        - one_challenge_smoke
+      exclude:
+        - large_e2e_suite
+        - production_observability
+    acceptance:
+      commands:
+        - ./scripts/preprod-smoke.sh
+      manual_checks:
+        - Smoke failure explains failing layer.
+        - No P0 mock fallback masks backend failure.
+
+  - id: U0_UI_HARDENING_PASS
+    status: ready_for_contract_generation
+    priority: P0_after_functional_green
+    type: ui_polish
+    title: Hard UI pass after functional green
+    goal: Make the MVP feel coherent and reliable after backend/frontend flows are green.
+    prerequisites:
+      - S0_PREPROD_SMOKE_AND_DEBUG.functional_green
+    scope:
+      include:
+        - layout_overflow_fixes
+        - mobile_safe_area_fixes
+        - loading_empty_error_state_polish
+        - form_validation_error_display
+        - card_status_visual_consistency
+        - achievement_vs_challenge_visual_distinction
+        - tab_overlap_and_bottom_nav_fixes
+        - contrast_and_spacing_review
+      exclude:
+        - new_product_features
+        - backend_schema_changes
+        - redesigning_navigation_model
+    acceptance:
+      manual_checks:
+        - Core screens look stable on mobile viewport.
+        - Error/loading/empty states do not feel broken.
+        - Achievement and challenge UI are visually distinct.
+
+  - id: R0_MVP_README_AND_HANDOFF
+    status: ready_for_contract_generation
+    priority: P0
+    type: release_readiness
+    title: MVP README and handoff documentation
+    goal: Document how to run, smoke, and demo the local pre-prod MVP.
+    scope:
+      include:
+        - README_update
+        - preprod_runbook
+        - known_gaps
+        - p0_p1_p2_status_table
+        - linear_status_sync
+      exclude:
+        - long_marketing_docs
+    acceptance:
+      manual_checks:
+        - A fresh developer can understand how to run local pre-prod.
+        - MVP limitations are explicit.
+
+linear_issue_generation_plan:
+  initial_project_issue:
+    create_now: optional
+    title: "[MVP][C1] Canonical 24h MVP delivery contract"
+    label: Task
+    state: Todo
+  per_phase_issues:
+    - phase_id: A0_DJANGO_SERVER_REPLACEMENT
+      label: Task
+      priority: 1
+    - phase_id: A1_PREPROD_PODMAN_RUNTIME
+      label: Task
+      priority: 1
+    - phase_id: A2_DB_CONNECTION_AND_SCHEMA_SANITY
+      label: Task
+      priority: 1
+    - phase_id: A3_UNMANAGED_DOMAIN_MODELS
+      label: Task
+      priority: 1
+    - phase_id: A4_ACCOUNTS_AUTH_SESSIONS
+      label: Feature
+      priority: 1
+    - phase_id: B0_FRONTEND_API_CLIENT_AND_AUTH_WIRING
+      label: Feature
+      priority: 1
+    - phase_id: P0_MAIN_AGGREGATE_AND_PROFILE
+      label: Feature
+      priority: 1
+    - phase_id: P1_PERSONAL_ACHIEVEMENTS
+      label: Feature
+      priority: 1
+    - phase_id: P2_FRIENDS_AND_FRIEND_ACHIEVEMENTS
+      label: Feature
+      priority: 2
+    - phase_id: P3_GROUPS_AND_GROUP_ACHIEVEMENTS
+      label: Feature
+      priority: 2
+    - phase_id: P4_CHALLENGES_CORE_TYPES
+      label: Feature
+      priority: 2
+    - phase_id: P5_APPROVAL_AND_EVIDENCE_METADATA
+      label: Feature
+      priority: 2
+    - phase_id: P6_NOTIFICATIONS_AND_SECONDARY_SURFACES
+      label: Feature
+      priority: 3
+    - phase_id: S0_PREPROD_SMOKE_AND_DEBUG
+      label: Task
+      priority: 1
+    - phase_id: U0_UI_HARDENING_PASS
+      label: Task
+      priority: 1
+    - phase_id: R0_MVP_README_AND_HANDOFF
+      label: Task
+      priority: 2
+
+risk_register:
+  - id: RISK-001
+    title: Codex expands scope and rewrites architecture
+    mitigation: Use YAML contracts, AGENTS.md, allowed_files, forbidden_changes, and acceptance commands.
+  - id: RISK-002
+    title: Django migration accidentally tries to own existing schema
+    mitigation: managed_false_models, no schema migrations, explicit SQL patch contracts only.
+  - id: RISK-003
+    title: Frontend keeps working from mocks while API is broken
+    mitigation: preprod_api_only_mode, no silent mock fallback, smoke checks.
+  - id: RISK-004
+    title: Auth becomes parallel to existing DB model
+    mitigation: custom Account model over accounts table and user_sessions refresh hash.
+  - id: RISK-005
+    title: UI polish consumes time before functionality is green
+    mitigation: UI hardening pass starts only after functional smoke gate.
+  - id: RISK-006
+    title: Challenges are underbuilt despite being core entity
+    mitigation: Challenge core types are P0, not read-only.
+
+acceptance_summary:
+  contract_done_when:
+    - contract_is_committed_to_repo
+    - linear_team_and_project_are_verified
+    - next_action_can_generate_A0_DJANGO_SERVER_REPLACEMENT_contract
+  mvp_done_when:
+    - local_preprod_starts
+    - backend_connects_to_existing_db
+    - auth_works_with_httponly_cookies
+    - core_screens_use_api_only
+    - personal_friend_group_achievement_flows_work_end_to_end
+    - challenge_core_types_work_end_to_end_or_documented_as_explicit_partial_with_reason
+    - approval_evidence_metadata_basic_flow_works
+    - notifications_basic_loads
+    - smoke_script_passes
+    - UI_hardening_pass_completed_after_functional_green
