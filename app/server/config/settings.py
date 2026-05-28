@@ -21,6 +21,13 @@ def env_csv(name: str, default: list[str] | None = None) -> list[str]:
     return [item.strip() for item in value.split(",") if item.strip()]
 
 
+def env_int(name: str, default: int) -> int:
+    value = os.environ.get(name)
+    if value is None:
+        return default
+    return int(value)
+
+
 SECRET_KEY = os.environ.get(
     "DJANGO_SECRET_KEY",
     "django-insecure-achievno-local-a0-development-only",
@@ -75,10 +82,25 @@ else:
 CORS_ALLOWED_ORIGINS = env_csv("CORS_ALLOWED_ORIGINS")
 
 REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": [],
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "apps.accounts.infrastructure.authentication.CookieJWTAuthentication",
+    ],
     "DEFAULT_PERMISSION_CLASSES": [],
     "UNAUTHENTICATED_USER": None,
 }
+
+ACHIEVNO_ACCESS_TOKEN_SECRET = os.environ.get("ACCESS_TOKEN_SECRET", SECRET_KEY)
+ACHIEVNO_ACCESS_TOKEN_TTL_SECONDS = env_int("ACHIEVNO_ACCESS_TOKEN_TTL_SECONDS", 15 * 60)
+ACHIEVNO_REFRESH_TOKEN_TTL_SECONDS = env_int("ACHIEVNO_REFRESH_TOKEN_TTL_SECONDS", 30 * 24 * 60 * 60)
+ACHIEVNO_ACCESS_COOKIE_NAME = "achievno_access"
+ACHIEVNO_REFRESH_COOKIE_NAME = "achievno_refresh"
+ACHIEVNO_AUTH_COOKIE_SECURE = env_bool("ACHIEVNO_AUTH_COOKIE_SECURE", default=False)
+ACHIEVNO_AUTH_COOKIE_SAMESITE = os.environ.get("ACHIEVNO_AUTH_COOKIE_SAMESITE", "Lax")
+ACHIEVNO_AUTH_COOKIE_PATH = "/"
+ACHIEVNO_RETURN_DEV_VERIFICATION_TOKEN = DEBUG or env_bool(
+    "ACHIEVNO_RETURN_DEV_VERIFICATION_TOKEN",
+    default=False,
+)
 
 USE_TZ = True
 TIME_ZONE = "UTC"
