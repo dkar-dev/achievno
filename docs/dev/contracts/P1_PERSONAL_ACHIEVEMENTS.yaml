@@ -1,0 +1,392 @@
+id: P1_PERSONAL_ACHIEVEMENTS
+title: Implement authenticated personal achievements API and frontend flow
+priority: P0
+status: ready_for_codex
+linear:
+  team: Achievno
+  project: Achievno
+  label: Feature
+  priority: 1
+  suggested_title: "[MVP][P1] Implement personal achievements flow"
+
+objective: >
+  Implement the first real product write/read flow for Achievno MVP: authenticated personal achievements. Add Django API
+  endpoints to create, list, view, update basic fields, log progress, complete, and archive achievements in the current
+  user's personal owner context. Wire the frontend personal workspace/create/detail/progress surfaces enough for a stable
+  local pre-prod flow. Keep group/friend/challenge/approval/evidence workflows out of scope.
+
+context:
+  product: Achievno
+  master_contract: docs/dev/contracts/achievno_mvp_24h_delivery_contract.yaml
+  global_rules: AGENTS.md
+  depends_on:
+    - A4_ACCOUNTS_AUTH_SESSIONS
+    - B0_FRONTEND_API_CLIENT_AND_AUTH_WIRING
+    - P0_MAIN_AGGREGATE_AND_PROFILE
+  current_backend:
+    path: app/server
+    status: Django + DRF + cookie auth + unmanaged models + main aggregate
+  current_frontend:
+    path: app/client
+    status: AuthProvider/useAuth wired; /app/spaces protected and uses /api/v1/main
+  database:
+    role: external_dependency
+    connection_env: DATABASE_URL
+    rule: no schema changes, no migrations
+    tables:
+      - owner_contexts
+      - achievements
+      - achievement_logs
+      - achievement_assignees
+      - taxonomy_categories
+      - rank_definitions
+    functions_available:
+      - sp_submit_achievement_progress(p_achievement_id uuid, p_actor_profile_id uuid, p_delta_value numeric, p_note_text text default null)
+  schema_facts:
+    owner_context_type:
+      - personal
+      - friend_connection
+      - group
+    achievement_base_type:
+      - done
+      - progress
+    achievement_assignment_mode:
+      - self
+      - all_members
+      - selected_members
+    achievement_status:
+      - in_progress
+      - completed
+      - overdue
+      - archived
+      - in_review
+  architecture:
+    bounded_context: achievements
+    layering_rule: API views call application services/queries; application services use infrastructure repositories/selectors/models.
+
+scope:
+  include:
+    backend:
+      - Add authenticated personal achievement API endpoints under /api/v1/achievements/.
+      - List personal achievements for current profile.
+      - Create personal achievement in current profile's personal owner_context.
+      - Ensure a personal owner_context exists for the current profile when creating/listing.
+      - View one personal achievement by id.
+      - Update basic editable fields before archive.
+      - Log progress using sp_submit_achievement_progress where possible.
+      - Complete done-type achievements using the same progress function where possible.
+      - Archive personal achievement by setting status=archived and archived_at.
+      - Return stable DTOs, not raw DB rows.
+      - Add backend tests for auth requirement, create/list/detail/progress/archive payloads using controlled DB-safe setup or mocks.
+      - Add live smoke command: python manage.py achievno_smoke_personal_achievements.
+      - Keep P0 main aggregate updated naturally from DB counts after achievement writes.
+    frontend:
+      - Add typed achievements API adapter using the existing central API client.
+      - Add personal achievements hook/state.
+      - Implement or wire /app/me as personal workspace.
+      - Implement or wire /app/achievements/create.
+      - Implement or wire /app/achievements/[id].
+      - Implement or wire /app/achievements/[id]/progress.
+      - Use real API when NEXT_PUBLIC_USE_MOCKS=false.
+      - Allow explicit demo fallback only when NEXT_PUBLIC_USE_MOCKS=true.
+      - Show loading, error, empty, and success states.
+      - Keep current UI structure and components where possible.
+      - Do not redesign globally.
+  exclude:
+    - Friend achievement collaboration.
+    - Group achievement workflows.
+    - Challenge APIs or UI.
+    - Approval requests/decisions UI.
+    - Evidence uploads/assets UI.
+    - Comments.
+    - Notifications mutations.
+    - Ranking/recommendation logic.
+    - Browser e2e framework.
+    - Schema changes or migrations.
+    - Seed/reset scripts.
+
+allowed_files:
+  - app/server/apps/achievements/**
+  - app/server/apps/platform/**
+  - app/server/config/urls.py
+  - app/client/**
+  - docs/dev/contracts/P1_PERSONAL_ACHIEVEMENTS.yaml
+
+backend_api:
+  base_path: /api/v1/achievements
+  endpoints:
+    - method: GET
+      path: /api/v1/achievements/personal
+      auth: required_access_cookie
+      query:
+        status: optional_string
+        limit: optional_number_default_50
+      response:
+        items: array
+        total_count: number
+    - method: POST
+      path: /api/v1/achievements/personal
+      auth: required_access_cookie
+      request:
+        base_type: done_or_progress
+        title: string
+        short_definition: string
+        description: string_optional
+        progress_target: decimal_required_when_base_type_progress
+        unit_label: string_optional
+        deadline_at: iso_datetime_optional
+        primary_category_id: uuid_optional
+        rank_id: uuid_optional
+      response:
+        achievement: object
+    - method: GET
+      path: /api/v1/achievements/{achievement_id}
+      auth: required_access_cookie
+      response:
+        achievement: object
+        recent_logs: array
+    - method: PATCH
+      path: /api/v1/achievements/{achievement_id}
+      auth: required_access_cookie
+      request:
+        title: string_optional
+        short_definition: string_optional
+        description: string_optional_nullable
+        deadline_at: iso_datetime_optional_nullable
+        progress_target: decimal_optional
+        unit_label: string_optional_nullable
+        primary_category_id: uuid_optional_nullable
+        rank_id: uuid_optional_nullable
+      response:
+        achievement: object
+    - method: POST
+      path: /api/v1/achievements/{achievement_id}/progress
+      auth: required_access_cookie
+      request:
+        delta_value: decimal
+        note_text: string_optional
+      response:
+        achievement: object
+        log: object
+    - method: POST
+      path: /api/v1/achievements/{achievement_id}/complete
+      auth: required_access_cookie
+      request:
+        note_text: string_optional
+      response:
+        achievement: object
+        log: object_optional
+    - method: POST
+      path: /api/v1/achievements/{achievement_id}/archive
+      auth: required_access_cookie
+      request:
+        none_or_note_text_optional
+      response:
+        achievement: object
+
+backend_rules:
+  ownership:
+    - Only achievements in the current profile's personal owner_context are accessible in P1.
+    - Return 404 for inaccessible achievement ids, not 403 with existence leak.
+    - Personal owner_context must have context_type=personal and personal_profile_id=current profile.
+  creation:
+    - Always create P1 achievements with assignment_mode=self.
+    - Default status=in_progress.
+    - Default progress_current=0.
+    - For base_type=done, progress_target must be null.
+    - For base_type=progress, progress_target is required and must be >0.
+    - Do not create approval_policy in P1.
+    - Do not create evidence records in P1.
+  progress:
+    - Prefer calling public.sp_submit_achievement_progress through a narrow infrastructure function.
+    - For progress-type achievements, delta_value changes progress_current and completion happens when target is reached.
+    - For done-type achievements, complete endpoint should mark done through sp_submit_achievement_progress or equivalent safe logic.
+    - Do not allow progress on archived achievements.
+  archive:
+    - Set status=archived, archived_at=now, updated_at=now.
+    - Do not delete rows.
+  DTO:
+    fields:
+      - achievement_id
+      - owner_context_id
+      - base_type
+      - assignment_mode
+      - title
+      - short_definition
+      - description
+      - status
+      - progress_current
+      - progress_target
+      - unit_label
+      - deadline_at
+      - completed_at
+      - archived_at
+      - created_at
+      - updated_at
+      - primary_category
+      - rank
+    log_fields:
+      - achievement_log_id
+      - action_type
+      - delta_value
+      - resulting_value
+      - note_text
+      - created_at
+  validation:
+    - title min length 2, max 180.
+    - short_definition min length 2, max 255.
+    - progress_target required and positive for progress achievements.
+    - delta_value must be non-zero for progress endpoint unless base_type=done completion path uses complete endpoint.
+    - Use stable JSON error shapes.
+
+backend_layout:
+  preferred_files:
+    - app/server/apps/achievements/api/serializers.py
+    - app/server/apps/achievements/api/urls.py
+    - app/server/apps/achievements/api/views.py
+    - app/server/apps/achievements/application/personal_service.py
+    - app/server/apps/achievements/application/personal_query.py
+    - app/server/apps/achievements/domain/errors.py
+    - app/server/apps/achievements/infrastructure/repositories.py
+    - app/server/apps/achievements/infrastructure/procedures.py
+    - app/server/apps/achievements/tests/test_personal_achievements_api.py
+    - app/server/apps/achievements/management/commands/achievno_smoke_personal_achievements.py
+    - app/server/apps/achievements/tests/test_personal_achievements_smoke_command.py
+
+frontend_api:
+  preferred_files:
+    - app/client/lib/achievno/api/achievements.ts
+    - app/client/lib/achievno/achievements/use-personal-achievements.ts
+    - app/client/lib/achievno/achievements/use-achievement-detail.ts
+  requirements:
+    - Use existing central API client.
+    - Use credentials: include through existing client.
+    - Do not read cookies directly.
+    - Do not silently fall back to demo data when NEXT_PUBLIC_USE_MOCKS=false.
+
+frontend_routes:
+  routes:
+    - path: /app/me
+      role: personal workspace list
+    - path: /app/achievements/create
+      role: create personal achievement
+    - path: /app/achievements/[id]
+      role: achievement detail
+    - path: /app/achievements/[id]/progress
+      role: log progress / complete
+  requirements:
+    - Require auth via existing useAuth/AuthProvider behavior.
+    - Show list of personal achievements from API.
+    - Show empty state for new user.
+    - Create done achievement.
+    - Create progress achievement.
+    - Add progress to progress achievement.
+    - Complete done achievement.
+    - Archive achievement.
+    - Navigate back to /app/me or /app/spaces after successful actions where appropriate.
+    - Keep forms minimal and stable; no global UI redesign.
+
+mock_policy:
+  NEXT_PUBLIC_USE_MOCKS_false:
+    - Personal achievement routes must use API only.
+    - API failure must show error state, not demo data.
+  NEXT_PUBLIC_USE_MOCKS_true:
+    - Explicit demo data is allowed for UI preview.
+    - Demo path must be obvious and grep-able.
+
+live_smoke_command:
+  name: achievno_smoke_personal_achievements
+  behavior:
+    - Refuse sqlite fallback.
+    - Require PostgreSQL DATABASE_URL.
+    - Create or reuse a verified smoke auth account through existing auth smoke helpers if practical.
+    - Create a progress achievement.
+    - List personal achievements and find created item.
+    - Detail created item.
+    - Add progress with note.
+    - Confirm progress_current changed and log exists.
+    - Complete or reach target and confirm status completed.
+    - Create a done achievement.
+    - Complete done achievement.
+    - Archive one achievement and confirm status archived.
+    - Confirm /api/v1/main personal counts reflect at least the created records.
+    - Print safe step results only; no tokens/cookies/hashes.
+  success_output_must_contain:
+    - personal achievements smoke ok
+    - create progress achievement ok
+    - list personal achievements ok
+    - detail achievement ok
+    - log progress ok
+    - complete progress achievement ok
+    - create done achievement ok
+    - complete done achievement ok
+    - archive achievement ok
+    - main aggregate counts ok
+
+forbidden:
+  - do not modify PostgreSQL schema
+  - do not add migrations
+  - do not implement group/friend achievements
+  - do not implement challenge APIs
+  - do not implement approvals UI/API
+  - do not implement evidence upload UI/API
+  - do not implement notification mutations
+  - do not store auth tokens in frontend storage
+  - do not bypass auth checks for product endpoints
+  - do not silently fake achievement writes when mocks are disabled
+  - do not rewrite frontend UI globally
+  - do not weaken A2/A3/A4/P0 checks or smoke commands
+
+acceptance:
+  backend_commands:
+    - cd app/server && uv run python manage.py check
+    - cd app/server && uv run python manage.py test
+    - cd app/server && DATABASE_URL="$DATABASE_URL" uv run python manage.py achievno_check_db
+    - cd app/server && DATABASE_URL="$DATABASE_URL" uv run python manage.py achievno_check_models
+    - cd app/server && DATABASE_URL="$DATABASE_URL" uv run python manage.py achievno_smoke_auth
+    - cd app/server && DATABASE_URL="$DATABASE_URL" uv run python manage.py achievno_smoke_personal_achievements
+  frontend_commands:
+    - cd app/client && npm run build
+    - cd app/client && npm run lint
+    - cd app/client && npx tsc --noEmit
+  manual_local_flow:
+    setup:
+      - Start Django server with DATABASE_URL pointing to local PostgreSQL.
+      - Start Next.js client with NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:8000 and NEXT_PUBLIC_USE_MOCKS=false.
+    checks:
+      - Sign in with a verified account.
+      - Open /app/me.
+      - Create a done achievement.
+      - Create a progress achievement.
+      - Add progress to the progress achievement.
+      - Complete an achievement.
+      - Archive an achievement.
+      - Return to /app/spaces and confirm main aggregate counts update from API.
+      - Break API URL and confirm personal achievement screens show error state instead of mock data.
+  manual_checks:
+    - Unauthenticated achievement API calls return 401/403.
+    - Inaccessible achievement ids return 404.
+    - New/empty user does not crash UI.
+    - No schema/migration changes were introduced.
+
+output_required:
+  - summary
+  - changed_files
+  - commands_run
+  - backend_personal_achievements_result
+  - frontend_personal_flow_result
+  - backend_smoke_result
+  - commit_hash
+  - known_gaps
+  - blockers_if_any
+
+recommended_codex_goal: >
+  Implement docs/dev/contracts/P1_PERSONAL_ACHIEVEMENTS.yaml exactly. Add authenticated personal achievements API and
+  minimal frontend flow for /app/me, create, detail, progress, complete, and archive. Use existing unmanaged schema and
+  sp_submit_achievement_progress where appropriate. Do not add migrations, schema changes, group/friend/challenge flows,
+  approval/evidence APIs, or silent mock writes.
+
+next_contracts:
+  - P2_FRIENDS_AND_GROUPS_READS
+  - C0_CHALLENGES_MINIMAL_FLOW
+  - A1_PREPROD_PODMAN_RUNTIME
