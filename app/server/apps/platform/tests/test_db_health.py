@@ -13,6 +13,53 @@ from apps.platform.infrastructure.db_health import (
 )
 
 
+EXPECTED_REQUIRED_TABLES = (
+    "accounts",
+    "user_profiles",
+    "account_auth_methods",
+    "auth_sessions",
+    "auth_verification_tokens",
+    "achievements",
+    "achievement_logs",
+    "achievement_assignees",
+    "approval_policies",
+    "approval_policy_approvers",
+    "approval_requests",
+    "approval_request_approvers",
+    "approval_decisions",
+    "evidence_assets",
+    "evidence_links",
+    "groups",
+    "group_memberships",
+    "friend_connections",
+    "friend_connection_sides",
+    "invites",
+    "invite_usages",
+    "challenges",
+    "challenge_participants",
+    "challenge_completion_events",
+    "notifications",
+    "outbox_events",
+    "owner_contexts",
+    "profile_preferences",
+    "rank_definitions",
+    "taxonomy_categories",
+)
+
+EXPECTED_OPTIONAL_READ_MODELS = (
+    "achievement_approval_overview",
+    "achievement_overview",
+    "approval_decisions_overview",
+    "challenge_winners_history",
+    "connected_signin_methods",
+    "friend_connections_overview",
+    "group_membership_overview",
+    "notifications_overview",
+    "pending_approval_requests",
+    "unified_invites_overview",
+)
+
+
 class DatabaseHealthResultTests(SimpleTestCase):
     def test_database_payload_contains_structured_status(self):
         result = DatabaseHealthResult(
@@ -20,7 +67,7 @@ class DatabaseHealthResultTests(SimpleTestCase):
             vendor="postgresql",
             server_version="17.5",
             required_tables_ok=True,
-            warnings=["optional read model missing: report_activity_feed"],
+            warnings=["optional read model missing: achievement_overview"],
         )
 
         self.assertTrue(result.ok)
@@ -32,12 +79,16 @@ class DatabaseHealthResultTests(SimpleTestCase):
                 "required_tables_ok": True,
                 "missing_required_tables": [],
                 "server_version": "17.5",
-                "warnings": ["optional read model missing: report_activity_feed"],
+                "warnings": ["optional read model missing: achievement_overview"],
             },
         )
 
 
 class DatabaseHealthCheckerTests(SimpleTestCase):
+    def test_schema_object_contract_matches_current_baseline(self):
+        self.assertEqual(REQUIRED_TABLES, EXPECTED_REQUIRED_TABLES)
+        self.assertEqual(OPTIONAL_READ_MODELS, EXPECTED_OPTIONAL_READ_MODELS)
+
     @override_settings(DATABASE_URL="postgres://example.invalid/achievno")
     @patch("apps.platform.infrastructure.db_health._server_version", return_value="17.5")
     @patch("apps.platform.infrastructure.db_health._schema_object_names")
@@ -112,9 +163,16 @@ class DatabaseHealthCheckerTests(SimpleTestCase):
         self.assertEqual(
             result.warnings,
             [
-                "optional read model missing: report_achievement_overview",
-                "optional read model missing: report_activity_feed",
-                "optional read model missing: report_challenge_leaderboard",
+                "optional read model missing: achievement_approval_overview",
+                "optional read model missing: achievement_overview",
+                "optional read model missing: approval_decisions_overview",
+                "optional read model missing: challenge_winners_history",
+                "optional read model missing: connected_signin_methods",
+                "optional read model missing: friend_connections_overview",
+                "optional read model missing: group_membership_overview",
+                "optional read model missing: notifications_overview",
+                "optional read model missing: pending_approval_requests",
+                "optional read model missing: unified_invites_overview",
             ],
         )
 
@@ -217,7 +275,7 @@ class AchievnoCheckDbCommandTests(SimpleTestCase):
             vendor="postgresql",
             server_version="17.5",
             required_tables_ok=True,
-            warnings=["optional read model missing: report_activity_feed"],
+            warnings=["optional read model missing: achievement_overview"],
         )
         stdout = StringIO()
         stderr = StringIO()
@@ -234,7 +292,7 @@ class AchievnoCheckDbCommandTests(SimpleTestCase):
         self.assertIn("required tables ok", stdout.getvalue())
         self.assertIn("schema sanity ok", stdout.getvalue())
         self.assertIn(
-            "warning: optional read model missing: report_activity_feed",
+            "warning: optional read model missing: achievement_overview",
             stderr.getvalue(),
         )
 
