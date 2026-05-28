@@ -1,327 +1,254 @@
 'use client'
 
-/**
- * ═══════════════════════════════════════════════════════════════
- * ACHIEVNO PERSONAL WORKSPACE
- * ═══════════════════════════════════════════════════════════════
- * Route: /app/me
- * Personal achievement workspace with:
- * - Needs Attention section (sorted: overdue → due today → due soon)
- * - Active/archived filter with compact density
- * - Log progress sheet integration
- * - Inline collapsible archive section
- * ═══════════════════════════════════════════════════════════════
- */
-
 import * as React from 'react'
 import { useRouter } from 'next/navigation'
 import { BackHeader } from '@/components/achievno/header'
 import { TabBar } from '@/components/achievno/tabs'
 import { AchievementCard, AchievementCardSkeleton } from '@/components/achievno/achievement-card'
 import { LogProgressSheet } from '@/components/achievno/log-progress-sheet'
-import { NoAchievements, NeedsAttentionEmpty } from '@/components/achievno/empty-state'
-import { AsyncBoundary } from '@/components/achievno/loading-states'
+import { NoAchievements } from '@/components/achievno/empty-state'
+import { ListError } from '@/components/achievno/loading-states'
 import { Button } from '@/components/ui/button'
+import { useAuth } from '@/lib/achievno/auth/use-auth'
+import { achievementsApi, type PersonalAchievement } from '@/lib/achievno/api/achievements'
+import {
+  PERSONAL_ACHIEVEMENTS_USE_MOCKS,
+  usePersonalAchievements,
+} from '@/lib/achievno/achievements/use-personal-achievements'
+import { toUiAchievement } from '@/lib/achievno/achievements/format'
 import { IconPlus } from '@/lib/achievno/icons'
 import { ROUTES, UI } from '@/lib/achievno/constants'
-import type { Achievement, PersonalWorkspaceSection } from '@/lib/achievno/types'
+import type { Achievement } from '@/lib/achievno/types'
 
-// ─────────────────────────────────────────────────────────────────
-// DEMO DATA
-// ─────────────────────────────────────────────────────────────────
+type Filter = 'active' | 'completed' | 'archived'
 
-const DEMO_ACHIEVEMENTS: Achievement[] = [
-    {
-        id: 'ach-1',
-        title: 'Read 10 Books',
-        description: 'Complete 10 books this quarter',
-        targetValue: 10,
-        currentValue: 7,
-        unit: 'books',
-        status: 'active',
-        dueDate: '2026-06-30',
-        createdAt: '2026-01-15',
-        spaceId: 'personal',
-        spaceType: 'personal',
-        creatorId: 'user-1',
-        progressPercent: 70,
-        isOverdue: false,
-    },
-    {
-        id: 'ach-2',
-        title: 'Complete Project Alpha',
-        description: 'Finish all milestones for the alpha release',
-        targetValue: 5,
-        currentValue: 3,
-        unit: 'milestones',
-        status: 'active',
-        dueDate: '2026-04-01', // Overdue
-        createdAt: '2026-02-01',
-        spaceId: 'personal',
-        spaceType: 'personal',
-        creatorId: 'user-1',
-        progressPercent: 60,
-        isOverdue: true,
-    },
-    {
-        id: 'ach-3',
-        title: 'Learn TypeScript',
-        description: 'Complete TypeScript fundamentals course',
-        targetValue: 12,
-        currentValue: 8,
-        unit: 'modules',
-        status: 'active',
-        dueDate: '2026-04-08', // Due soon
-        createdAt: '2026-03-01',
-        spaceId: 'personal',
-        spaceType: 'personal',
-        creatorId: 'user-1',
-        progressPercent: 67,
-        isOverdue: false,
-    },
-    {
-        id: 'ach-4',
-        title: 'Morning Meditation',
-        description: '30 days of morning meditation',
-        targetValue: 30,
-        currentValue: 30,
-        unit: 'days',
-        status: 'completed',
-        createdAt: '2026-01-01',
-        completedAt: '2026-02-01',
-        spaceId: 'personal',
-        spaceType: 'personal',
-        creatorId: 'user-1',
-        progressPercent: 100,
-        isOverdue: false,
-    },
+const DEMO_PERSONAL_ACHIEVEMENTS: PersonalAchievement[] = [
+  {
+    achievement_id: 'demo-progress-achievement',
+    owner_context_id: 'demo-personal',
+    base_type: 'progress',
+    assignment_mode: 'self',
+    title: 'Read 10 Books',
+    short_definition: 'Complete 10 books this quarter',
+    description: 'Technical and personal development reading list.',
+    status: 'in_progress',
+    progress_current: 7,
+    progress_target: 10,
+    unit_label: 'books',
+    deadline_at: '2026-06-30T00:00:00Z',
+    completed_at: null,
+    archived_at: null,
+    created_at: '2026-01-15T00:00:00Z',
+    updated_at: new Date().toISOString(),
+    primary_category: null,
+    rank: null,
+  },
+  {
+    achievement_id: 'demo-done-achievement',
+    owner_context_id: 'demo-personal',
+    base_type: 'done',
+    assignment_mode: 'self',
+    title: 'Morning Meditation',
+    short_definition: 'Complete the 30 day meditation plan',
+    description: null,
+    status: 'completed',
+    progress_current: 1,
+    progress_target: null,
+    unit_label: null,
+    deadline_at: null,
+    completed_at: '2026-02-01T00:00:00Z',
+    archived_at: null,
+    created_at: '2026-01-01T00:00:00Z',
+    updated_at: '2026-02-01T00:00:00Z',
+    primary_category: null,
+    rank: null,
+  },
+  {
+    achievement_id: 'demo-archived-achievement',
+    owner_context_id: 'demo-personal',
+    base_type: 'progress',
+    assignment_mode: 'self',
+    title: 'Run 5K',
+    short_definition: 'Finish a 5K race',
+    description: null,
+    status: 'archived',
+    progress_current: 1,
+    progress_target: 1,
+    unit_label: 'race',
+    deadline_at: null,
+    completed_at: '2025-11-20T00:00:00Z',
+    archived_at: '2025-11-25T00:00:00Z',
+    created_at: '2025-09-01T00:00:00Z',
+    updated_at: '2025-11-25T00:00:00Z',
+    primary_category: null,
+    rank: null,
+  },
 ]
-
-const DEMO_ARCHIVED: Achievement[] = [
-    {
-        id: 'arch-1',
-        title: 'Learn Spanish Basics',
-        targetValue: 20,
-        currentValue: 20,
-        unit: 'lessons',
-        status: 'archived',
-        createdAt: '2025-10-01',
-        completedAt: '2025-12-15',
-        archivedAt: '2025-12-20',
-        spaceId: 'personal',
-        spaceType: 'personal',
-        creatorId: 'user-1',
-        progressPercent: 100,
-        isOverdue: false,
-    },
-    {
-        id: 'arch-2',
-        title: 'Run 5K',
-        targetValue: 1,
-        currentValue: 1,
-        unit: 'race',
-        status: 'archived',
-        createdAt: '2025-09-01',
-        completedAt: '2025-11-20',
-        archivedAt: '2025-11-25',
-        spaceId: 'personal',
-        spaceType: 'personal',
-        creatorId: 'user-1',
-        progressPercent: 100,
-        isOverdue: false,
-    },
-]
-
-// ─────────────────────────────────────────────────────────────────
-// HELPERS
-// ─────────────────────────────────────────────────────────────────
-
-/**
- * Get items for Needs Attention section
- * Sorted: overdue → due today → due soon (next 3 days)
- * Max: 3-5 items
- */
-function getNeedsAttention(achievements: Achievement[]): Achievement[] {
-    const now = new Date()
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-    const threeDaysLater = new Date(today.getTime() + 3 * 24 * 60 * 60 * 1000)
-
-    const urgent = achievements
-        .filter((a) => {
-            if (a.status !== 'active') return false
-            if (!a.dueDate) return false
-            return true
-        })
-        .map((a) => {
-            const dueDate = new Date(a.dueDate!)
-            const dueDateNormalized = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate())
-
-            let priority: number
-            if (a.isOverdue || dueDateNormalized < today) {
-                priority = 0 // Overdue
-            } else if (dueDateNormalized.getTime() === today.getTime()) {
-                priority = 1 // Due today
-            } else if (dueDateNormalized <= threeDaysLater) {
-                priority = 2 // Due soon
-            } else {
-                priority = 3 // Not urgent
-            }
-
-            return { ...a, priority }
-        })
-        .filter((a) => a.priority < 3) // Only urgent items
-        .sort((a, b) => a.priority - b.priority)
-        .slice(0, UI.needsAttentionMax)
-
-    return urgent
-}
-
-// ─────────────────────────────────────────────────────────────────
-// FILTER OPTIONS
-// ─────────────────────────────────────────────────────────────────
 
 const FILTER_OPTIONS = [
-    { id: 'active' as const, label: 'Active' },
-    { id: 'completed' as const, label: 'Completed' },
-    { id: 'archived' as const, label: 'Archived' },
+  { id: 'active' as const, label: 'Active' },
+  { id: 'completed' as const, label: 'Completed' },
+  { id: 'archived' as const, label: 'Archived' },
 ]
 
-// ─────────────────────────────────────────────────────────────────
-// MAIN COMPONENT
-// ─────────────────────────────────────────────────────────────────
+function filterAchievements(items: PersonalAchievement[], filter: Filter) {
+  if (filter === 'active') {
+    return items.filter((item) => ['in_progress', 'overdue', 'in_review'].includes(item.status))
+  }
+  return items.filter((item) => item.status === filter)
+}
 
 export default function PersonalWorkspacePage() {
-    const router = useRouter()
+  const router = useRouter()
+  const auth = useAuth()
+  const [filter, setFilter] = React.useState<Filter>('active')
+  const [selectedAchievement, setSelectedAchievement] = React.useState<Achievement | null>(null)
+  const [isLogSheetOpen, setIsLogSheetOpen] = React.useState(false)
+  const [actionError, setActionError] = React.useState<string | null>(null)
+  const achievements = usePersonalAchievements({
+    enabled: auth.isAuthenticated,
+    mockItems: DEMO_PERSONAL_ACHIEVEMENTS,
+  })
 
-    // State
-    const [filter, setFilter] = React.useState<'active' | 'completed' | 'archived'>('active')
-    const [isLoading] = React.useState(false)
-    const [selectedAchievement, setSelectedAchievement] = React.useState<Achievement | null>(null)
-    const [isLogSheetOpen, setIsLogSheetOpen] = React.useState(false)
-
-    // Computed data
-    const activeAchievements = DEMO_ACHIEVEMENTS.filter((a) => a.status === 'active')
-    const completedAchievements = DEMO_ACHIEVEMENTS.filter((a) => a.status === 'completed')
-    const needsAttention = getNeedsAttention(DEMO_ACHIEVEMENTS)
-
-    const filteredAchievements =
-        filter === 'active' ? activeAchievements : filter === 'completed' ? completedAchievements : DEMO_ARCHIVED
-
-    // Handlers
-    const handleLogProgress = (achievement: Achievement) => {
-        setSelectedAchievement(achievement)
-        setIsLogSheetOpen(true)
+  React.useEffect(() => {
+    if (auth.status === 'unauthenticated') {
+      router.replace(ROUTES.signIn)
     }
+  }, [auth.status, router])
 
-    const handleSaveProgress = async (value: number, note?: string) => {
-        // Simulate API call
-        await new Promise((r) => setTimeout(r, 500))
-        console.log('[v0] Progress logged:', { achievement: selectedAchievement?.id, value, note })
+  const filteredAchievements = React.useMemo(
+    () => filterAchievements(achievements.items, filter).map(toUiAchievement),
+    [achievements.items, filter],
+  )
+
+  const handleLogProgress = (achievement: Achievement) => {
+    setSelectedAchievement(achievement)
+    setActionError(null)
+    setIsLogSheetOpen(true)
+  }
+
+  const handleSaveProgress = async (value: number, note?: string) => {
+    if (!selectedAchievement) return
+    setActionError(null)
+    if (PERSONAL_ACHIEVEMENTS_USE_MOCKS) {
+      setIsLogSheetOpen(false)
+      return
     }
-
-    const handleMarkComplete = async () => {
-        await new Promise((r) => setTimeout(r, 500))
-        console.log('[v0] Marked complete:', selectedAchievement?.id)
+    try {
+      await achievementsApi.progress(selectedAchievement.id, {
+        delta_value: value,
+        note_text: note || null,
+      })
+      setIsLogSheetOpen(false)
+      await achievements.reload()
+    } catch (caughtError) {
+      setActionError(caughtError instanceof Error ? caughtError.message : 'Progress could not be logged.')
+      throw caughtError
     }
+  }
 
-    return (
-        <div className="min-h-screen flex flex-col bg-bg-base">
-            {/* Header - Fixed */}
-            <BackHeader
-                title="Personal"
-                onBack={() => router.push(ROUTES.rootShell())}
-            />
+  const handleMarkComplete = async () => {
+    if (!selectedAchievement) return
+    setActionError(null)
+    if (PERSONAL_ACHIEVEMENTS_USE_MOCKS) {
+      setIsLogSheetOpen(false)
+      return
+    }
+    try {
+      await achievementsApi.complete(selectedAchievement.id)
+      setIsLogSheetOpen(false)
+      await achievements.reload()
+    } catch (caughtError) {
+      setActionError(caughtError instanceof Error ? caughtError.message : 'Achievement could not be completed.')
+      throw caughtError
+    }
+  }
 
-            {/* Content */}
-            <div className="flex-1 overflow-y-auto">
-                <div className="px-screen py-4 motion-screen-push">
+  if (auth.status === 'loading') {
+    return <CenteredMessage message="Checking authentication..." />
+  }
 
-                    {/* Needs Attention Section */}
-                    {needsAttention.length > 0 && (
-                        <section className="mb-6">
-                            <h2 className="text-caption text-secondary mb-2">NEEDS ATTENTION</h2>
-                            <div className="flex flex-col gap-2">
-                                {needsAttention.map((achievement) => (
-                                    <AchievementCard
-                                        key={achievement.id}
-                                        achievement={achievement}
-                                        variant="compact"
-                                        onPress={() => router.push(ROUTES.achievement(achievement.id))}
-                                        onLogProgress={() => handleLogProgress(achievement)}
-                                    />
-                                ))}
-                            </div>
-                        </section>
-                    )}
+  if (!auth.isAuthenticated) {
+    return <CenteredMessage message="Sign-in required." />
+  }
 
-                    {needsAttention.length === 0 && filter === 'active' && activeAchievements.length > 0 && (
-                        <section className="mb-6">
-                            <NeedsAttentionEmpty />
-                        </section>
-                    )}
+  return (
+    <div className="flex min-h-screen flex-col bg-bg-base">
+      <BackHeader title="Personal" onBack={() => router.push(ROUTES.rootShell())} />
 
-                    {/* Filter Pills */}
-                    <div className="mb-4">
-                        <TabBar
-                            value={filter}
-                            onChange={setFilter}
-                            tabs={FILTER_OPTIONS}
-                            size="compact"
-                        />
-                    </div>
-
-                    {/* Achievement List */}
-                    <AsyncBoundary
-                        loading={isLoading}
-                        loadingFallback={
-                            <div className="flex flex-col gap-2">
-                                {Array.from({ length: UI.skeletonListCount }).map((_, i) => (
-                                    <AchievementCardSkeleton key={i} variant="compact" />
-                                ))}
-                            </div>
-                        }
-                    >
-                        {filteredAchievements.length > 0 ? (
-                            <div className="flex flex-col gap-2">
-                                {filteredAchievements.map((achievement) => (
-                                    <AchievementCard
-                                        key={achievement.id}
-                                        achievement={achievement}
-                                        variant="compact"
-                                        onPress={() => router.push(ROUTES.achievement(achievement.id))}
-                                        onLogProgress={achievement.status === 'active' ? () => handleLogProgress(achievement) : undefined}
-                                    />
-                                ))}
-                            </div>
-                        ) : (
-                            <NoAchievements onAction={() => router.push(ROUTES.achievementCreate)} />
-                        )}
-                    </AsyncBoundary>
-
-                </div>
+      <div className="flex-1 overflow-y-auto">
+        <div className="px-screen py-4 motion-screen-push">
+          {PERSONAL_ACHIEVEMENTS_USE_MOCKS && (
+            <div className="mb-4 rounded-xl border border-border-subtle bg-bg-muted px-3 py-2 text-caption text-secondary">
+              Demo achievements preview
             </div>
+          )}
 
-            {/* FAB */}
-            <div className="fixed bottom-6 right-6 safe-area-bottom">
-                <Button
-                    onClick={() => router.push(ROUTES.achievementCreate)}
-                    className="size-14 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg"
-                >
-                    <IconPlus size={24} />
-                    <span className="sr-only">Create achievement</span>
-                </Button>
+          <div className="mb-4">
+            <TabBar value={filter} onChange={setFilter} tabs={FILTER_OPTIONS} size="compact" />
+          </div>
+
+          {actionError && (
+            <div className="mb-4 rounded-xl border border-destructive/20 bg-destructive/5 px-3 py-2 text-label text-destructive">
+              {actionError}
             </div>
+          )}
 
-            {/* Log Progress Sheet */}
-            {selectedAchievement && (
-                <LogProgressSheet
-                    open={isLogSheetOpen}
-                    onOpenChange={setIsLogSheetOpen}
-                    achievement={selectedAchievement}
-                    onLogProgress={handleSaveProgress}
-                    onMarkComplete={handleMarkComplete}
+          {achievements.error ? (
+            <ListError message={achievements.error} onRetry={() => void achievements.reload()} />
+          ) : achievements.isLoading ? (
+            <div className="flex flex-col gap-2">
+              {Array.from({ length: UI.skeletonListCount }).map((_, index) => (
+                <AchievementCardSkeleton key={index} variant="compact" />
+              ))}
+            </div>
+          ) : filteredAchievements.length > 0 ? (
+            <div className="flex flex-col gap-2">
+              {filteredAchievements.map((achievement) => (
+                <AchievementCard
+                  key={achievement.id}
+                  achievement={achievement}
+                  variant="compact"
+                  onPress={() => router.push(ROUTES.achievement(achievement.id))}
+                  onLogProgress={achievement.status === 'active' ? () => handleLogProgress(achievement) : undefined}
                 />
-            )}
+              ))}
+            </div>
+          ) : (
+            <NoAchievements onAction={() => router.push(ROUTES.achievementCreate)} />
+          )}
         </div>
-    )
+      </div>
+
+      <div className="fixed bottom-6 right-6 safe-area-bottom">
+        <Button
+          onClick={() => router.push(ROUTES.achievementCreate)}
+          className="size-14 rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90"
+        >
+          <IconPlus size={24} />
+          <span className="sr-only">Create achievement</span>
+        </Button>
+      </div>
+
+      {selectedAchievement && (
+        <LogProgressSheet
+          open={isLogSheetOpen}
+          onOpenChange={setIsLogSheetOpen}
+          achievement={selectedAchievement}
+          onLogProgress={handleSaveProgress}
+          onMarkComplete={handleMarkComplete}
+        />
+      )}
+    </div>
+  )
+}
+
+function CenteredMessage({ message }: { message: string }) {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-bg-base px-screen">
+      <div className="rounded-xl border border-border-subtle bg-bg-muted px-4 py-3 text-label text-secondary">
+        {message}
+      </div>
+    </div>
+  )
 }

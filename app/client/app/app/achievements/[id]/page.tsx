@@ -1,381 +1,251 @@
 'use client'
 
-/**
- * ═══════════════════════════════════════════════════════════════
- * ACHIEVNO ACHIEVEMENT DETAIL
- * ═══════════════════════════════════════════════════════════════
- * Route: /app/achievements/:id
- * 
- * Features:
- * - Log progress via bottom sheet
- * - Fixed back button position
- * - Primary CTA bottom anchored
- * - Description: max 1 line preview, full on expand
- * - Success feedback: scale animation + checkmark fade
- * ═══════════════════════════════════════════════════════════════
- */
-
 import * as React from 'react'
-import { useRouter, useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { BackHeader } from '@/components/achievno/header'
 import { AchievnoBadge, getAchievementBadgeVariant } from '@/components/achievno/badge'
 import { AchievnoProgress } from '@/components/achievno/progress'
-import { LogProgressSheet } from '@/components/achievno/log-progress-sheet'
 import { AchievementDetailSkeleton } from '@/components/achievno/skeleton'
-import { AsyncBoundary } from '@/components/achievno/loading-states'
-import {
-  DeleteAchievementModal,
-  ArchiveAchievementModal,
-  ConfirmModal,
-} from '@/components/achievno/confirm-modal'
+import { ListError, LoadingButton } from '@/components/achievno/loading-states'
 import { Button } from '@/components/ui/button'
+import { useAuth } from '@/lib/achievno/auth/use-auth'
+import { achievementsApi, type PersonalAchievement } from '@/lib/achievno/api/achievements'
+import { getApiErrorMessage } from '@/lib/achievno/api/errors'
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import {
-  IconMoreVertical,
-  IconEdit,
-  IconArchive,
-  IconTrash,
-  IconPlus,
-  IconCheck,
-} from '@/lib/achievno/icons'
+  PERSONAL_ACHIEVEMENTS_USE_MOCKS,
+} from '@/lib/achievno/achievements/use-personal-achievements'
+import { useAchievementDetail } from '@/lib/achievno/achievements/use-achievement-detail'
+import { toUiAchievement } from '@/lib/achievno/achievements/format'
+import { IconArchive, IconCheck, IconPlus } from '@/lib/achievno/icons'
 import { ROUTES, STATUS_LABELS } from '@/lib/achievno/constants'
-import { toast } from '@/hooks/use-toast'
-import type { Achievement } from '@/lib/achievno/types'
-import { cn } from '@/lib/utils'
 
-// ─────────────────────────────────────────────────────────────────
-// DEMO DATA
-// ─────────────────────────────────────────────────────────────────
-
-const DEMO_ACHIEVEMENT: Achievement = {
-  id: 'ach-1',
+const DEMO_ACHIEVEMENT: PersonalAchievement = {
+  achievement_id: 'demo-progress-achievement',
+  owner_context_id: 'demo-personal',
+  base_type: 'progress',
+  assignment_mode: 'self',
   title: 'Read 10 Books',
-  description: 'Complete 10 books this quarter. Focus on technical and personal development topics. This is a longer description that should be truncated on the detail page.',
-  targetValue: 10,
-  currentValue: 7,
-  unit: 'books',
-  status: 'active',
-  dueDate: '2026-06-30',
-  createdAt: '2026-01-15',
-  spaceId: 'personal',
-  spaceType: 'personal',
-  creatorId: 'user-1',
-  progressPercent: 70,
-  isOverdue: false,
+  short_definition: 'Complete 10 books this quarter',
+  description: 'Focus on technical and personal development topics.',
+  status: 'in_progress',
+  progress_current: 7,
+  progress_target: 10,
+  unit_label: 'books',
+  deadline_at: '2026-06-30T00:00:00Z',
+  completed_at: null,
+  archived_at: null,
+  created_at: '2026-01-15T00:00:00Z',
+  updated_at: new Date().toISOString(),
+  primary_category: null,
+  rank: null,
 }
 
-// ─────────────────────────────────────────────────────────────────
-// HELPERS
-// ─────────────────────────────────────────────────────────────────
-
-function formatTimeAgo(dateStr: string): string {
-  const date = new Date(dateStr)
-  const now = new Date()
-  const diffMs = now.getTime() - date.getTime()
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
-
-  if (diffDays === 0) return 'Today'
-  if (diffDays === 1) return 'Yesterday'
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+function apiStatusLabel(status: PersonalAchievement['status']) {
+  if (status === 'in_progress' || status === 'in_review') return STATUS_LABELS.achievement.active
+  return STATUS_LABELS.achievement[status]
 }
 
-function formatDate(dateStr?: string): string | null {
+function formatDate(dateStr?: string | null): string | null {
   if (!dateStr) return null
-  return new Date(dateStr).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-  })
+  return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
-
-// ─────────────────────────────────────────────────────────────────
-// MAIN COMPONENT
-// ─────────────────────────────────────────────────────────────────
 
 export default function AchievementDetailPage() {
   const router = useRouter()
-  const params = useParams()
-  
-  // State
-  const [achievement, setAchievement] = React.useState<Achievement>(DEMO_ACHIEVEMENT)
-  const [isLoading] = React.useState(false)
-  const [isLogSheetOpen, setIsLogSheetOpen] = React.useState(false)
-  const [isDeleteOpen, setIsDeleteOpen] = React.useState(false)
-  const [isArchiveOpen, setIsArchiveOpen] = React.useState(false)
-  const [isCompleteOpen, setIsCompleteOpen] = React.useState(false)
-  const [showSuccess, setShowSuccess] = React.useState(false)
-  const [isDescriptionExpanded, setIsDescriptionExpanded] = React.useState(false)
+  const params = useParams<{ id: string }>()
+  const auth = useAuth()
+  const achievementId = params.id
+  const [isCompleting, setIsCompleting] = React.useState(false)
+  const [isArchiving, setIsArchiving] = React.useState(false)
+  const [actionError, setActionError] = React.useState<string | null>(null)
+  const detail = useAchievementDetail({
+    achievementId,
+    enabled: auth.isAuthenticated,
+    mockAchievement: DEMO_ACHIEVEMENT,
+  })
 
-  const isCompleted = achievement.status === 'completed'
-  const isArchived = achievement.status === 'archived'
-  const badgeVariant = achievement.isOverdue ? 'overdue' : getAchievementBadgeVariant(achievement.status)
+  React.useEffect(() => {
+    if (auth.status === 'unauthenticated') {
+      router.replace(ROUTES.signIn)
+    }
+  }, [auth.status, router])
 
-  // Use muted badge for primary status to keep progress bar as sole color carrier,
-  // but keep inProgress blue to maintain semantic clarity
-  const displayBadgeVariant = (badgeVariant === 'primary') ? 'muted' : badgeVariant
+  const achievement = detail.achievement
+  const uiAchievement = achievement ? toUiAchievement(achievement) : null
+  const isCompleted = achievement?.status === 'completed'
+  const isArchived = achievement?.status === 'archived'
 
-  // Build compact meta string
-  const metaString = `${achievement.currentValue}/${achievement.targetValue}${achievement.dueDate ? ` · due ${formatDate(achievement.dueDate)}` : ''}`
-
-  // Handlers
-  const handleLogProgress = async (value: number, note?: string) => {
-    // Optimistic update
-    const newValue = Math.min(achievement.currentValue + value, achievement.targetValue)
-    setAchievement((prev) => ({
-      ...prev,
-      currentValue: newValue,
-      progressPercent: Math.round((newValue / prev.targetValue) * 100),
-    }))
-
-    // Show success animation
-    setShowSuccess(true)
-    setTimeout(() => setShowSuccess(false), 500)
-
-    // Simulate API call
-    await new Promise((r) => setTimeout(r, 300))
+  const handleComplete = async () => {
+    if (!achievement) return
+    setActionError(null)
+    setIsCompleting(true)
+    try {
+      if (!PERSONAL_ACHIEVEMENTS_USE_MOCKS) {
+        await achievementsApi.complete(achievement.achievement_id)
+        await detail.reload()
+      }
+    } catch (caughtError) {
+      setActionError(getApiErrorMessage(caughtError, 'Achievement could not be completed.'))
+    } finally {
+      setIsCompleting(false)
+    }
   }
 
-  const handleMarkComplete = async () => {
-    setAchievement((prev) => ({
-      ...prev,
-      status: 'completed',
-      currentValue: prev.targetValue,
-      progressPercent: 100,
-      completedAt: new Date().toISOString(),
-    }))
-
-    setShowSuccess(true)
-    setTimeout(() => setShowSuccess(false), 500)
-
-    await new Promise((r) => setTimeout(r, 300))
+  const handleArchive = async () => {
+    if (!achievement) return
+    setActionError(null)
+    setIsArchiving(true)
+    try {
+      if (!PERSONAL_ACHIEVEMENTS_USE_MOCKS) {
+        await achievementsApi.archive(achievement.achievement_id)
+      }
+      router.push(ROUTES.personalWorkspace)
+    } catch (caughtError) {
+      setActionError(getApiErrorMessage(caughtError, 'Achievement could not be archived.'))
+    } finally {
+      setIsArchiving(false)
+    }
   }
 
-  const handleComplete = () => {
-    setIsCompleteOpen(false)
-    handleMarkComplete()
-    toast({ title: 'Achievement completed!' })
+  if (auth.status === 'loading') {
+    return <CenteredMessage message="Checking authentication..." />
   }
 
-  const handleArchive = () => {
-    setIsArchiveOpen(false)
-    toast({ title: 'Achievement archived' })
-    router.push(ROUTES.personalWorkspace)
-  }
-
-  const handleDelete = () => {
-    setIsDeleteOpen(false)
-    toast({ title: 'Achievement deleted' })
-    router.push(ROUTES.personalWorkspace)
+  if (!auth.isAuthenticated) {
+    return <CenteredMessage message="Sign-in required." />
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-bg-base">
-      {/* Header - Fixed position back button */}
-      <BackHeader
-        title=""
-        onBack={() => router.back()}
-        rightActions={
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                size="icon"
-                variant="ghost"
-                className="size-9 rounded-lg bg-bg-elevated"
-              >
-                <IconMoreVertical size={18} />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              {!isArchived && (
-                <>
-                  <DropdownMenuItem onClick={() => router.push(ROUTES.achievementEdit(params.id as string))}>
-                    <IconEdit size={16} className="mr-2" />
-                    Edit
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setIsArchiveOpen(true)}>
-                    <IconArchive size={16} className="mr-2" />
-                    Archive
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                </>
-              )}
-              <DropdownMenuItem
-                onClick={() => setIsDeleteOpen(true)}
-                className="text-destructive focus:text-destructive"
-              >
-                <IconTrash size={16} className="mr-2" />
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        }
-      />
+    <div className="flex min-h-screen flex-col bg-bg-base">
+      <BackHeader title="" onBack={() => router.back()} />
 
-      {/* Content */}
       <div className="flex-1 overflow-y-auto">
-        <AsyncBoundary
-          loading={isLoading}
-          loadingFallback={<AchievementDetailSkeleton />}
-        >
-          <div className={cn(
-            'px-screen py-4 motion-screen-push',
-            showSuccess && 'motion-success'
-          )}>
-            {/* Title & Badge */}
-            <div className="flex items-start justify-between gap-3 mb-4">
-              <div className="flex-1">
-                {/* Completed checkmark */}
-                {isCompleted && (
-                  <div className={cn(
-                    'inline-flex items-center justify-center size-6 rounded-md bg-success mb-2',
-                    showSuccess && 'motion-checkmark'
-                  )}>
-                    <IconCheck size={14} className="text-success-foreground" />
-                  </div>
-                )}
-                
-                <h1 className={cn(
-                  'text-heading font-semibold',
-                  isCompleted && 'text-secondary line-through'
-                )}>
-                  {achievement.title}
-                </h1>
-              </div>
-              
-              <AchievnoBadge variant={displayBadgeVariant} size="md">
-                {achievement.isOverdue ? STATUS_LABELS.achievement.overdue : STATUS_LABELS.achievement[achievement.status]}
-              </AchievnoBadge>
-            </div>
-
-            {/* Progress Card */}
-            <div className="bg-bg-elevated rounded-xl border border-border-subtle p-4 mb-4">
-              <div className="flex items-baseline justify-between mb-3">
-                <span className="text-title font-semibold">
-                  {achievement.currentValue}
-                  <span className="text-secondary font-normal"> / {achievement.targetValue}</span>
-                </span>
-                <span className="text-label text-tertiary">{achievement.unit}</span>
-              </div>
-              
-              <AchievnoProgress
-                value={achievement.currentValue}
-                max={achievement.targetValue}
-                color={isCompleted ? 'success' : 'primary'}
-                size="md"
-                className="motion-progress"
-              />
-              
-              <p className="text-label text-tertiary mt-2">
-                {metaString}
-              </p>
-            </div>
-
-            {/* Description - max 1 line preview, expandable */}
-            {achievement.description && (
-              <div className="mb-4">
-                <button
-                  type="button"
-                  onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
-                  className="text-left w-full"
-                >
-                  <p className={cn(
-                    'text-body text-secondary',
-                    !isDescriptionExpanded && 'line-clamp-1'
-                  )}>
-                    {achievement.description}
-                  </p>
-                  {achievement.description.length > 60 && (
-                    <span className="text-label text-primary mt-1 inline-block">
-                      {isDescriptionExpanded ? 'Show less' : 'Show more'}
-                    </span>
-                  )}
-                </button>
+        {detail.isLoading ? (
+          <AchievementDetailSkeleton />
+        ) : detail.error || !achievement || !uiAchievement ? (
+          <ListError message={detail.error || 'Achievement could not be loaded.'} onRetry={() => void detail.reload()} />
+        ) : (
+          <div className="space-y-5 px-screen py-4 motion-screen-push">
+            {PERSONAL_ACHIEVEMENTS_USE_MOCKS && (
+              <div className="rounded-xl border border-border-subtle bg-bg-muted px-3 py-2 text-caption text-secondary">
+                Demo achievement detail
               </div>
             )}
 
-            {/* Dates */}
-            <div className="space-y-1 text-label text-tertiary">
-              <p>Created {formatTimeAgo(achievement.createdAt)}</p>
-              {achievement.completedAt && (
-                <p>Completed {formatTimeAgo(achievement.completedAt)}</p>
-              )}
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0 flex-1">
+                <h1 className="text-heading font-semibold">{achievement.title}</h1>
+                <p className="mt-1 text-body text-secondary">{achievement.short_definition}</p>
+              </div>
+              <AchievnoBadge
+                variant={getAchievementBadgeVariant(uiAchievement.status)}
+                size="md"
+              >
+                {apiStatusLabel(achievement.status)}
+              </AchievnoBadge>
             </div>
+
+            <div className="rounded-xl border border-border-subtle bg-bg-elevated p-4">
+              <div className="mb-3 flex items-baseline justify-between">
+                <span className="text-title font-semibold">
+                  {uiAchievement.currentValue}
+                  <span className="font-normal text-secondary"> / {uiAchievement.targetValue}</span>
+                </span>
+                <span className="text-label text-tertiary">{uiAchievement.unit}</span>
+              </div>
+              <AchievnoProgress
+                value={uiAchievement.currentValue}
+                max={uiAchievement.targetValue}
+                color={isCompleted ? 'success' : 'primary'}
+                size="md"
+              />
+              <p className="mt-2 text-label text-tertiary">
+                {achievement.base_type === 'done' ? 'Done achievement' : 'Progress achievement'}
+                {achievement.deadline_at ? ` · due ${formatDate(achievement.deadline_at)}` : ''}
+              </p>
+            </div>
+
+            {achievement.description && (
+              <p className="text-body text-secondary">{achievement.description}</p>
+            )}
+
+            {actionError && (
+              <div className="rounded-xl border border-destructive/20 bg-destructive/5 px-3 py-2 text-label text-destructive">
+                {actionError}
+              </div>
+            )}
+
+            <section className="space-y-2">
+              <h2 className="text-caption font-semibold uppercase text-tertiary">Recent logs</h2>
+              {detail.recentLogs.length > 0 ? (
+                <div className="space-y-2">
+                  {detail.recentLogs.map((log) => (
+                    <div key={log.achievement_log_id} className="rounded-xl border border-border-subtle px-3 py-2">
+                      <p className="text-label font-medium">{log.action_type}</p>
+                      <p className="text-caption text-secondary">
+                        {log.delta_value ?? 0} · result {log.resulting_value ?? 0}
+                        {log.note_text ? ` · ${log.note_text}` : ''}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="rounded-xl border border-dashed border-border-subtle px-4 py-3 text-sm text-tertiary">
+                  No progress logs yet.
+                </div>
+              )}
+            </section>
           </div>
-        </AsyncBoundary>
+        )}
       </div>
 
-      {/* Bottom Actions - Anchored */}
-      {!isArchived && (
-        <div className="sticky bottom-0 bg-bg-base border-t border-border-subtle px-screen py-4 safe-area-bottom">
+      {achievement && !isArchived && (
+        <div className="sticky bottom-0 border-t border-border-subtle bg-bg-base px-screen py-4 safe-area-bottom">
           <div className="flex gap-3">
             {!isCompleted && (
               <>
                 <Button
-                  onClick={() => setIsLogSheetOpen(true)}
-                  className="flex-1 h-12 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-base font-semibold"
+                  onClick={() => router.push(ROUTES.achievementProgress(achievement.achievement_id))}
+                  className="h-12 flex-1 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
                 >
                   <IconPlus size={18} className="mr-2" />
-                  Log Progress
+                  Progress
                 </Button>
-                <Button
-                  onClick={() => setIsCompleteOpen(true)}
+                <LoadingButton
+                  loading={isCompleting}
+                  onClick={() => void handleComplete()}
                   variant="ghost"
-                  className="h-12 px-4 rounded-xl text-secondary"
+                  className="h-12 rounded-xl px-4 text-secondary"
                 >
                   <IconCheck size={18} className="mr-1" />
                   Complete
-                </Button>
+                </LoadingButton>
               </>
             )}
             {isCompleted && (
-              <Button
-                onClick={() => setIsArchiveOpen(true)}
+              <LoadingButton
+                loading={isArchiving}
+                onClick={() => void handleArchive()}
                 variant="outline"
-                className="flex-1 h-12 rounded-xl"
+                className="h-12 flex-1 rounded-xl"
               >
                 <IconArchive size={18} className="mr-2" />
                 Archive
-              </Button>
+              </LoadingButton>
             )}
           </div>
         </div>
       )}
+    </div>
+  )
+}
 
-      {/* Log Progress Sheet */}
-      <LogProgressSheet
-        open={isLogSheetOpen}
-        onOpenChange={setIsLogSheetOpen}
-        achievement={achievement}
-        onLogProgress={handleLogProgress}
-        onMarkComplete={handleMarkComplete}
-      />
-
-      {/* Modals */}
-      <ConfirmModal
-        open={isCompleteOpen}
-        onOpenChange={setIsCompleteOpen}
-        title="Mark as complete?"
-        description="You can still edit this achievement after marking complete."
-        confirmLabel="Complete"
-        onConfirm={handleComplete}
-      />
-
-      <ArchiveAchievementModal
-        open={isArchiveOpen}
-        onOpenChange={setIsArchiveOpen}
-        onConfirm={handleArchive}
-      />
-
-      <DeleteAchievementModal
-        open={isDeleteOpen}
-        onOpenChange={setIsDeleteOpen}
-        onConfirm={handleDelete}
-      />
+function CenteredMessage({ message }: { message: string }) {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-bg-base px-screen">
+      <div className="rounded-xl border border-border-subtle bg-bg-muted px-4 py-3 text-label text-secondary">
+        {message}
+      </div>
     </div>
   )
 }
