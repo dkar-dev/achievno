@@ -1,8 +1,8 @@
 meta:
   document_name: achievno_mvp_24h_delivery_contract.yaml
   contract_id: achievno_mvp_24h_delivery_001
-  contract_version: 0.1.0
-  status: canonical_planning_baseline
+  contract_version: 0.1.1
+  status: accepted_planning_baseline
   created_on: "2026-05-28"
   language: ru-en-mixed-machine-readable
   maintainer: user
@@ -273,7 +273,7 @@ phase_plan:
         - Pre-prod architecture is documented.
 
   - id: C1_MVP_DELIVERY_MASTER_CONTRACT
-    status: in_progress
+    status: accepted
     priority: P0
     type: planning
     title: Canonical 24h MVP delivery contract
