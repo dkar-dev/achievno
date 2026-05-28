@@ -1,0 +1,232 @@
+id: P0_MAIN_AGGREGATE_AND_PROFILE
+title: Implement authenticated main aggregate and profile/me surface
+priority: P0
+status: ready_for_codex
+linear:
+  team: Achievno
+  project: Achievno
+  label: Feature
+  priority: 1
+  suggested_title: "[MVP][P0] Implement main aggregate and profile surface"
+
+objective: >
+  Replace the protected /app/spaces root surface's core demo data dependency with an authenticated screen-oriented
+  Django API payload. Provide the current profile summary, personal space summary, friends summary, groups summary,
+  and unread notifications summary needed for the first authenticated app screen. This contract must keep writes out
+  of scope except for optional profile preference reads and must not implement achievements/challenges CRUD yet.
+
+context:
+  product: Achievno
+  master_contract: docs/dev/contracts/achievno_mvp_24h_delivery_contract.yaml
+  global_rules: AGENTS.md
+  depends_on:
+    - A4_ACCOUNTS_AUTH_SESSIONS
+    - B0_FRONTEND_API_CLIENT_AND_AUTH_WIRING
+  current_backend:
+    path: app/server
+    status: Django + DRF + cookie auth + unmanaged models
+    auth_principal: CookieJWTAuthentication exposes account/profile identity without AUTH_USER_MODEL
+  current_frontend:
+    path: app/client
+    status: AuthProvider/useAuth wired; /app/spaces protected but still product-mock-heavy
+  database:
+    role: external_dependency
+    connection_env: DATABASE_URL
+    rule: no schema changes, no migrations
+  architecture:
+    api_style: screen_oriented_read_payload
+    write_style: no new writes in this contract
+    layering_rule: API views call application query/service; query/service uses infrastructure selectors/models.
+
+scope:
+  include:
+    - Add backend endpoint GET /api/v1/main.
+    - Require A4 cookie authentication for GET /api/v1/main.
+    - Add application-level query/service for main aggregate.
+    - Add infrastructure selectors using unmanaged models.
+    - Return current profile summary from user_profiles/profile_preferences/rank definitions where available.
+    - Return personal space summary using owner_contexts/achievements/achievement_logs where available.
+    - Return friends summary using friend_connections/friend_connection_sides/user_profiles.
+    - Return groups summary using group_memberships/groups.
+    - Return notifications summary using notifications.
+    - Wire frontend /app/spaces to fetch /api/v1/main through central API client with credentials: include.
+    - Replace core root shell summary cards/counts/lists with API payload when NEXT_PUBLIC_USE_MOCKS=false.
+    - Keep explicit demo/mock fallback only when NEXT_PUBLIC_USE_MOCKS=true.
+    - Add loading, error, and empty states for main aggregate.
+    - Keep auth/me protection from B0 intact.
+    - Add backend tests for /api/v1/main auth requirement and payload shape using mocks or controlled DB-safe setup.
+    - Add frontend build/lint/typecheck green.
+  exclude:
+    - Achievement create/update/log/complete/archive.
+    - Friend achievement loops.
+    - Group creation/membership writes.
+    - Challenge APIs.
+    - Approval/evidence APIs.
+    - Notification read/write mutations.
+    - Advanced ranking or recommendations.
+    - Full UI redesign.
+    - Browser e2e automation.
+    - Schema changes or migrations.
+    - Seed/reset scripts.
+
+allowed_files:
+  - app/server/apps/platform/**
+  - app/server/apps/profiles/**
+  - app/server/apps/friends/**
+  - app/server/apps/groups/**
+  - app/server/apps/achievements/**
+  - app/server/apps/notifications/**
+  - app/server/config/urls.py
+  - app/client/**
+  - docs/dev/contracts/P0_MAIN_AGGREGATE_AND_PROFILE.yaml
+
+backend_api:
+  endpoint:
+    method: GET
+    path: /api/v1/main
+    auth: required_access_cookie
+  response_shape:
+    authenticated: true
+    profile:
+      profile_id: uuid
+      account_id: uuid
+      display_name: string
+      username: string_optional
+      avatar_url: string_optional
+      rank: object_optional
+    personal_space:
+      owner_context_id: uuid_optional
+      active_achievements_count: number
+      completed_achievements_count: number
+      recent_logs_count: number
+      recent_achievements: array
+    friends:
+      total_count: number
+      active_count: number
+      pending_count: number
+      preview: array
+    groups:
+      total_count: number
+      owned_count: number
+      member_count: number
+      preview: array
+    notifications:
+      unread_count: number
+      preview: array
+    server_time: iso_datetime
+  rules:
+    - Keep payload stable and explicit.
+    - Empty arrays/counts are valid for new users.
+    - Do not expose credential/session/token hashes.
+    - Do not include raw internal rows directly; map to DTOs.
+    - Avoid N+1 patterns where cheap select_related/prefetch is possible.
+
+backend_layout:
+  preferred_files:
+    - app/server/apps/platform/api/main.py
+    - app/server/apps/platform/api/urls.py
+    - app/server/apps/platform/application/main_query.py
+    - app/server/apps/platform/infrastructure/main_selectors.py
+    - app/server/apps/platform/tests/test_main_api.py
+  layering:
+    api:
+      - Validate authentication.
+      - Call application query.
+      - Return Response DTO.
+    application:
+      - Orchestrate current profile, personal, friends, groups, notification summaries.
+      - Keep business-neutral aggregation only.
+    infrastructure:
+      - Use unmanaged Django models.
+      - Convert DB rows to plain DTO dictionaries.
+
+frontend_api:
+  preferred_files:
+    - app/client/lib/achievno/api/main.ts
+    - app/client/lib/achievno/main/use-main-aggregate.ts
+  requirements:
+    - Use existing central API client.
+    - Use credentials: include through existing client.
+    - Do not read cookies directly.
+    - Do not silently fall back to demo data when NEXT_PUBLIC_USE_MOCKS=false.
+    - Allow explicit demo fallback only when NEXT_PUBLIC_USE_MOCKS=true.
+
+frontend_screen:
+  target_file: app/client/app/app/spaces/page.tsx
+  requirements:
+    - Preserve current visual structure as much as possible.
+    - Replace top-level profile/count/list data source with main aggregate API payload.
+    - Show loading state while /api/v1/main is pending.
+    - Show error state with retry when /api/v1/main fails.
+    - Show meaningful empty states for new accounts with no achievements/friends/groups.
+    - Do not wire create buttons to fake writes in this contract.
+    - Do not remove navigation to existing screens unless broken.
+
+mock_policy:
+  NEXT_PUBLIC_USE_MOCKS_false:
+    - Auth must use API only.
+    - Main aggregate must use API only.
+    - Any API error must show error state, not demo data.
+  NEXT_PUBLIC_USE_MOCKS_true:
+    - Explicit demo data may be used for product preview.
+    - The code path must be obvious and grep-able.
+
+forbidden:
+  - do not modify PostgreSQL schema
+  - do not add migrations
+  - do not implement product write endpoints
+  - do not add achievement/challenge CRUD
+  - do not add fake success for protected main aggregate when mocks are disabled
+  - do not store auth tokens in frontend storage
+  - do not remove B0 AuthProvider/useAuth protection
+  - do not rewrite the UI globally
+  - do not add browser e2e framework
+  - do not weaken A2/A3/A4 smoke/check commands
+
+acceptance:
+  backend_commands:
+    - cd app/server && uv run python manage.py check
+    - cd app/server && uv run python manage.py test
+    - cd app/server && DATABASE_URL="$DATABASE_URL" uv run python manage.py achievno_check_db
+    - cd app/server && DATABASE_URL="$DATABASE_URL" uv run python manage.py achievno_check_models
+    - cd app/server && DATABASE_URL="$DATABASE_URL" uv run python manage.py achievno_smoke_auth
+  frontend_commands:
+    - cd app/client && npm run build
+    - cd app/client && npm run lint
+    - cd app/client && npx tsc --noEmit
+  manual_local_flow:
+    setup:
+      - Start Django server with DATABASE_URL pointing to local PostgreSQL.
+      - Start Next.js client with NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:8000 and NEXT_PUBLIC_USE_MOCKS=false.
+    checks:
+      - Sign in with a verified account.
+      - Open /app/spaces.
+      - Confirm /app/spaces calls /api/v1/main.
+      - Confirm root profile/summary data is loaded from API.
+      - Refresh /app/spaces and remain authenticated with API data.
+      - Stop Django or break API URL and confirm error state appears instead of mock data.
+  manual_checks:
+    - GET /api/v1/main returns 401/403 when unauthenticated.
+    - GET /api/v1/main returns stable payload when authenticated.
+    - New/empty user does not crash the UI.
+    - No schema/migration changes were introduced.
+
+output_required:
+  - summary
+  - changed_files
+  - commands_run
+  - backend_main_api_result
+  - frontend_main_flow_result
+  - backend_smoke_result
+  - commit_hash
+  - known_gaps
+  - blockers_if_any
+
+recommended_codex_goal: >
+  Implement docs/dev/contracts/P0_MAIN_AGGREGATE_AND_PROFILE.yaml exactly. Add authenticated GET /api/v1/main and wire
+  /app/spaces to use it through the existing frontend API client. Keep this read-only and screen-oriented. Do not add
+  product writes, schema changes, migrations, challenge/achievement CRUD, or silent mock fallback when mocks are disabled.
+
+next_contracts:
+  - P1_PERSONAL_ACHIEVEMENTS
+  - A1_PREPROD_PODMAN_RUNTIME
