@@ -1,0 +1,214 @@
+id: A1_PREPROD_PODMAN_RUNTIME
+title: Add local pre-prod Podman runtime for Django, Next.js, and existing PostgreSQL
+priority: P0
+status: ready_for_codex
+linear:
+  team: Achievno
+  project: Achievno
+  label: Task
+  priority: 1
+  suggested_title: "[MVP][A1] Add local pre-prod Podman runtime"
+
+objective: >
+  Add a reproducible local pre-prod runtime for the current Achievno MVP using rootless Podman. The existing local
+  PostgreSQL container remains the database dependency and must not be recreated, reset, restored, migrated, or modified
+  by this contract. The runtime must build and run the Django backend and Next.js frontend in containers, connect the
+  backend to the existing database through DATABASE_URL, and provide one-command smoke checks for the current MVP flows.
+
+context:
+  product: Achievno
+  master_contract: docs/dev/contracts/achievno_mvp_24h_delivery_contract.yaml
+  global_rules: AGENTS.md
+  depends_on:
+    - A0_DJANGO_SERVER_REPLACEMENT
+    - A2_DB_CONNECTION_AND_SCHEMA_SANITY
+    - A3_UNMANAGED_DOMAIN_MODELS
+    - A4_ACCOUNTS_AUTH_SESSIONS
+    - B0_FRONTEND_API_CLIENT_AND_AUTH_WIRING
+    - P0_MAIN_AGGREGATE_AND_PROFILE
+    - P1_PERSONAL_ACHIEVEMENTS
+    - C0_CHALLENGES_MINIMAL_FLOW
+  current_backend:
+    path: app/server
+    stack: Django + DRF + uv + PostgreSQL via DATABASE_URL
+  current_frontend:
+    path: app/client
+    stack: Next.js + npm
+  database:
+    role: external_dependency
+    runtime: existing local rootless Podman PostgreSQL container
+    rule: do not create or modify database container
+  runtime_choice:
+    preferred: rootless Podman
+    docker_compatibility: optional, not primary
+
+scope:
+  include:
+    - Add backend Containerfile for app/server.
+    - Add frontend Containerfile for app/client.
+    - Add local pre-prod environment template.
+    - Add rootless Podman build/start/stop/logs/status scripts or a Makefile wrapping those scripts.
+    - Run backend container on local port 8000.
+    - Run frontend container on local port 3000.
+    - Connect backend container to existing PostgreSQL through PREPROD_DATABASE_URL or DATABASE_URL.
+    - Configure frontend container with NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:8000 and NEXT_PUBLIC_USE_MOCKS=false by default.
+    - Add backend runtime smoke script that runs health/db/model/auth/personal/challenges smoke commands inside or against the backend container.
+    - Add frontend runtime smoke script that checks frontend HTTP availability and confirms the built app serves.
+    - Add docs to README or docs/dev explaining exact local pre-prod commands.
+    - Preserve all existing check/test/smoke commands.
+  exclude:
+    - Creating/recreating PostgreSQL container.
+    - Restoring DB dump.
+    - Resetting DB data.
+    - Running Django migrations against the existing schema.
+    - Changing PostgreSQL schema.
+    - Adding cloud hosting deployment.
+    - Adding CI/CD.
+    - Adding Nginx/reverse proxy unless strictly necessary.
+    - Product feature changes.
+    - UI redesign.
+
+allowed_files:
+  - app/server/Containerfile
+  - app/client/Containerfile
+  - app/server/pyproject.toml
+  - app/server/uv.lock
+  - app/client/next.config.*
+  - scripts/preprod/**
+  - Makefile
+  - .env.preprod.example
+  - README.md
+  - docs/dev/contracts/A1_PREPROD_PODMAN_RUNTIME.yaml
+
+implementation_requirements:
+  podman:
+    - Must work with rootless Podman.
+    - Prefer plain podman commands in scripts over Docker-only compose assumptions.
+    - If podman-compose is used, also provide plain podman fallback or document the dependency clearly.
+    - Use deterministic container names:
+      - achievno-preprod-api
+      - achievno-preprod-client
+    - Use deterministic image names:
+      - localhost/achievno-api:preprod
+      - localhost/achievno-client:preprod
+    - Do not require sudo.
+  database_connection:
+    - Existing DB remains external.
+    - Runtime must read PREPROD_DATABASE_URL first, then DATABASE_URL fallback.
+    - Document that containers usually need host.containers.internal instead of 127.0.0.1 when connecting to a DB port published on the host.
+    - Do not print DB password in normal logs.
+    - Fail clearly if DB URL is absent.
+  backend_container:
+    - Must install server dependencies reproducibly using uv.
+    - Must expose port 8000.
+    - Must set DJANGO_DEBUG=false by default for pre-prod unless local debug is explicitly enabled.
+    - Must set DJANGO_ALLOWED_HOSTS to include localhost, 127.0.0.1, and container name where appropriate.
+    - Must support credentialed CORS from http://127.0.0.1:3000 and http://localhost:3000.
+    - Prefer gunicorn for container runtime if low-risk; otherwise document runserver as MVP-local fallback.
+    - Must not run migrations on startup.
+  frontend_container:
+    - Must install client dependencies reproducibly using npm.
+    - Must build Next.js app.
+    - Must expose port 3000.
+    - Must run with NEXT_PUBLIC_USE_MOCKS=false by default.
+    - Must point API base URL to http://127.0.0.1:8000 for browser requests.
+  scripts:
+    required:
+      - scripts/preprod/build.sh
+      - scripts/preprod/up.sh
+      - scripts/preprod/down.sh
+      - scripts/preprod/logs.sh
+      - scripts/preprod/status.sh
+      - scripts/preprod/smoke.sh
+    behavior:
+      build:
+        - Builds backend and frontend images.
+      up:
+        - Starts/restarts backend and frontend containers.
+        - Requires PREPROD_DATABASE_URL or DATABASE_URL.
+        - Does not start PostgreSQL.
+      down:
+        - Stops/removes backend and frontend pre-prod containers only.
+        - Does not touch PostgreSQL container.
+      logs:
+        - Shows recent logs for backend and frontend.
+      status:
+        - Shows containers and URLs.
+      smoke:
+        - Checks GET http://127.0.0.1:8000/health.
+        - Checks GET http://127.0.0.1:8000/health/db.
+        - Runs achievno_check_db in backend container.
+        - Runs achievno_check_models in backend container.
+        - Runs achievno_smoke_auth in backend container.
+        - Runs achievno_smoke_personal_achievements in backend container.
+        - Runs achievno_smoke_challenges in backend container.
+        - Checks GET http://127.0.0.1:3000.
+  documentation:
+    - Add a concise Local pre-prod section with exact commands.
+    - Explain how to set PREPROD_DATABASE_URL.
+    - Explain host.containers.internal mapping.
+    - Explain that DB container/data is external and preserved.
+
+forbidden:
+  - do not modify PostgreSQL schema
+  - do not create migrations
+  - do not run migrate automatically
+  - do not create/recreate/reset/restore database container
+  - do not commit secrets or real DATABASE_URL values
+  - do not require Docker Desktop
+  - do not require sudo
+  - do not add product features
+  - do not weaken existing backend smoke commands
+  - do not make frontend use mocks by default in pre-prod
+
+acceptance:
+  local_commands:
+    - cd app/server && uv run python manage.py check
+    - cd app/server && uv run python manage.py test
+    - cd app/client && npm run build
+    - cd app/client && npm run lint
+    - cd app/client && npx tsc --noEmit
+  preprod_commands:
+    - PREPROD_DATABASE_URL="$PREPROD_DATABASE_URL" scripts/preprod/build.sh
+    - PREPROD_DATABASE_URL="$PREPROD_DATABASE_URL" scripts/preprod/up.sh
+    - scripts/preprod/status.sh
+    - PREPROD_DATABASE_URL="$PREPROD_DATABASE_URL" scripts/preprod/smoke.sh
+    - scripts/preprod/down.sh
+  manual_local_flow:
+    setup:
+      - Existing PostgreSQL container is running and reachable from backend container.
+      - scripts/preprod/up.sh has started API and client containers.
+    checks:
+      - Open http://127.0.0.1:3000.
+      - Sign up or sign in.
+      - Verify email if creating new account.
+      - Open /app/spaces and confirm main aggregate loads.
+      - Open /app/me and create/list/progress/complete/archive personal achievements.
+      - Open /app/challenges and create/detail/join/progress/complete challenge.
+      - Logout and confirm protected surfaces block/redirect.
+  manual_checks:
+    - podman ps shows only API/client containers created by this runtime, plus the pre-existing DB container.
+    - scripts/preprod/down.sh does not stop/remove PostgreSQL.
+    - No secrets were committed.
+    - No schema/migration changes were introduced.
+
+output_required:
+  - summary
+  - changed_files
+  - commands_run
+  - preprod_runtime_result
+  - preprod_smoke_result
+  - backend_smoke_result
+  - frontend_result
+  - commit_hash
+  - known_gaps
+  - blockers_if_any
+
+recommended_codex_goal: >
+  Implement docs/dev/contracts/A1_PREPROD_PODMAN_RUNTIME.yaml exactly. Add rootless Podman local pre-prod runtime for
+  Django API and Next.js client, using the existing PostgreSQL container as an external dependency. Do not create/reset
+  the DB container, run migrations, change schema, commit secrets, or add product features.
+
+next_contracts:
+  - M0_MANUAL_BROWSER_SMOKE_AND_README_STATUS
+  - P2_FRIENDS_AND_GROUPS_READS
