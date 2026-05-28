@@ -35,7 +35,7 @@ export interface AuthState {
 // SPACES
 // ─────────────────────────────────────────────────────────────────
 
-export type SpaceType = 'personal' | 'group'
+export type SpaceType = 'personal' | 'friend' | 'group'
 
 export interface Space {
   id: string

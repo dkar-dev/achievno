@@ -17,6 +17,7 @@ interface AchievnoProgressProps {
   max?: number
   size?: 'sm' | 'md'
   color?: 'primary' | 'success' | 'challenge' | 'info'
+  variant?: 'default' | 'primary' | 'success' | 'challenge' | 'info'
   showLabel?: boolean
   labelPosition?: 'inline' | 'above'
   label?: React.ReactNode
@@ -47,12 +48,14 @@ export function AchievnoProgress({
   max = 100,
   size = 'sm',
   color = 'primary',
+  variant,
   showLabel = false,
   labelPosition = 'inline',
   label,
   className,
 }: AchievnoProgressProps) {
   const percent = Math.min(Math.round((value / max) * 100), 100)
+  const progressColor = variant === 'default' ? 'primary' : variant || color
 
   if (!showLabel) {
     return (
@@ -60,8 +63,8 @@ export function AchievnoProgress({
         value={percent}
         className={cn(
           sizeClasses[size],
-          trackColorClasses[color],
-          colorClasses[color],
+          trackColorClasses[progressColor],
+          colorClasses[progressColor],
           'rounded-full',
           className
         )}
@@ -80,8 +83,8 @@ export function AchievnoProgress({
           value={percent}
           className={cn(
             sizeClasses[size],
-            trackColorClasses[color],
-            colorClasses[color],
+            trackColorClasses[progressColor],
+            colorClasses[progressColor],
             'rounded-full'
           )}
         />
@@ -95,8 +98,8 @@ export function AchievnoProgress({
         value={percent}
         className={cn(
           sizeClasses[size],
-          trackColorClasses[color],
-          colorClasses[color],
+          trackColorClasses[progressColor],
+          colorClasses[progressColor],
           'rounded-full'
         )}
       />

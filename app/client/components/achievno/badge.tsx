@@ -15,6 +15,7 @@ import type { AchievementStatus, ChallengeStatus } from '@/lib/achievno/types'
 interface AchievnoBadgeProps {
   variant:
     | 'primary'
+    | 'default'
     | 'success'
     | 'destructive'
     | 'info'
@@ -30,6 +31,7 @@ interface AchievnoBadgeProps {
 }
 
 const variantClasses = {
+  default: 'bg-background-elevated text-secondary border-border-strong',
   primary: 'bg-primary/15 text-primary border-primary/25',
   success: 'bg-success/15 text-success border-success/25',
   destructive: 'bg-destructive/15 text-destructive border-destructive/25',
@@ -67,6 +69,7 @@ export function AchievnoBadge({
           className={cn(
             'size-1.5 rounded-full',
             variant === 'primary' && 'bg-primary',
+            variant === 'default' && 'bg-secondary',
             variant === 'success' && 'bg-success',
             variant === 'destructive' && 'bg-destructive',
             variant === 'info' && 'bg-info',

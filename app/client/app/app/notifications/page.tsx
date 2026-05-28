@@ -177,7 +177,7 @@ export default function NotificationsPage() {
                 {notifications.length === 0 ? (
                     <div className="p-5">
                         <EmptyState
-                            icon={IconBell}
+                            icon={<IconBell size={40} />}
                             title="No notifications"
                             description="You're all caught up! New notifications will appear here."
                         />

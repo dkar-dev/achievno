@@ -17,11 +17,14 @@ import { Input } from '@/components/ui/input'
 import { FieldGroup, Field, FieldLabel } from '@/components/ui/field'
 import { BackHeader } from '@/components/achievno/header'
 import { ROUTES } from '@/lib/achievno/constants'
+import { useAuth } from '@/lib/achievno/auth/use-auth'
+import { getApiErrorMessage } from '@/lib/achievno/api/errors'
 import { Spinner } from '@/components/ui/spinner'
 import { cn } from '@/lib/utils'
 
 export default function SignInPage() {
   const router = useRouter()
+  const auth = useAuth()
   const [isLoading, setIsLoading] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
 
@@ -29,13 +32,19 @@ export default function SignInPage() {
     e.preventDefault()
     setIsLoading(true)
     setError(null)
+    const formData = new FormData(e.currentTarget)
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500))
-
-    // Demo: always succeed and redirect
-    setIsLoading(false)
-    router.push(ROUTES.spaces)
+    try {
+      await auth.signIn({
+        email: String(formData.get('email') || ''),
+        password: String(formData.get('password') || ''),
+      })
+      router.push(ROUTES.spaces)
+    } catch (caughtError) {
+      setError(getApiErrorMessage(caughtError, 'Sign-in failed. Please check your email and password.'))
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -60,6 +69,7 @@ export default function SignInPage() {
             <Field>
               <FieldLabel>Email</FieldLabel>
               <Input
+                name="email"
                 type="email"
                 placeholder="you@example.com"
                 autoComplete="email"
@@ -80,6 +90,7 @@ export default function SignInPage() {
                 </Link>
               </div>
               <Input
+                name="password"
                 type="password"
                 placeholder="Enter your password"
                 autoComplete="current-password"

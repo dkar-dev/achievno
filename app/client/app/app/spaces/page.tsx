@@ -17,6 +17,7 @@ import {
 } from '@/lib/achievno/icons'
 import { AVATAR_COLORS, ROUTES, type RootShellSurface } from '@/lib/achievno/constants'
 import type { Space } from '@/lib/achievno/types'
+import { useAuth } from '@/lib/achievno/auth/use-auth'
 import { cn } from '@/lib/utils'
 
 const ROOT_SURFACE_TABS: { id: RootShellSurface; label: string }[] = [
@@ -137,7 +138,9 @@ const DEMO_GROUPS: Space[] = [
 
 function RootPillNav() {
     const router = useRouter()
+    const auth = useAuth()
     const [isSettingsOpen, setIsSettingsOpen] = React.useState(false)
+    const [isSigningOut, setIsSigningOut] = React.useState(false)
 
     const settingsItems = [
         { id: 'profile', label: 'Profile', route: ROUTES.profile },
@@ -147,8 +150,27 @@ function RootPillNav() {
         { id: 'language', label: 'Language', route: '/app/settings' },
         { id: 'appearance', label: 'Appearance', route: '/app/settings' },
         { id: 'about', label: 'About', route: '/app/settings' },
-        { id: 'logout', label: 'Logout', route: ROUTES.welcome },
+        { id: 'logout', label: 'Logout', route: null },
     ] as const
+
+    const handleSettingsItem = async (item: (typeof settingsItems)[number]) => {
+        if (item.id !== 'logout') {
+            setIsSettingsOpen(false)
+            if (item.route) {
+                router.push(item.route)
+            }
+            return
+        }
+
+        setIsSigningOut(true)
+        try {
+            await auth.signOut()
+        } finally {
+            setIsSigningOut(false)
+            setIsSettingsOpen(false)
+            router.push(ROUTES.welcome)
+        }
+    }
 
     return (
         <>
@@ -195,13 +217,13 @@ function RootPillNav() {
                             {settingsItems.map((item) => (
                                 <button
                                     key={item.id}
+                                    disabled={item.id === 'logout' && isSigningOut}
                                     className="flex w-full items-center justify-between rounded-xl px-3 py-3 text-left hover:bg-bg-muted"
-                                    onClick={() => {
-                                        setIsSettingsOpen(false)
-                                        router.push(item.route)
-                                    }}
+                                    onClick={() => void handleSettingsItem(item)}
                                 >
-                                    <span className={cn('text-label', item.id === 'logout' && 'text-destructive')}>{item.label}</span>
+                                    <span className={cn('text-label', item.id === 'logout' && 'text-destructive')}>
+                                        {item.id === 'logout' && isSigningOut ? 'Logging out...' : item.label}
+                                    </span>
                                     <span className="text-tertiary">›</span>
                                 </button>
                             ))}
@@ -321,19 +343,58 @@ function GroupsSurface() {
 
 export default function RootShellPage() {
     const router = useRouter()
+    const auth = useAuth()
     const [friendSearch, setFriendSearch] = React.useState('')
     const [activeSurface, setActiveSurface] = React.useState<RootShellSurface>('main')
+    const [authError, setAuthError] = React.useState<string | null>(null)
 
     React.useEffect(() => {
         const params = new URLSearchParams(window.location.search)
         setActiveSurface(params.get('surface') === 'groups' ? 'groups' : 'main')
     }, [])
 
+    React.useEffect(() => {
+        if (auth.status === 'unauthenticated') {
+            router.replace(ROUTES.signIn)
+        }
+    }, [auth.status, router])
+
+    React.useEffect(() => {
+        if (auth.status !== 'error') {
+            setAuthError(null)
+            return
+        }
+
+        setAuthError(auth.error || 'Authentication check failed.')
+    }, [auth.error, auth.status])
+
     const handleSurfaceChange = (nextSurface: RootShellSurface) => {
         if (nextSurface === activeSurface) return
 
         setActiveSurface(nextSurface)
         router.replace(ROUTES.rootShell(nextSurface), { scroll: false })
+    }
+
+    if (auth.status === 'loading') {
+        return (
+            <div className="flex min-h-screen items-center justify-center bg-bg-base px-screen">
+                <div className="rounded-xl border border-border-subtle bg-bg-muted px-4 py-3 text-label text-secondary">
+                    Checking authentication...
+                </div>
+            </div>
+        )
+    }
+
+    if (!auth.isAuthenticated) {
+        return (
+            <div className="flex min-h-screen items-center justify-center bg-bg-base px-screen">
+                <div className="space-y-3 text-center">
+                    <p className="text-title font-semibold">Sign-in required</p>
+                    <p className="text-body text-secondary">{authError || 'Redirecting to sign in...'}</p>
+                    <Button onClick={() => router.replace(ROUTES.signIn)}>Go to sign in</Button>
+                </div>
+            </div>
+        )
     }
 
     return (

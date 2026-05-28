@@ -94,9 +94,13 @@ export const ROUTES = {
   welcome: '/welcome',
   signIn: '/auth/sign-in',
   signUp: '/auth/sign-up',
+  verifyEmail: '/auth/verify-email',
   forgotPassword: '/auth/forgot-password',
   resetPasswordInfo: '/auth/reset-password-info',
   resetPassword: '/auth/reset-password',
+  onboardingProfile: '/onboarding/profile',
+  onboardingGoals: '/onboarding/goals',
+  onboardingNotifications: '/onboarding/notifications',
   
   
   // Main App
@@ -231,6 +235,7 @@ export const MOTION = {
 
 export const STATUS_LABELS = {
   achievement: {
+    draft: 'Draft',
     not_started: 'Not started',
     active: 'In progress',
     completed: 'Completed',

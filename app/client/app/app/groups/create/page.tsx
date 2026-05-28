@@ -50,7 +50,7 @@ export default function CreateGroupPage() {
   const [name, setName] = useState("")
   const [description, setDescription] = useState("")
   const [visibility, setVisibility] = useState<GroupVisibility>("public")
-  const [selectedColor, setSelectedColor] = useState(AVATAR_COLORS[0])
+  const [selectedColor, setSelectedColor] = useState<(typeof AVATAR_COLORS)[number]>(AVATAR_COLORS[0])
   const [showDiscardConfirm, setShowDiscardConfirm] = useState(false)
   const [isCreating, setIsCreating] = useState(false)
 

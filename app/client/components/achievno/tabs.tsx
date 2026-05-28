@@ -65,7 +65,7 @@ interface TabBarProps<T extends string> {
     value: T
     onChange: (value: T) => void
     tabs: { id: T; label: string }[]
-    variant?: 'default' | 'underline'
+    variant?: 'default' | 'underline' | 'pill'
     size?: 'default' | 'compact'
     className?: string
 }
