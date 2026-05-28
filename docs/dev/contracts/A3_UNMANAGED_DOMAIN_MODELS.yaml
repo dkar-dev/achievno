@@ -1,0 +1,281 @@
+id: A3_UNMANAGED_DOMAIN_MODELS
+title: Map current PostgreSQL baseline to unmanaged Django domain models
+priority: P0
+status: ready_for_codex
+linear:
+  team: Achievno
+  project: Achievno
+  label: Task
+  priority: 1
+  suggested_title: "[MVP][A3] Map baseline DB to unmanaged Django domain models"
+
+objective: >
+  Add unmanaged Django ORM model classes for the current Achievno PostgreSQL baseline tables required by MVP flows,
+  split across bounded-context infrastructure layers. These models are a DB mapping layer only. Do not implement auth,
+  product endpoints, application services, repositories, frontend integration, migrations, or schema changes.
+
+context:
+  product: Achievno
+  master_contract: docs/dev/contracts/achievno_mvp_24h_delivery_contract.yaml
+  global_rules: AGENTS.md
+  depends_on:
+    - A0_DJANGO_SERVER_REPLACEMENT
+    - A2_DB_CONNECTION_AND_SCHEMA_SANITY
+    - F0_A2_SCHEMA_SANITY_TABLE_NAMES
+  current_backend:
+    path: app/server
+    status: Django + DRF skeleton with DB health checks
+  database:
+    role: external_dependency
+    runtime: existing local Podman PostgreSQL container
+    connection_env: DATABASE_URL
+    baseline_dump_sha256: 177ed029f1086078ab2ce5e89eedec9c87d3e61a4a58c3a900d1c12
+    schema_status: achievno_check_db passes against local baseline after F0
+  architecture:
+    style: modular_monolith_practical_hexagonal
+    db_access: Django ORM unmanaged models
+    model_location_rule: models live in apps/<context>/infrastructure/models.py
+
+scope:
+  include:
+    - Add unmanaged Django model classes for MVP baseline tables.
+    - Split models by bounded context infrastructure modules.
+    - Use db_table names matching the existing PostgreSQL schema exactly.
+    - Use primary_key fields matching existing table primary keys.
+    - Use ForeignKey fields where obvious and safe from the baseline schema.
+    - Use choices as plain text/enum-compatible field types without inventing business enums yet.
+    - Set managed = False on every baseline table model.
+    - Add minimal model import smoke tests.
+    - Add a management command or test helper to confirm mapped model db_table names exist in the live DB.
+    - Keep achievno_check_db green.
+  exclude:
+    - Auth implementation or custom Django user model activation.
+    - AUTH_USER_MODEL setting.
+    - JWT/session logic.
+    - API endpoints beyond existing health endpoints.
+    - Application services, selectors, repositories, or domain policies.
+    - Frontend changes.
+    - inspectdb raw output committed as final code.
+    - Django migrations for existing schema.
+    - Database schema modifications.
+    - Data seed/restore/reset scripts.
+
+allowed_files:
+  - app/server/apps/accounts/infrastructure/models.py
+  - app/server/apps/profiles/infrastructure/models.py
+  - app/server/apps/friends/infrastructure/models.py
+  - app/server/apps/groups/infrastructure/models.py
+  - app/server/apps/achievements/infrastructure/models.py
+  - app/server/apps/challenges/infrastructure/models.py
+  - app/server/apps/notifications/infrastructure/models.py
+  - app/server/apps/platform/infrastructure/models.py
+  - app/server/apps/platform/management/commands/achievno_check_models.py
+  - app/server/apps/platform/tests/test_unmanaged_models.py
+  - docs/dev/contracts/A3_UNMANAGED_DOMAIN_MODELS.yaml
+
+model_mapping:
+  accounts:
+    module: apps/accounts/infrastructure/models.py
+    tables:
+      - table: accounts
+        model: Account
+        primary_key: account_id
+      - table: account_auth_methods
+        model: AccountAuthMethod
+        primary_key: auth_method_id
+      - table: auth_sessions
+        model: AuthSession
+        primary_key: session_id
+      - table: auth_verification_tokens
+        model: AuthVerificationToken
+        primary_key: verification_token_id
+  profiles:
+    module: apps/profiles/infrastructure/models.py
+    tables:
+      - table: user_profiles
+        model: UserProfile
+        primary_key: profile_id
+      - table: profile_preferences
+        model: ProfilePreferences
+        primary_key: profile_id
+      - table: profile_interest_categories
+        model: ProfileInterestCategory
+        composite_key: true
+  friends:
+    module: apps/friends/infrastructure/models.py
+    tables:
+      - table: friend_connections
+        model: FriendConnection
+        primary_key: friend_connection_id
+      - table: friend_connection_sides
+        model: FriendConnectionSide
+        composite_key: true
+  groups:
+    module: apps/groups/infrastructure/models.py
+    tables:
+      - table: groups
+        model: Group
+        primary_key: group_id
+      - table: group_memberships
+        model: GroupMembership
+        primary_key: group_membership_id
+      - table: group_category_links
+        model: GroupCategoryLink
+        composite_key: true
+  achievements:
+    module: apps/achievements/infrastructure/models.py
+    tables:
+      - table: owner_contexts
+        model: OwnerContext
+        primary_key: owner_context_id
+      - table: achievements
+        model: Achievement
+        primary_key: achievement_id
+      - table: achievement_logs
+        model: AchievementLog
+        primary_key: achievement_log_id
+      - table: achievement_assignees
+        model: AchievementAssignee
+        composite_key: true
+      - table: approval_policies
+        model: ApprovalPolicy
+        primary_key: approval_policy_id
+      - table: approval_policy_approvers
+        model: ApprovalPolicyApprover
+        composite_key: true
+      - table: approval_requests
+        model: ApprovalRequest
+        primary_key: approval_request_id
+      - table: approval_request_approvers
+        model: ApprovalRequestApprover
+        composite_key: true
+      - table: approval_decisions
+        model: ApprovalDecision
+        primary_key: approval_decision_id
+      - table: evidence_assets
+        model: EvidenceAsset
+        primary_key: evidence_asset_id
+      - table: evidence_links
+        model: EvidenceLink
+        primary_key: evidence_link_id
+      - table: comments
+        model: Comment
+        primary_key: comment_id
+  challenges:
+    module: apps/challenges/infrastructure/models.py
+    tables:
+      - table: challenges
+        model: Challenge
+        primary_key: challenge_id
+      - table: challenge_participants
+        model: ChallengeParticipant
+        composite_key: true
+      - table: challenge_completion_events
+        model: ChallengeCompletionEvent
+        primary_key: challenge_completion_event_id
+  notifications:
+    module: apps/notifications/infrastructure/models.py
+    tables:
+      - table: notifications
+        model: Notification
+        primary_key: notification_id
+      - table: outbox_events
+        model: OutboxEvent
+        primary_key: outbox_event_id
+  platform:
+    module: apps/platform/infrastructure/models.py
+    tables:
+      - table: taxonomy_categories
+        model: TaxonomyCategory
+        primary_key: category_id
+      - table: rank_definitions
+        model: RankDefinition
+        primary_key: rank_id
+      - table: invites
+        model: Invite
+        primary_key: invite_id
+      - table: invite_usages
+        model: InviteUsage
+        primary_key: invite_usage_id
+
+implementation_requirements:
+  model_rules:
+    - Every model must define class Meta with managed = False and db_table equal to the exact baseline table name.
+    - Do not create migrations directories or migration files for these models.
+    - For PostgreSQL enum/citext fields, use Django CharField/TextField-compatible mappings for MVP.
+    - For jsonb fields, use models.JSONField.
+    - For inet fields, use models.GenericIPAddressField or a safe CharField fallback if inspectdb suggests it.
+    - For numeric(14,2), use DecimalField(max_digits=14, decimal_places=2).
+    - For timestamp with time zone, use DateTimeField.
+    - For uuid, use UUIDField.
+    - For composite-key tables, use a safe unmanaged model mapping without pretending Django supports composite primary keys perfectly.
+    - For composite-key tables, choose one field with primary_key=True only if Django requires it, and document the limitation in code comments minimally.
+    - Avoid cross-domain import cycles. Use string model references or db_column fields where necessary.
+    - Do not add behavior-heavy model methods.
+    - Do not encode domain business rules in models in A3.
+  inspectdb_policy:
+    - It is allowed to run inspectdb locally as a reference if useful.
+    - Do not commit raw inspectdb output.
+    - Final code must be split by bounded context modules and cleaned enough for manage.py check.
+  django_app_registration:
+    - Keep existing apps registered in INSTALLED_APPS.
+    - Do not set AUTH_USER_MODEL yet.
+    - Ensure model import does not break django setup.
+  model_check_command:
+    name: achievno_check_models
+    behavior:
+      - Imports all A3 model classes.
+      - Compares each model._meta.db_table against live database table names.
+      - Exits non-zero if any mapped db_table is absent.
+      - Does not query or mutate row data.
+      - Does not inspect columns exhaustively in A3 unless cheap and safe.
+    note: This command may reuse apps.platform.infrastructure.db_health helpers.
+  tests:
+    - Add tests that all A3 model classes have managed = False.
+    - Add tests that expected db_table values match the contract mapping.
+    - Add tests that model modules import successfully under Django.
+    - Tests must pass without a live PostgreSQL DB when DATABASE_URL is absent.
+
+forbidden:
+  - do not modify PostgreSQL schema
+  - do not add migrations
+  - do not run migrate against the existing DB as part of this task
+  - do not commit raw inspectdb output
+  - do not implement auth endpoints or custom auth behavior
+  - do not set AUTH_USER_MODEL
+  - do not implement product APIs
+  - do not add selectors/repositories/application services in this contract
+  - do not modify app/client
+  - do not weaken or remove A2 DB health checks
+  - do not rename database tables in code away from baseline names
+
+acceptance:
+  commands_without_db:
+    - cd app/server && uv run python manage.py check
+    - cd app/server && uv run python manage.py test
+  commands_with_existing_db:
+    - cd app/server && DATABASE_URL="$DATABASE_URL" uv run python manage.py achievno_check_db
+    - cd app/server && DATABASE_URL="$DATABASE_URL" uv run python manage.py achievno_check_models
+  optional_manual_checks:
+    - Confirm no migration files were created under app/server/apps/**/migrations.
+    - Confirm git diff does not include app/client.
+    - Confirm all model Meta classes use managed = False.
+
+output_required:
+  - summary
+  - changed_files
+  - commands_run
+  - model_check_result
+  - db_check_result
+  - commit_hash
+  - known_gaps
+  - blockers_if_any
+
+recommended_codex_goal: >
+  Implement docs/dev/contracts/A3_UNMANAGED_DOMAIN_MODELS.yaml exactly. Add unmanaged Django model mappings for the current
+  PostgreSQL baseline tables split across domain infrastructure modules. Do not add migrations, auth, product APIs, frontend
+  changes, schema changes, or raw inspectdb output.
+
+next_contracts:
+  - A4_ACCOUNTS_AUTH_SESSIONS
+  - A1_PREPROD_PODMAN_RUNTIME
