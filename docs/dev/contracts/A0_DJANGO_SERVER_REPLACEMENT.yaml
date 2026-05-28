@@ -1,0 +1,180 @@
+id: A0_DJANGO_SERVER_REPLACEMENT
+title: Replace FastAPI server with Django + DRF skeleton
+priority: P0
+status: ready_for_codex
+linear:
+  team: Achievno
+  project: Achievno
+  label: Task
+  priority: 1
+  suggested_title: "[MVP][A0] Replace FastAPI with Django + DRF skeleton"
+
+objective: >
+  Replace the current FastAPI runtime under app/server with a minimal Django + Django REST Framework backend skeleton
+  prepared for Achievno's modular monolith architecture. Do not implement auth, product flows, unmanaged DB models,
+  inspectdb output, runtime containers, or schema changes in this contract.
+
+context:
+  product: Achievno
+  master_contract: docs/dev/contracts/achievno_mvp_24h_delivery_contract.yaml
+  global_rules: AGENTS.md
+  current_backend:
+    path: app/server
+    status: FastAPI stub
+  target_backend:
+    framework: Django
+    api_framework: Django REST Framework
+    architecture: modular_monolith_practical_hexagonal
+  database:
+    role: external_dependency
+    rule: do not create, reset, restore, migrate, or modify existing database schema
+  frontend:
+    path: app/client
+    rule: do not modify frontend in this contract
+
+scope:
+  include:
+    - Replace app/server FastAPI runtime with Django project structure.
+    - Update app/server dependency metadata for Django + DRF runtime.
+    - Create manage.py and Django config package.
+    - Configure settings through environment variables.
+    - Configure DRF and CORS support.
+    - Create /health endpoint returning simple JSON app health.
+    - Create bounded-context Django app skeletons for MVP modules.
+    - Add minimal tests for /health.
+    - Keep the server runnable locally without requiring a live database for this A0 contract.
+  exclude:
+    - Auth implementation.
+    - Custom Account user model.
+    - JWT or refresh cookies.
+    - inspectdb output.
+    - unmanaged models for existing DB tables.
+    - DB schema sanity management command.
+    - PostgreSQL schema changes.
+    - Django migrations for existing schema.
+    - Product API endpoints beyond /health.
+    - Frontend API integration.
+    - Podman runtime scripts.
+    - Telegram auth lifecycle.
+
+allowed_files:
+  - app/server/**
+  - docs/dev/contracts/A0_DJANGO_SERVER_REPLACEMENT.yaml
+  - README.md
+
+preferred_server_layout:
+  root: app/server
+  config_files:
+    - manage.py
+    - pyproject.toml
+    - config/__init__.py
+    - config/settings.py
+    - config/urls.py
+    - config/asgi.py
+    - config/wsgi.py
+  bounded_contexts:
+    - apps/accounts
+    - apps/profiles
+    - apps/friends
+    - apps/groups
+    - apps/achievements
+    - apps/challenges
+    - apps/notifications
+    - apps/platform
+  context_layers:
+    - api
+    - application
+    - domain
+    - infrastructure
+
+implementation_requirements:
+  dependencies:
+    required:
+      - Django
+      - djangorestframework
+      - django-cors-headers
+      - dj-database-url
+      - psycopg-binary-or-psycopg-binary-extra
+    remove_runtime_dependencies:
+      - fastapi
+      - uvicorn
+      - pydantic-settings
+    notes:
+      - Keep Python requirement >=3.12 unless repository constraints force otherwise.
+      - Do not add auth/JWT packages in A0.
+  django_settings:
+    env_vars:
+      - DJANGO_SECRET_KEY
+      - DJANGO_DEBUG
+      - DJANGO_ALLOWED_HOSTS
+      - CORS_ALLOWED_ORIGINS
+      - DATABASE_URL
+    rules:
+      - DATABASE_URL may be configured but must not be required for python manage.py check in A0.
+      - If DATABASE_URL is absent, use a lightweight fallback that allows Django system checks and tests.
+      - Do not run migrations automatically.
+      - Do not set AUTH_USER_MODEL until the custom Account model contract is implemented.
+  health_endpoint:
+    path: /health
+    method: GET
+    response_shape:
+      status: ok
+      service: achievno-api
+      backend: django
+    rules:
+      - Health endpoint in A0 is app health only.
+      - DB health is implemented later in A2.
+  bounded_context_apps:
+    required_apps:
+      - apps.accounts
+      - apps.profiles
+      - apps.friends
+      - apps.groups
+      - apps.achievements
+      - apps.challenges
+      - apps.notifications
+      - apps.platform
+    rules:
+      - It is acceptable for domain apps to contain only AppConfig and empty layer packages in A0.
+      - Do not create speculative models in A0.
+      - Do not create migrations for domain apps in A0.
+
+forbidden:
+  - do not keep FastAPI as a parallel runtime
+  - do not create app/server_legacy
+  - do not modify app/client
+  - do not modify PostgreSQL schema
+  - do not add Django migrations for existing database schema
+  - do not run inspectdb in this contract
+  - do not implement auth endpoints
+  - do not implement product endpoints except /health
+  - do not add ORM queries inside DRF views
+  - do not add raw SQL
+  - do not add Docker-only assumptions
+
+acceptance:
+  commands:
+    - cd app/server && python manage.py check
+    - cd app/server && python manage.py test
+  optional_manual_run:
+    command: cd app/server && python manage.py runserver 0.0.0.0:8000
+    check: curl -f http://127.0.0.1:8000/health
+  manual_checks:
+    - app/server no longer uses FastAPI as target runtime.
+    - /health is served by Django/DRF code.
+    - Bounded context app skeletons exist.
+    - No auth/product flows were implemented.
+    - No DB schema changes or inspectdb models were introduced.
+    - Settings are environment-driven.
+
+output_required:
+  - summary
+  - changed_files
+  - commands_run
+  - known_gaps
+  - blockers_if_any
+
+next_contracts:
+  - A1_PREPROD_PODMAN_RUNTIME
+  - A2_DB_CONNECTION_AND_SCHEMA_SANITY
+  - A3_UNMANAGED_DOMAIN_MODELS
