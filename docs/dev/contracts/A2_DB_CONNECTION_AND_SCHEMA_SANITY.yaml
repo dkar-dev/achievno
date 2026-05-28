@@ -1,7 +1,7 @@
 id: A2_DB_CONNECTION_AND_SCHEMA_SANITY
 title: Connect Django to existing PostgreSQL and verify schema sanity
 priority: P0
-status: ready_for_codex
+status: accepted_with_fix_contract
 linear:
   team: Achievno
   project: Achievno
@@ -32,6 +32,8 @@ context:
   architecture:
     style: modular_monolith_practical_hexagonal
     db_access_rule: Django database connection and infrastructure-level checks only
+  fix_contracts:
+    - docs/dev/contracts/F0_A2_SCHEMA_SANITY_TABLE_NAMES.yaml
 
 scope:
   include:
@@ -78,28 +80,45 @@ critical_schema:
   tables:
     - accounts
     - user_profiles
-    - auth_methods
-    - user_sessions
+    - account_auth_methods
+    - auth_sessions
+    - auth_verification_tokens
     - achievements
     - achievement_logs
     - achievement_assignees
-    - achievement_approvals
+    - approval_policies
+    - approval_policy_approvers
+    - approval_requests
+    - approval_request_approvers
+    - approval_decisions
     - evidence_assets
     - evidence_links
     - groups
     - group_memberships
     - friend_connections
+    - friend_connection_sides
     - invites
     - invite_usages
     - challenges
     - challenge_participants
-    - challenge_progress
+    - challenge_completion_events
     - notifications
     - outbox_events
+    - owner_contexts
+    - profile_preferences
+    - rank_definitions
+    - taxonomy_categories
   views_or_optional_read_models:
-    - report_activity_feed
-    - report_achievement_overview
-    - report_challenge_leaderboard
+    - achievement_approval_overview
+    - achievement_overview
+    - approval_decisions_overview
+    - challenge_winners_history
+    - connected_signin_methods
+    - friend_connections_overview
+    - group_membership_overview
+    - notifications_overview
+    - pending_approval_requests
+    - unified_invites_overview
   required_postgres_objects_check_policy:
     tables: required
     views_or_optional_read_models: warn_not_fail_unless_contract_or_code_finds_they_are_required_for_current_db
