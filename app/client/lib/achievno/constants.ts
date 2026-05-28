@@ -120,6 +120,9 @@ export const ROUTES = {
   achievementCreate: '/app/achievements/create',
   achievementEdit: (id: string) => `/app/achievements/${id}/edit`,
   achievementProgress: (id: string) => `/app/achievements/${id}/progress`,
+  challenges: '/app/challenges',
+  challengeCreate: '/app/challenges/create',
+  challenge: (id: string) => `/app/challenges/${id}`,
   
   friend: (id: string) => `/app/friends/${id}`,
   group: (id: string) => `/app/groups/${id}`,
@@ -130,7 +133,7 @@ export const ROUTES = {
   groupInfo: (id: string) => `/app/groups/${id}/info`,
   groupSettings: (id: string) => `/app/groups/${id}/settings`,
   
-  challenge: (groupId: string, challengeId: string) => `/app/groups/${groupId}/challenges/${challengeId}`,
+  groupChallenge: (groupId: string, challengeId: string) => `/app/groups/${groupId}/challenges/${challengeId}`,
   challengeLeaderboard: (groupId: string, challengeId: string) => `/app/groups/${groupId}/challenges/${challengeId}/leaderboard`,
   
   discoverGroup: (id: string) => `/app/discover/groups/${id}`,

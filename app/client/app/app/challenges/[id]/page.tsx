@@ -1,306 +1,271 @@
-"use client"
+'use client'
 
-/**
- * ═══════════════════════════════════════════════════════════════
- * CHALLENGE DETAIL SCREEN
- * ═══════════════════════════════════════════════════════════════
- * Route: /app/challenges/[id]
- * Shows challenge info, leaderboard, and join/leave actions
- * States: not-joined, joined (as participant)
- * ═══════════════════════════════════════════════════════════════
- */
-
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { BackHeader } from "@/components/achievno/header"
-import { AchievnoProgress } from "@/components/achievno/progress"
-import { AchievnoAvatar } from "@/components/achievno/avatar"
-import { AchievnoBadge } from "@/components/achievno/badge"
-import { ConfirmModal } from "@/components/achievno/confirm-modal"
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet"
-import { 
-  AchievnoIcon,
-  IconTrophy,
-  IconUsers,
-  IconCalendar,
-  IconCrown,
-  IconChevronRight,
-  IconMoreHorizontal,
-  IconCheck
-} from "@/lib/achievno/icons"
-import { cn } from "@/lib/utils"
-
-// Mock data
-const MOCK_CHALLENGE = {
-  id: "c1",
-  title: "Code Review Sprint",
-  description: "First to review 10 PRs wins. Quality matters - each review must have at least one constructive comment.",
-  status: "active" as const,
-  groupId: "dev-team",
-  groupName: "Dev Team",
-  goal: 10,
-  endDate: "Apr 15, 2026",
-  createdBy: { id: "1", name: "Alex Chen", avatar: null },
-  rules: [
-    "Each PR review must include at least one constructive comment",
-    "Self-reviews don't count",
-    "Reviews must be completed within 24 hours of starting",
-  ],
-}
-
-const MOCK_LEADERBOARD = [
-  { id: "1", name: "Alex Chen", avatar: null, score: 7, rank: 1 },
-  { id: "2", name: "Bella Rodriguez", avatar: null, score: 5, rank: 2 },
-  { id: "3", name: "Max Kim", avatar: null, score: 4, rank: 3 },
-  { id: "4", name: "Sophie Lee", avatar: null, score: 3, rank: 4 },
-  { id: "5", name: "Jordan Park", avatar: null, score: 2, rank: 5 },
-]
-
-const CURRENT_USER_ID = "2" // Simulating current user is Bella
+import * as React from 'react'
+import { useParams, useRouter } from 'next/navigation'
+import { BackHeader } from '@/components/achievno/header'
+import { AchievnoProgress } from '@/components/achievno/progress'
+import { ListError, LoadingButton } from '@/components/achievno/loading-states'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { useAuth } from '@/lib/achievno/auth/use-auth'
+import { challengesApi } from '@/lib/achievno/api/challenges'
+import { getApiErrorMessage } from '@/lib/achievno/api/errors'
+import { useChallengeDetail } from '@/lib/achievno/challenges/use-challenge-detail'
+import { CHALLENGES_USE_MOCKS } from '@/lib/achievno/challenges/use-challenges'
+import { IconCheck, IconPlus, IconTrophy } from '@/lib/achievno/icons'
+import { ROUTES } from '@/lib/achievno/constants'
 
 export default function ChallengeDetailPage() {
   const router = useRouter()
-  const [isJoined, setIsJoined] = useState(true)
-  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false)
-  const [showLeaderboard, setShowLeaderboard] = useState(false)
+  const params = useParams<{ id: string }>()
+  const auth = useAuth()
+  const challengeId = params.id
+  const detail = useChallengeDetail({ challengeId, enabled: auth.isAuthenticated })
+  const [deltaValue, setDeltaValue] = React.useState('1')
+  const [noteText, setNoteText] = React.useState('')
+  const [isJoining, setIsJoining] = React.useState(false)
+  const [isProgressing, setIsProgressing] = React.useState(false)
+  const [isCompleting, setIsCompleting] = React.useState(false)
+  const [actionError, setActionError] = React.useState<string | null>(null)
+  const [success, setSuccess] = React.useState<string | null>(null)
 
-  const currentUserEntry = MOCK_LEADERBOARD.find(e => e.id === CURRENT_USER_ID)
-  const isLeader = MOCK_LEADERBOARD[0]?.id === CURRENT_USER_ID
+  React.useEffect(() => {
+    if (auth.status === 'unauthenticated') {
+      router.replace(ROUTES.signIn)
+    }
+  }, [auth.status, router])
 
-  const handleJoin = () => {
-    setIsJoined(true)
+  const challenge = detail.challenge
+  const participant = detail.participant
+  const targetValue = challenge?.target_value ?? 1
+  const progressValue = participant?.progress_value ?? 0
+  const isCompleted = participant?.status === 'completed' || challenge?.status === 'completed'
+
+  const handleJoin = async () => {
+    if (!challenge) return
+    setActionError(null)
+    setSuccess(null)
+    setIsJoining(true)
+    try {
+      if (!CHALLENGES_USE_MOCKS) {
+        await challengesApi.join(challenge.challenge_id)
+        await detail.reload()
+      }
+      setSuccess('Challenge joined.')
+    } catch (caughtError) {
+      setActionError(getApiErrorMessage(caughtError, 'Challenge could not be joined.'))
+    } finally {
+      setIsJoining(false)
+    }
   }
 
-  const handleLeave = () => {
-    setIsJoined(false)
-    setShowLeaveConfirm(false)
+  const handleProgress = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (!challenge || Number(deltaValue) === 0) return
+    setActionError(null)
+    setSuccess(null)
+    setIsProgressing(true)
+    try {
+      if (!CHALLENGES_USE_MOCKS) {
+        await challengesApi.progress(challenge.challenge_id, {
+          delta_value: deltaValue,
+          note_text: noteText.trim() || null,
+        })
+        await detail.reload()
+      }
+      setNoteText('')
+      setSuccess('Progress saved.')
+    } catch (caughtError) {
+      setActionError(getApiErrorMessage(caughtError, 'Progress could not be saved.'))
+    } finally {
+      setIsProgressing(false)
+    }
+  }
+
+  const handleComplete = async () => {
+    if (!challenge) return
+    setActionError(null)
+    setSuccess(null)
+    setIsCompleting(true)
+    try {
+      if (!CHALLENGES_USE_MOCKS) {
+        await challengesApi.complete(challenge.challenge_id, { note_text: noteText.trim() || null })
+        await detail.reload()
+      }
+      setSuccess('Challenge completed.')
+    } catch (caughtError) {
+      setActionError(getApiErrorMessage(caughtError, 'Challenge could not be completed.'))
+    } finally {
+      setIsCompleting(false)
+    }
+  }
+
+  if (auth.status === 'loading') {
+    return <CenteredMessage message="Checking authentication..." />
+  }
+
+  if (!auth.isAuthenticated) {
+    return <CenteredMessage message="Sign-in required." />
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <BackHeader
-        title="Challenge"
-        onBack={() => router.back()}
-        rightActions={
-          <button className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-secondary">
-            <AchievnoIcon icon={IconMoreHorizontal} />
-          </button>
-        }
-      />
+    <div className="flex min-h-screen flex-col bg-bg-base">
+      <BackHeader title="Challenge" onBack={() => router.back()} />
 
-      <div className="flex-1 overflow-auto">
-        {/* Hero Section */}
-        <div className="bg-challenge-subtle p-5">
-          <div className="flex items-start gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-challenge flex items-center justify-center shrink-0">
-              <AchievnoIcon icon={IconTrophy} size="lg" className="text-challenge-foreground" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <AchievnoBadge variant="info" size="sm" className="mb-2">
-                {MOCK_CHALLENGE.status === "active" ? "Active" : "Upcoming"}
-              </AchievnoBadge>
-              <h1 className="text-heading mb-1">{MOCK_CHALLENGE.title}</h1>
-              <button 
-                onClick={() => router.push(`/app/groups/${MOCK_CHALLENGE.groupId}`)}
-                className="text-label text-secondary hover:text-foreground"
-              >
-                {MOCK_CHALLENGE.groupName}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Challenge Info */}
-        <div className="p-5 space-y-6">
-          {/* Description */}
-          <div>
-            <h3 className="text-caption text-secondary mb-2">About</h3>
-            <p className="text-body">{MOCK_CHALLENGE.description}</p>
-          </div>
-
-          {/* Stats */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="bg-surface rounded-xl border border-border p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <AchievnoIcon icon={IconUsers} size="sm" className="text-muted-foreground" />
-                <span className="text-label text-secondary">Participants</span>
-              </div>
-              <div className="text-heading">{MOCK_LEADERBOARD.length}</div>
-            </div>
-            <div className="bg-surface rounded-xl border border-border p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <AchievnoIcon icon={IconCalendar} size="sm" className="text-muted-foreground" />
-                <span className="text-label text-secondary">Ends</span>
-              </div>
-              <div className="text-heading">{MOCK_CHALLENGE.endDate}</div>
-            </div>
-          </div>
-
-          {/* Your Progress (if joined) */}
-          {isJoined && currentUserEntry && (
-            <div className="bg-surface rounded-xl border border-border p-4">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-title">Your Progress</h3>
-                <div className="flex items-center gap-1">
-                  {isLeader && (
-                    <AchievnoIcon icon={IconCrown} size="sm" className="text-primary" />
-                  )}
-                  <span className="text-label text-primary">#{currentUserEntry.rank}</span>
-                </div>
-              </div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-body text-secondary">
-                  {currentUserEntry.score} of {MOCK_CHALLENGE.goal}
-                </span>
-                <span className="text-label text-primary">
-                  {Math.round((currentUserEntry.score / MOCK_CHALLENGE.goal) * 100)}%
-                </span>
-              </div>
-              <AchievnoProgress 
-                value={(currentUserEntry.score / MOCK_CHALLENGE.goal) * 100} 
-                variant="challenge"
-              />
-            </div>
-          )}
-
-          {/* Leaderboard Preview */}
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-title">Leaderboard</h3>
-              <Sheet open={showLeaderboard} onOpenChange={setShowLeaderboard}>
-                <SheetTrigger asChild>
-                  <button className="text-label text-primary">View All</button>
-                </SheetTrigger>
-                <SheetContent side="bottom" className="h-[70vh] bg-background border-t border-border rounded-t-3xl">
-                  <SheetHeader className="pb-4 border-b border-border">
-                    <SheetTitle className="text-heading">Full Leaderboard</SheetTitle>
-                  </SheetHeader>
-                  <div className="py-4 overflow-auto">
-                    {MOCK_LEADERBOARD.map((entry, index) => (
-                      <div
-                        key={entry.id}
-                        className={cn(
-                          "flex items-center gap-3 p-3 rounded-xl",
-                          entry.id === CURRENT_USER_ID && "bg-accent-subtle"
-                        )}
-                      >
-                        <div className={cn(
-                          "w-8 h-8 rounded-full flex items-center justify-center font-semibold text-label",
-                          index === 0 && "bg-primary text-primary-foreground",
-                          index === 1 && "bg-secondary text-foreground",
-                          index === 2 && "bg-secondary text-foreground",
-                          index > 2 && "bg-secondary text-muted-foreground"
-                        )}>
-                          {index === 0 ? (
-                            <AchievnoIcon icon={IconCrown} size="sm" />
-                          ) : (
-                            entry.rank
-                          )}
-                        </div>
-                        <AchievnoAvatar name={entry.name} size="sm" />
-                        <div className="flex-1">
-                          <span className={cn(
-                            "text-body",
-                            entry.id === CURRENT_USER_ID && "font-medium"
-                          )}>
-                            {entry.name}
-                            {entry.id === CURRENT_USER_ID && " (You)"}
-                          </span>
-                        </div>
-                        <div className="text-title text-primary">{entry.score}</div>
-                      </div>
-                    ))}
-                  </div>
-                </SheetContent>
-              </Sheet>
-            </div>
-            <div className="bg-surface rounded-xl border border-border overflow-hidden">
-              {MOCK_LEADERBOARD.slice(0, 3).map((entry, index) => (
-                <div
-                  key={entry.id}
-                  className={cn(
-                    "flex items-center gap-3 p-3 border-b border-border last:border-0",
-                    entry.id === CURRENT_USER_ID && "bg-accent-subtle"
-                  )}
-                >
-                  <div className={cn(
-                    "w-8 h-8 rounded-full flex items-center justify-center font-semibold text-label",
-                    index === 0 && "bg-primary text-primary-foreground",
-                    index > 0 && "bg-secondary text-muted-foreground"
-                  )}>
-                    {index === 0 ? (
-                      <AchievnoIcon icon={IconCrown} size="sm" />
-                    ) : (
-                      entry.rank
-                    )}
-                  </div>
-                  <AchievnoAvatar name={entry.name} size="sm" />
-                  <span className="text-body flex-1">{entry.name}</span>
-                  <span className="text-title text-primary">{entry.score}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Rules */}
-          {MOCK_CHALLENGE.rules && MOCK_CHALLENGE.rules.length > 0 && (
-            <div>
-              <h3 className="text-caption text-secondary mb-3">Rules</h3>
-              <div className="bg-surface rounded-xl border border-border p-4">
-                <ul className="space-y-2">
-                  {MOCK_CHALLENGE.rules.map((rule, index) => (
-                    <li key={index} className="flex items-start gap-3">
-                      <div className="w-5 h-5 rounded-full bg-secondary flex items-center justify-center shrink-0 mt-0.5">
-                        <span className="text-caption text-muted-foreground">{index + 1}</span>
-                      </div>
-                      <span className="text-body text-secondary">{rule}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Bottom Action */}
-      <div className="p-5 border-t border-border safe-area-bottom">
-        {isJoined ? (
-          <Button
-            variant="outline"
-            onClick={() => setShowLeaveConfirm(true)}
-            className="w-full"
-          >
-            Leave Challenge
-          </Button>
+      <div className="flex-1 overflow-y-auto px-screen py-5">
+        {detail.isLoading ? (
+          <CenteredBlock message="Loading challenge..." />
+        ) : detail.error || !challenge ? (
+          <ListError message={detail.error || 'Challenge could not be loaded.'} onRetry={() => void detail.reload()} />
         ) : (
-          <Button
-            onClick={handleJoin}
-            className="w-full bg-challenge text-challenge-foreground hover:bg-challenge/90"
-          >
-            <AchievnoIcon icon={IconTrophy} size="sm" className="mr-2" />
-            Join Challenge
-          </Button>
+          <div className="space-y-5">
+            {CHALLENGES_USE_MOCKS && (
+              <div className="rounded-xl border border-border-subtle bg-bg-muted px-3 py-2 text-caption text-secondary">
+                Demo challenge detail
+              </div>
+            )}
+
+            <section className="space-y-2">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <h1 className="text-heading font-semibold">{challenge.title}</h1>
+                  {challenge.description && <p className="mt-1 text-body text-secondary">{challenge.description}</p>}
+                </div>
+                <span className="rounded-full bg-challenge/10 px-2 py-1 text-caption font-medium text-challenge">
+                  {challenge.status}
+                </span>
+              </div>
+              <p className="text-caption text-tertiary">
+                {challenge.participant_count} participant{challenge.participant_count === 1 ? '' : 's'}
+              </p>
+            </section>
+
+            <section className="rounded-xl border border-border-subtle bg-bg-elevated p-4">
+              <div className="mb-3 flex items-center justify-between">
+                <div>
+                  <p className="text-caption font-semibold uppercase text-tertiary">Current progress</p>
+                  <p className="text-title font-semibold">
+                    {progressValue}
+                    <span className="font-normal text-secondary"> / {targetValue}</span>
+                  </p>
+                </div>
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-challenge/10 text-challenge">
+                  <IconTrophy size={22} />
+                </div>
+              </div>
+              <AchievnoProgress value={progressValue} max={targetValue} color="challenge" size="md" />
+              <p className="mt-2 text-caption text-tertiary">{challenge.unit_label ?? 'progress units'}</p>
+            </section>
+
+            {!participant ? (
+              <LoadingButton
+                loading={isJoining}
+                onClick={() => void handleJoin()}
+                className="h-12 w-full rounded-xl bg-challenge text-challenge-foreground hover:bg-challenge/90"
+              >
+                <IconPlus size={18} className="mr-2" />
+                Join challenge
+              </LoadingButton>
+            ) : (
+              <form onSubmit={handleProgress} className="space-y-3">
+                <div className="grid grid-cols-[110px_1fr] gap-3">
+                  <label className="block space-y-1">
+                    <span className="text-label text-secondary">Delta</span>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={deltaValue}
+                      disabled={isCompleted}
+                      onChange={(event) => setDeltaValue(event.target.value)}
+                    />
+                  </label>
+                  <label className="block space-y-1">
+                    <span className="text-label text-secondary">Note</span>
+                    <Textarea
+                      value={noteText}
+                      disabled={isCompleted}
+                      onChange={(event) => setNoteText(event.target.value)}
+                      rows={2}
+                    />
+                  </label>
+                </div>
+                <div className="flex gap-3">
+                  <LoadingButton
+                    loading={isProgressing}
+                    disabled={isCompleted || Number(deltaValue) === 0}
+                    className="h-12 flex-1 rounded-xl bg-challenge text-challenge-foreground hover:bg-challenge/90"
+                  >
+                    <IconPlus size={18} className="mr-2" />
+                    Save progress
+                  </LoadingButton>
+                  {!isCompleted && (
+                    <LoadingButton
+                      type="button"
+                      loading={isCompleting}
+                      onClick={() => void handleComplete()}
+                      variant="outline"
+                      className="h-12 rounded-xl"
+                    >
+                      <IconCheck size={18} className="mr-1" />
+                      Complete
+                    </LoadingButton>
+                  )}
+                </div>
+              </form>
+            )}
+
+            {actionError && (
+              <div className="rounded-xl border border-destructive/20 bg-destructive/5 px-3 py-2 text-label text-destructive">
+                {actionError}
+              </div>
+            )}
+            {success && (
+              <div className="rounded-xl border border-success/20 bg-success/5 px-3 py-2 text-label text-success">
+                {success}
+              </div>
+            )}
+
+            <section className="space-y-2">
+              <h2 className="text-caption font-semibold uppercase text-tertiary">Recent events</h2>
+              {detail.recentCompletionEvents.length > 0 ? (
+                <div className="space-y-2">
+                  {detail.recentCompletionEvents.map((event) => (
+                    <div
+                      key={event.challenge_completion_event_id}
+                      className="rounded-xl border border-border-subtle px-3 py-2"
+                    >
+                      <p className="text-label font-medium">{event.delta_value ?? 0}</p>
+                      {event.note_text && <p className="text-caption text-secondary">{event.note_text}</p>}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="rounded-xl border border-dashed border-border-subtle px-4 py-3 text-sm text-tertiary">
+                  No challenge events yet.
+                </div>
+              )}
+            </section>
+          </div>
         )}
       </div>
+    </div>
+  )
+}
 
-      {/* Leave Confirmation */}
-      <ConfirmModal
-        open={showLeaveConfirm}
-        onOpenChange={setShowLeaveConfirm}
-        title="Leave Challenge"
-        description="Are you sure you want to leave this challenge? Your progress will be lost and you'll need to rejoin to participate again."
-        confirmLabel="Leave Challenge"
-        onConfirm={handleLeave}
-        variant="destructive"
-      />
+function CenteredMessage({ message }: { message: string }) {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-bg-base px-screen">
+      <div className="rounded-xl border border-border-subtle bg-bg-muted px-4 py-3 text-label text-secondary">
+        {message}
+      </div>
+    </div>
+  )
+}
+
+function CenteredBlock({ message }: { message: string }) {
+  return (
+    <div className="rounded-xl border border-border-subtle bg-bg-muted px-4 py-3 text-center text-label text-secondary">
+      {message}
     </div>
   )
 }
