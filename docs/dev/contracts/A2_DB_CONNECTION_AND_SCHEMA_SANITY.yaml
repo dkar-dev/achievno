@@ -1,0 +1,204 @@
+id: A2_DB_CONNECTION_AND_SCHEMA_SANITY
+title: Connect Django to existing PostgreSQL and verify schema sanity
+priority: P0
+status: ready_for_codex
+linear:
+  team: Achievno
+  project: Achievno
+  label: Task
+  priority: 1
+  suggested_title: "[MVP][A2] Connect Django to existing DB and verify schema sanity"
+
+objective: >
+  Make the Django backend connect to the existing PostgreSQL database through DATABASE_URL and add explicit DB/schema
+  sanity checks for the current Achievno baseline. The database is an external dependency. This contract must not
+  create, reset, restore, migrate, or modify the schema.
+
+context:
+  product: Achievno
+  master_contract: docs/dev/contracts/achievno_mvp_24h_delivery_contract.yaml
+  global_rules: AGENTS.md
+  depends_on:
+    - A0_DJANGO_SERVER_REPLACEMENT
+  current_backend:
+    path: app/server
+    status: Django + DRF skeleton with app-level /health
+  database:
+    role: external_dependency
+    runtime: existing local Podman PostgreSQL container
+    expected_postgres_major: 17
+    connection_env: DATABASE_URL
+    baseline_dump_sha256: 177ed029f1086078ab2ce5e89eedec9c87d3e61a4a58c3a900d1c12
+  architecture:
+    style: modular_monolith_practical_hexagonal
+    db_access_rule: Django database connection and infrastructure-level checks only
+
+scope:
+  include:
+    - Ensure Django settings use DATABASE_URL for PostgreSQL when provided.
+    - Keep lightweight fallback DB only for local checks/tests when DATABASE_URL is absent.
+    - Add DB health check logic in infrastructure-level code.
+    - Add a management command: python manage.py achievno_check_db.
+    - Add optional DB health endpoint: GET /health/db.
+    - Verify PostgreSQL connectivity.
+    - Verify database vendor is PostgreSQL when DATABASE_URL is set.
+    - Verify critical baseline schema objects exist.
+    - Produce clear failure messages when DB is unreachable or schema is incomplete.
+    - Add tests for command/check helpers using mocks where real DB is not available.
+  exclude:
+    - inspectdb.
+    - unmanaged Django models.
+    - auth implementation.
+    - custom Account user model.
+    - product API endpoints.
+    - frontend changes.
+    - Podman runtime scripts.
+    - database restore/reset scripts.
+    - Django migrations for existing schema.
+    - SQL schema patches.
+
+allowed_files:
+  - app/server/**
+  - docs/dev/contracts/A2_DB_CONNECTION_AND_SCHEMA_SANITY.yaml
+  - README.md
+
+preferred_implementation_layout:
+  root: app/server
+  files_or_modules:
+    - config/settings.py
+    - apps/platform/api/views.py
+    - apps/platform/api/urls.py
+    - apps/platform/infrastructure/db_health.py
+    - apps/platform/management/__init__.py
+    - apps/platform/management/commands/__init__.py
+    - apps/platform/management/commands/achievno_check_db.py
+    - apps/platform/tests/test_db_health.py
+
+critical_schema:
+  tables:
+    - accounts
+    - user_profiles
+    - auth_methods
+    - user_sessions
+    - achievements
+    - achievement_logs
+    - achievement_assignees
+    - achievement_approvals
+    - evidence_assets
+    - evidence_links
+    - groups
+    - group_memberships
+    - friend_connections
+    - invites
+    - invite_usages
+    - challenges
+    - challenge_participants
+    - challenge_progress
+    - notifications
+    - outbox_events
+  views_or_optional_read_models:
+    - report_activity_feed
+    - report_achievement_overview
+    - report_challenge_leaderboard
+  required_postgres_objects_check_policy:
+    tables: required
+    views_or_optional_read_models: warn_not_fail_unless_contract_or_code_finds_they_are_required_for_current_db
+
+implementation_requirements:
+  settings:
+    - DATABASE_URL must be read from environment.
+    - If DATABASE_URL is present, configure Django DATABASES['default'] from it.
+    - If DATABASE_URL is absent, keep a local fallback that allows manage.py check/test without a running DB.
+    - Do not run migrations automatically.
+    - Do not set AUTH_USER_MODEL in this contract.
+  db_health_logic:
+    - Must live outside DRF view functions, preferably apps/platform/infrastructure/db_health.py.
+    - May use django.db.connection, connection.ensure_connection, connection.introspection, and information_schema queries.
+    - Raw SQL is allowed only inside this infrastructure-level DB health module if introspection is insufficient.
+    - Must return structured result data, not only print strings.
+  management_command:
+    name: achievno_check_db
+    behavior:
+      - Opens the configured DB connection.
+      - Prints server/vendor information when available.
+      - Checks critical required tables.
+      - Prints missing tables clearly.
+      - Exits non-zero on unreachable DB or missing required tables.
+      - Warns, but does not fail, for optional views/read models unless implementation discovers they are mandatory.
+    expected_success_summary_contains:
+      - database connection ok
+      - required tables ok
+      - schema sanity ok
+  db_health_endpoint:
+    path: /health/db
+    method: GET
+    rules:
+      - This endpoint may be unauthenticated for local pre-prod diagnostics.
+      - It must not expose credentials.
+      - It should return HTTP 200 when DB and required tables are OK.
+      - It should return HTTP 503 when DB is unreachable or required schema is incomplete.
+    response_shape_success:
+      status: ok
+      service: achievno-api
+      database:
+        connected: true
+        vendor: postgresql
+        required_tables_ok: true
+    response_shape_failure:
+      status: error
+      service: achievno-api
+      database:
+        connected: false_or_true
+        required_tables_ok: false
+        missing_required_tables: []
+  tests:
+    - Unit-test DB health result formatting and endpoint behavior with mocked health checker.
+    - Do not require a real PostgreSQL database for normal python manage.py test in CI/local fallback.
+    - Real DB validation is covered by python manage.py achievno_check_db when DATABASE_URL points to the local Podman DB.
+
+forbidden:
+  - do not modify app/client
+  - do not run inspectdb
+  - do not add unmanaged models
+  - do not add speculative Django models
+  - do not create Django migrations for existing database schema
+  - do not modify PostgreSQL schema
+  - do not create reset/restore scripts
+  - do not implement auth or product endpoints
+  - do not use FastAPI
+  - do not put DB checking logic directly inside DRF views
+  - do not expose database credentials in API responses or logs
+  - do not make manage.py check require a live PostgreSQL database when DATABASE_URL is absent
+
+acceptance:
+  commands_without_db:
+    - cd app/server && python manage.py check
+    - cd app/server && python manage.py test
+  commands_with_existing_db:
+    - cd app/server && DATABASE_URL="$DATABASE_URL" python manage.py achievno_check_db
+  optional_manual_checks:
+    - cd app/server && DATABASE_URL="$DATABASE_URL" python manage.py runserver 0.0.0.0:8000
+    - curl -f http://127.0.0.1:8000/health
+    - curl -f http://127.0.0.1:8000/health/db
+  manual_checks:
+    - DATABASE_URL points to the existing Podman PostgreSQL container.
+    - /health remains app-only and does not fail when DB is absent.
+    - /health/db checks DB and required schema.
+    - achievno_check_db fails clearly if DATABASE_URL is wrong.
+    - No schema changes or migrations were introduced.
+
+output_required:
+  - summary
+  - changed_files
+  - commands_run
+  - db_check_result
+  - known_gaps
+  - blockers_if_any
+
+recommended_codex_goal: >
+  Implement docs/dev/contracts/A2_DB_CONNECTION_AND_SCHEMA_SANITY.yaml exactly. Do not expand scope. Treat the
+  existing PostgreSQL database as an external dependency. Do not inspect, generate models, migrate, or modify schema.
+
+next_contracts:
+  - A3_UNMANAGED_DOMAIN_MODELS
+  - A1_PREPROD_PODMAN_RUNTIME
