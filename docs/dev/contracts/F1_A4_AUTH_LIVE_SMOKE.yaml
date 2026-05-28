@@ -1,0 +1,206 @@
+id: F1_A4_AUTH_LIVE_SMOKE
+title: Add live auth smoke command for A4 acceptance
+priority: P0
+status: ready_for_codex
+linear:
+  team: Achievno
+  project: Achievno
+  label: Task
+  priority: 1
+  parent_issue: ACH-44
+  suggested_title: "[MVP][F1] Add live auth smoke command for A4"
+
+objective: >
+  Add a reproducible live authentication smoke command that validates the A4 auth flow against the configured database.
+  This command is the final A4 acceptance gate before frontend auth wiring. It must exercise the real Django auth API or
+  the same application services used by the API, without requiring Next.js, browser automation, schema changes, migrations,
+  or external email delivery.
+
+context:
+  product: Achievno
+  parent_contract: docs/dev/contracts/A4_ACCOUNTS_AUTH_SESSIONS.yaml
+  parent_issue: ACH-44
+  global_rules: AGENTS.md
+  depends_on:
+    - A4_ACCOUNTS_AUTH_SESSIONS
+  current_status:
+    - A4 auth code is implemented in commit 8bd76e672ecf91487212e130753eae4903016b50.
+    - manage.py check passes.
+    - manage.py test passes with 27 tests.
+    - achievno_check_db passes against PostgreSQL 17.10.
+    - achievno_check_models passes against PostgreSQL 17.10.
+    - A4 still needs live auth smoke confirmation.
+  database:
+    role: external_dependency
+    connection_env: DATABASE_URL
+    rule: use the configured live DB, but do not modify schema
+  target_flow:
+    - sign_up
+    - verify_email
+    - sign_in
+    - me_authenticated
+    - refresh_access_token
+    - sign_out
+    - me_fails_after_sign_out
+
+scope:
+  include:
+    - Add management command: python manage.py achievno_smoke_auth.
+    - The command must run against the currently configured Django database.
+    - The command must fail clearly if DATABASE_URL is absent or if Django is using sqlite fallback.
+    - The command must create a unique smoke-test account using a timestamp/uuid email.
+    - The command must verify email using the dev verification token returned by sign-up or an equivalent local-preprod verification path.
+    - The command must sign in and confirm auth cookies are set.
+    - The command must call auth/me and confirm account/profile identity.
+    - The command must call auth/refresh and confirm refreshed response and access cookie.
+    - The command must call auth/sign-out and confirm cookies are cleared or invalidated.
+    - The command must call auth/me after sign-out and confirm unauthenticated failure.
+    - The command must print a concise step-by-step result summary.
+    - Add tests for the smoke command behavior using mocks or sqlite-safe isolation where possible.
+    - Keep A2/A3/A4 checks green.
+  exclude:
+    - Frontend changes.
+    - Browser automation.
+    - Real email delivery.
+    - Telegram auth.
+    - Google OAuth2.
+    - Refresh-token rotation.
+    - Product endpoints.
+    - Schema migrations.
+    - PostgreSQL schema changes.
+    - Test data cleanup through destructive table truncation.
+
+allowed_files:
+  - app/server/apps/accounts/**
+  - app/server/apps/platform/management/commands/achievno_smoke_auth.py
+  - app/server/apps/platform/tests/test_auth_smoke_command.py
+  - docs/dev/contracts/F1_A4_AUTH_LIVE_SMOKE.yaml
+
+implementation_requirements:
+  command:
+    name: achievno_smoke_auth
+    expected_usage:
+      - cd app/server && DATABASE_URL="$DATABASE_URL" uv run python manage.py achievno_smoke_auth
+    db_safety:
+      - Must not run against sqlite fallback.
+      - Must check connection.vendor == postgresql before creating data.
+      - Must not reset, truncate, migrate, or alter schema.
+      - May leave one uniquely named smoke account as local pre-prod test data.
+      - Smoke-created data must be identifiable by email prefix or metadata where schema allows it.
+    output:
+      success_must_contain:
+        - auth smoke ok
+        - sign-up ok
+        - verify-email ok
+        - sign-in ok
+        - me ok
+        - refresh ok
+        - sign-out ok
+        - post-sign-out auth rejected ok
+      failure_must_contain:
+        - failing step name
+        - HTTP status or exception message
+        - no secrets, hashes, JWTs, raw refresh tokens, or cookie values
+  preferred_execution_path:
+    - Prefer exercising the actual API route handlers with Django/DRF test client or APIClient so URL wiring, serializers, cookies, and authentication class are covered.
+    - If APIClient is unsuitable in management command context, use the same application services as views and document the reason in code comments minimally.
+  request_flow:
+    sign_up:
+      endpoint: POST /api/v1/auth/sign-up
+      payload:
+        email: generated_unique_email
+        password: generated_strong_test_password
+        display_name: Achievno Smoke User
+        username: generated_unique_username_optional
+      expects:
+        status: 200_or_201
+        dev_verification_token: present_in_local_preprod
+    verify_email:
+      endpoint: POST /api/v1/auth/verify-email
+      payload:
+        token: dev_verification_token
+      expects:
+        status: 200
+        verified: true
+    sign_in:
+      endpoint: POST /api/v1/auth/sign-in
+      payload:
+        email: generated_unique_email
+        password: generated_strong_test_password
+      expects:
+        status: 200
+        cookies:
+          - achievno_access
+          - achievno_refresh
+    me_authenticated:
+      endpoint: GET /api/v1/auth/me
+      expects:
+        status: 200
+        authenticated: true
+        matching_account_or_profile_identity: true
+    refresh:
+      endpoint: POST /api/v1/auth/refresh
+      expects:
+        status: 200
+        refreshed: true
+        achievno_access_cookie_set_or_updated: true
+    sign_out:
+      endpoint: POST /api/v1/auth/sign-out
+      expects:
+        status: 200
+        signed_out: true
+    me_after_sign_out:
+      endpoint: GET /api/v1/auth/me
+      expects:
+        status: 401_or_403
+  tests:
+    - Add at least one test proving command refuses sqlite fallback.
+    - Add at least one test proving command reports success when the smoke runner returns successful step results.
+    - Add at least one test proving command exits non-zero on a failed step.
+    - Normal unit tests must not require live PostgreSQL unless DATABASE_URL is explicitly set by the developer.
+
+forbidden:
+  - do not modify app/client
+  - do not add migrations
+  - do not modify PostgreSQL schema
+  - do not implement product APIs
+  - do not implement Telegram auth
+  - do not implement Google OAuth2
+  - do not implement refresh-token rotation
+  - do not print JWTs, refresh tokens, cookie values, token hashes, or credential hashes
+  - do not weaken A4 auth implementation to make smoke pass
+  - do not bypass verification/sign-in/session creation with direct DB inserts unless API route execution is impossible and the reason is documented
+
+acceptance:
+  commands_without_db:
+    - cd app/server && uv run python manage.py check
+    - cd app/server && uv run python manage.py test
+  commands_with_existing_db:
+    - cd app/server && DATABASE_URL="$DATABASE_URL" uv run python manage.py achievno_check_db
+    - cd app/server && DATABASE_URL="$DATABASE_URL" uv run python manage.py achievno_check_models
+    - cd app/server && DATABASE_URL="$DATABASE_URL" uv run python manage.py achievno_smoke_auth
+  manual_checks:
+    - achievno_smoke_auth prints auth smoke ok.
+    - achievno_smoke_auth refuses sqlite fallback.
+    - The command output contains no secrets or raw cookie values.
+    - No frontend/schema/migration changes were introduced.
+
+output_required:
+  - summary
+  - changed_files
+  - commands_run
+  - auth_smoke_result
+  - db_check_result
+  - model_check_result
+  - commit_hash
+  - known_gaps
+  - blockers_if_any
+
+recommended_codex_goal: >
+  Implement docs/dev/contracts/F1_A4_AUTH_LIVE_SMOKE.yaml exactly. Add a live auth smoke management command that validates
+  sign-up, verify-email, sign-in, me, refresh, sign-out, and post-sign-out rejection against the configured PostgreSQL DB.
+  Do not change frontend, schema, migrations, product APIs, OAuth, Telegram auth, or refresh rotation.
+
+next_contracts:
+  - B0_FRONTEND_API_CLIENT_AND_AUTH_WIRING
+  - A1_PREPROD_PODMAN_RUNTIME
