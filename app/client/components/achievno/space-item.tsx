@@ -29,7 +29,7 @@ export function SpaceItem({
   onPress,
   className,
 }: SpaceItemProps) {
-  const isPersonal = space.type === 'personal'
+  const isPersonal = space.type === 'personal' || space.type === 'friend'
 
   return (
     <button

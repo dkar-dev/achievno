@@ -18,6 +18,8 @@ import {
 import { AVATAR_COLORS, ROUTES, type RootShellSurface } from '@/lib/achievno/constants'
 import type { Space } from '@/lib/achievno/types'
 import { useAuth } from '@/lib/achievno/auth/use-auth'
+import type { MainAggregate, MainFriendPreview, MainGroupPreview } from '@/lib/achievno/api/main'
+import { MAIN_AGGREGATE_USE_MOCKS, useMainAggregate } from '@/lib/achievno/main/use-main-aggregate'
 import { cn } from '@/lib/utils'
 
 const ROOT_SURFACE_TABS: { id: RootShellSurface; label: string }[] = [
@@ -136,6 +138,135 @@ const DEMO_GROUPS: Space[] = [
     },
 ]
 
+const DEMO_MAIN_AGGREGATE: MainAggregate = {
+    authenticated: true,
+    profile: {
+        profile_id: 'demo-profile',
+        account_id: 'demo-account',
+        display_name: 'Alex Jordan',
+        username: 'alex',
+        avatar_url: null,
+        rank: null,
+    },
+    personal_space: {
+        owner_context_id: 'demo-personal',
+        active_achievements_count: DEMO_PERSONAL_SPACE.activeCount,
+        completed_achievements_count: DEMO_PERSONAL_SPACE.completedCount,
+        recent_logs_count: 3,
+        recent_achievements: [
+            {
+                achievement_id: 'demo-achievement',
+                title: 'Launch Presentation',
+                status: 'active',
+                progress_current: 6,
+                progress_target: 10,
+                unit_label: 'steps',
+                updated_at: new Date().toISOString(),
+            },
+        ],
+    },
+    friends: {
+        total_count: DEMO_FRIENDS.length,
+        active_count: DEMO_FRIENDS.length,
+        pending_count: 0,
+        preview: DEMO_FRIENDS.map((friend) => ({
+            friend_connection_id: friend.id,
+            status: 'active',
+            side_status: 'active',
+            profile: {
+                profile_id: friend.id,
+                display_name: friend.name,
+                username: null,
+                avatar_url: friend.avatarUrl ?? null,
+            },
+            updated_at: friend.lastActivityAt,
+        })),
+    },
+    groups: {
+        total_count: DEMO_GROUPS.length,
+        owned_count: 1,
+        member_count: DEMO_GROUPS.length - 1,
+        preview: DEMO_GROUPS.map((group) => ({
+            group_id: group.id,
+            title: group.name,
+            avatar_url: group.avatarUrl ?? null,
+            visibility_type: 'private',
+            role: 'member',
+            membership_status: 'active',
+            joined_at: group.lastActivityAt,
+        })),
+    },
+    notifications: {
+        unread_count: 3,
+        preview: [],
+    },
+    server_time: new Date().toISOString(),
+}
+
+function initialsForName(name: string) {
+    return name
+        .trim()
+        .split(/\s+/)
+        .map((part) => part[0])
+        .filter(Boolean)
+        .slice(0, 2)
+        .join('')
+        .toUpperCase() || 'AC'
+}
+
+function colorForId(id: string) {
+    const index = [...id].reduce((sum, char) => sum + char.charCodeAt(0), 0) % AVATAR_COLORS.length
+    return AVATAR_COLORS[index]
+}
+
+function personalSpaceFromAggregate(aggregate: MainAggregate): Space {
+    return {
+        id: aggregate.personal_space.owner_context_id || 'personal',
+        type: 'personal',
+        name: aggregate.profile.display_name || 'Personal',
+        avatarUrl: aggregate.profile.avatar_url ?? undefined,
+        avatarInitials: initialsForName(aggregate.profile.display_name || aggregate.profile.username || 'AC'),
+        avatarColor: colorForId(aggregate.profile.profile_id),
+        activeCount: aggregate.personal_space.active_achievements_count,
+        completedCount: aggregate.personal_space.completed_achievements_count,
+        hasUnread: aggregate.notifications.unread_count > 0,
+        unreadCount: aggregate.notifications.unread_count || undefined,
+        lastActivityAt: aggregate.server_time,
+    }
+}
+
+function friendSpaceFromPreview(friend: MainFriendPreview): Space {
+    return {
+        id: friend.friend_connection_id,
+        type: 'friend',
+        name: friend.profile.display_name,
+        avatarUrl: friend.profile.avatar_url ?? undefined,
+        avatarInitials: initialsForName(friend.profile.display_name),
+        avatarColor: colorForId(friend.profile.profile_id),
+        activeCount: friend.status === 'active' ? 1 : 0,
+        completedCount: 0,
+        hasUnread: false,
+        lastActivityAt: friend.updated_at || new Date(0).toISOString(),
+    }
+}
+
+function groupSpaceFromPreview(group: MainGroupPreview): Space {
+    return {
+        id: group.group_id,
+        type: 'group',
+        name: group.title,
+        avatarUrl: group.avatar_url ?? undefined,
+        avatarInitials: initialsForName(group.title),
+        avatarColor: colorForId(group.group_id),
+        memberCount: 0,
+        activeCount: 0,
+        completedCount: 0,
+        progressPercent: 0,
+        hasUnread: false,
+        lastActivityAt: group.joined_at || new Date(0).toISOString(),
+    }
+}
+
 function RootPillNav() {
     const router = useRouter()
     const auth = useAuth()
@@ -238,14 +369,21 @@ function RootPillNav() {
 function MainSurface({
                          friendSearch,
                          onFriendSearchChange,
+                         aggregate,
                      }: {
     friendSearch: string
     onFriendSearchChange: (value: string) => void
+    aggregate: MainAggregate
 }) {
     const router = useRouter()
-    const filteredFriends = DEMO_FRIENDS.filter((friend) =>
+    const personalSpace = personalSpaceFromAggregate(aggregate)
+    const friendSpaces = aggregate.friends.preview.map(friendSpaceFromPreview)
+    const filteredFriends = friendSpaces.filter((friend) =>
         friend.name.toLowerCase().includes(friendSearch.toLowerCase()),
     )
+    const hasNoAchievements = aggregate.personal_space.active_achievements_count === 0
+        && aggregate.personal_space.completed_achievements_count === 0
+        && aggregate.personal_space.recent_achievements.length === 0
 
     return (
         <div className="space-y-6">
@@ -260,9 +398,14 @@ function MainSurface({
                 </div>
 
                 <PersonalSpaceItem
-                    space={DEMO_PERSONAL_SPACE}
+                    space={personalSpace}
                     onPress={() => router.push(ROUTES.personalWorkspace)}
                 />
+                {hasNoAchievements && (
+                    <div className="rounded-xl border border-dashed border-border-subtle px-4 py-3 text-sm text-tertiary">
+                        No personal achievements yet.
+                    </div>
+                )}
             </section>
 
             <section className="space-y-3">
@@ -271,7 +414,7 @@ function MainSurface({
                         <p className="text-caption font-semibold uppercase tracking-[0.24em] text-tertiary">Friends</p>
                         <h3 className="text-title font-semibold">1-on-1 relations</h3>
                     </div>
-                    <Button size="sm" className="rounded-full">
+                    <Button size="sm" className="rounded-full" onClick={() => router.push(ROUTES.discover)}>
                         + Invite
                     </Button>
                 </div>
@@ -291,7 +434,7 @@ function MainSurface({
                     ))}
                     {filteredFriends.length === 0 && (
                         <div className="rounded-xl border border-dashed border-border-subtle px-4 py-3 text-sm text-tertiary">
-                            No friends found
+                            {friendSearch ? 'No friends found' : 'No friend spaces yet.'}
                         </div>
                     )}
                 </div>
@@ -300,8 +443,9 @@ function MainSurface({
     )
 }
 
-function GroupsSurface() {
+function GroupsSurface({ aggregate }: { aggregate: MainAggregate }) {
     const router = useRouter()
+    const groupSpaces = aggregate.groups.preview.map(groupSpaceFromPreview)
 
     return (
         <div className="space-y-6">
@@ -311,7 +455,7 @@ function GroupsSurface() {
                         <p className="text-caption font-semibold uppercase tracking-[0.24em] text-tertiary">
                             Your Groups
                         </p>
-                        <h3 className="text-title font-semibold">{DEMO_GROUPS.length} active spaces</h3>
+                        <h3 className="text-title font-semibold">{aggregate.groups.total_count} active spaces</h3>
                     </div>
                     <Button
                         size="sm"
@@ -323,9 +467,9 @@ function GroupsSurface() {
                     </Button>
                 </div>
 
-                {DEMO_GROUPS.length > 0 ? (
+                {groupSpaces.length > 0 ? (
                     <div className="space-y-2">
-                        {DEMO_GROUPS.map((group) => (
+                        {groupSpaces.map((group) => (
                             <GroupSpaceItem
                                 key={group.id}
                                 space={group}
@@ -347,6 +491,10 @@ export default function RootShellPage() {
     const [friendSearch, setFriendSearch] = React.useState('')
     const [activeSurface, setActiveSurface] = React.useState<RootShellSurface>('main')
     const [authError, setAuthError] = React.useState<string | null>(null)
+    const main = useMainAggregate({
+        enabled: auth.isAuthenticated,
+        mockData: DEMO_MAIN_AGGREGATE,
+    })
 
     React.useEffect(() => {
         const params = new URLSearchParams(window.location.search)
@@ -397,6 +545,32 @@ export default function RootShellPage() {
         )
     }
 
+    if (main.isLoading) {
+        return (
+            <div className="flex min-h-screen items-center justify-center bg-bg-base px-screen">
+                <div className="rounded-xl border border-border-subtle bg-bg-muted px-4 py-3 text-label text-secondary">
+                    Loading main space...
+                </div>
+            </div>
+        )
+    }
+
+    if (main.error || !main.data) {
+        return (
+            <div className="flex min-h-screen items-center justify-center bg-bg-base px-screen">
+                <div className="space-y-3 text-center">
+                    <p className="text-title font-semibold">Main space unavailable</p>
+                    <p className="text-body text-secondary">
+                        {main.error || 'Main screen data could not be loaded.'}
+                    </p>
+                    <Button onClick={() => void main.reload()}>Retry</Button>
+                </div>
+            </div>
+        )
+    }
+
+    const aggregate = main.data
+
     return (
         <>
             <div className="min-h-screen bg-bg-base">
@@ -405,7 +579,7 @@ export default function RootShellPage() {
                         <div className="rounded-3xl border border-border-subtle bg-[linear-gradient(135deg,rgba(224,148,0,0.12),rgba(224,148,0,0.03))] p-4">
                             <div className="flex items-center justify-between gap-3">
                                 <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-primary">
-                                    Main / Groups
+                                    {MAIN_AGGREGATE_USE_MOCKS ? 'Demo Main / Groups' : 'Main / Groups'}
                                 </p>
                                 {activeSurface === 'main' ? (
                                     <AchievnoIcon icon={IconTarget} size="sm" className="text-primary" />
@@ -415,8 +589,8 @@ export default function RootShellPage() {
                             </div>
                             <p className="mt-2 text-sm text-foreground-secondary">
                                 {activeSurface === 'main'
-                                    ? 'Main keeps personal progress and friend activity in focus.'
-                                    : 'Groups keeps shared spaces and team progress in one surface.'}
+                                    ? `${aggregate.profile.display_name || 'Your profile'} has ${aggregate.personal_space.active_achievements_count} active achievements and ${aggregate.notifications.unread_count} unread notifications.`
+                                    : `${aggregate.groups.total_count} group spaces, ${aggregate.groups.owned_count} owned and ${aggregate.groups.member_count} joined.`}
                             </p>
                             <div className="mt-3">
                                 <TabBar
@@ -436,11 +610,12 @@ export default function RootShellPage() {
                 >
                     {activeSurface === 'main' ? (
                         <MainSurface
+                            aggregate={aggregate}
                             friendSearch={friendSearch}
                             onFriendSearchChange={setFriendSearch}
                         />
                     ) : (
-                        <GroupsSurface />
+                        <GroupsSurface aggregate={aggregate} />
                     )}
                 </div>
             </div>
