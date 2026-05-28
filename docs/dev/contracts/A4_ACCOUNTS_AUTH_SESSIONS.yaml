@@ -1,0 +1,279 @@
+id: A4_ACCOUNTS_AUTH_SESSIONS
+title: Implement email/password auth with httpOnly access and refresh cookies
+priority: P0
+status: ready_for_codex
+linear:
+  team: Achievno
+  project: Achievno
+  label: Feature
+  priority: 1
+  suggested_title: "[MVP][A4] Implement email password auth and sessions"
+
+objective: >
+  Implement real MVP account authentication on top of the existing PostgreSQL baseline using the unmanaged Django models
+  added in A3. Provide email/password sign-up, sign-in, current user, refresh, and sign-out endpoints using httpOnly
+  cookies. Access token must be JWT. Refresh token must be opaque and stored as a hash in auth_sessions. Do not implement
+  Telegram auth, Google OAuth2, refresh rotation, frontend integration, or product flows in this contract.
+
+context:
+  product: Achievno
+  master_contract: docs/dev/contracts/achievno_mvp_24h_delivery_contract.yaml
+  global_rules: AGENTS.md
+  depends_on:
+    - A0_DJANGO_SERVER_REPLACEMENT
+    - A2_DB_CONNECTION_AND_SCHEMA_SANITY
+    - A3_UNMANAGED_DOMAIN_MODELS
+  current_backend:
+    path: app/server
+    status: Django + DRF skeleton with DB health and unmanaged model mappings
+  database:
+    role: external_dependency
+    connection_env: DATABASE_URL
+    auth_tables:
+      - accounts
+      - account_auth_methods
+      - auth_sessions
+      - auth_verification_tokens
+      - user_profiles
+      - profile_preferences
+  architecture:
+    style: modular_monolith_practical_hexagonal
+    bounded_context: accounts
+    layering_rule: API views call application services; application services use infrastructure repositories/models.
+
+scope:
+  include:
+    - Add accounts auth API endpoints under /api/v1/auth/.
+    - Implement email/password sign-up.
+    - Implement dev email verification endpoint using auth_verification_tokens.
+    - Implement email/password sign-in.
+    - Implement JWT access token in httpOnly cookie.
+    - Implement opaque refresh token in httpOnly cookie.
+    - Hash refresh token before storing it in auth_sessions.refresh_token_hash.
+    - Implement refresh endpoint without refresh-token rotation.
+    - Implement sign-out by revoking current auth_sessions row when refresh token matches.
+    - Implement GET /api/v1/auth/me.
+    - Add DRF authentication class that authenticates request user/account from JWT access cookie.
+    - Add tests for auth happy paths and basic failure paths.
+    - Keep existing DB/model health commands green.
+  exclude:
+    - AUTH_USER_MODEL activation.
+    - Django admin login integration.
+    - Telegram auth lifecycle.
+    - Google OAuth2.
+    - Refresh token rotation.
+    - Real email delivery.
+    - Frontend changes.
+    - Product endpoints.
+    - Schema migrations or schema changes.
+    - Password reset.
+    - Account deletion/deactivation flows.
+    - Advanced RBAC/permissions.
+
+allowed_files:
+  - app/server/apps/accounts/**
+  - app/server/apps/profiles/infrastructure/models.py
+  - app/server/config/settings.py
+  - app/server/config/urls.py
+  - app/server/pyproject.toml
+  - app/server/uv.lock
+  - docs/dev/contracts/A4_ACCOUNTS_AUTH_SESSIONS.yaml
+
+api_endpoints:
+  base_path: /api/v1/auth
+  endpoints:
+    - method: POST
+      path: /api/v1/auth/sign-up
+      request:
+        email: string
+        password: string
+        display_name: string
+        username: string_optional
+      response:
+        account_id: uuid
+        profile_id: uuid
+        email_verification_required: true
+        dev_verification_token: string_optional_for_local_preprod_only
+    - method: POST
+      path: /api/v1/auth/verify-email
+      request:
+        token: string
+      response:
+        verified: true
+    - method: POST
+      path: /api/v1/auth/sign-in
+      request:
+        email: string
+        password: string
+      response:
+        authenticated: true
+        account:
+          account_id: uuid
+        profile:
+          profile_id: uuid
+          display_name: string
+          username: string_optional
+      cookies_set:
+        - achievno_access
+        - achievno_refresh
+    - method: POST
+      path: /api/v1/auth/refresh
+      request: none
+      response:
+        refreshed: true
+      cookies_set:
+        - achievno_access
+      cookies_preserved:
+        - achievno_refresh
+    - method: POST
+      path: /api/v1/auth/sign-out
+      request: none
+      response:
+        signed_out: true
+      cookies_cleared:
+        - achievno_access
+        - achievno_refresh
+    - method: GET
+      path: /api/v1/auth/me
+      auth: access_cookie_required
+      response:
+        authenticated: true
+        account:
+          account_id: uuid
+        profile:
+          profile_id: uuid
+          display_name: string
+          username: string_optional
+
+implementation_requirements:
+  dependencies:
+    allowed_additions:
+      - PyJWT
+    notes:
+      - Use Django built-in password hashing utilities for password hash storage.
+      - Do not add full OAuth/auth frameworks in A4.
+  models_and_tables:
+    - Use existing unmanaged models where possible.
+    - It is allowed to create/update rows through unmanaged Django ORM models because DB tables already exist.
+    - Do not create migrations.
+    - Do not set AUTH_USER_MODEL.
+  password_auth:
+    - Store password hash in account_auth_methods.credential_hash.
+    - Use method_type compatible with current DB enum/check constraints. Discover allowed value from DB if needed.
+    - Use login_identifier as normalized lowercase email.
+    - Require verified_at for sign-in unless local tests explicitly verify first.
+    - Return generic invalid credentials errors for sign-in failure.
+  verification:
+    - Create auth_verification_tokens row on sign-up.
+    - Store token_hash, not raw token.
+    - Return raw dev_verification_token only when DJANGO_DEBUG=true or explicit local preprod setting allows it.
+    - verify-email marks auth method verified and token used.
+  sessions:
+    - Generate opaque refresh token using secure random bytes.
+    - Hash refresh token before storing it in auth_sessions.refresh_token_hash.
+    - Do not rotate refresh token in A4.
+    - Refresh endpoint validates non-revoked, non-expired session and issues a new access token only.
+    - Sign-out sets revoked_at on matching auth session.
+  jwt_access:
+    - Use HS256 with DJANGO_SECRET_KEY or a dedicated ACCESS_TOKEN_SECRET env var.
+    - Include account_id, profile_id, session_id, iat, exp.
+    - Default access token TTL: 15 minutes.
+    - Default refresh token TTL: 30 days.
+  cookies:
+    access_cookie_name: achievno_access
+    refresh_cookie_name: achievno_refresh
+    defaults_for_local_preprod:
+      httpOnly: true
+      secure: false
+      sameSite: Lax
+      path: /
+    production_note: secure must be true behind HTTPS later.
+  authentication_class:
+    - Read JWT from achievno_access cookie.
+    - Validate signature and expiration.
+    - Load account/profile/session using unmanaged models.
+    - Reject revoked/expired sessions.
+    - Expose an authenticated principal object that gives views access to account_id and profile_id.
+    - Do not depend on Django AUTH_USER_MODEL in A4.
+  validation:
+    - Email must contain one @ and a domain for MVP.
+    - Password minimum length: 8.
+    - Display name minimum length: 2.
+    - Username is optional but if present should be normalized and not empty.
+  errors:
+    - Use stable JSON error shapes.
+    - Do not expose whether an email exists during sign-in.
+    - Do not expose token hashes or credential hashes.
+
+preferred_layout:
+  root: app/server/apps/accounts
+  files:
+    - api/__init__.py
+    - api/serializers.py
+    - api/urls.py
+    - api/views.py
+    - application/__init__.py
+    - application/auth_service.py
+    - domain/__init__.py
+    - domain/errors.py
+    - infrastructure/__init__.py
+    - infrastructure/authentication.py
+    - infrastructure/repositories.py
+    - infrastructure/tokens.py
+    - tests/test_auth_api.py
+
+forbidden:
+  - do not modify app/client
+  - do not add product API endpoints
+  - do not set AUTH_USER_MODEL
+  - do not create migrations
+  - do not modify PostgreSQL schema
+  - do not run inspectdb
+  - do not implement Telegram auth
+  - do not implement Google OAuth2
+  - do not implement refresh rotation
+  - do not store access or refresh tokens in localStorage
+  - do not expose credential_hash, token_hash, or raw refresh token in API responses
+  - do not add Django admin dependency for MVP auth
+  - do not weaken A2/A3 health/model checks
+
+acceptance:
+  commands_without_db:
+    - cd app/server && uv run python manage.py check
+    - cd app/server && uv run python manage.py test
+  commands_with_existing_db:
+    - cd app/server && DATABASE_URL="$DATABASE_URL" uv run python manage.py achievno_check_db
+    - cd app/server && DATABASE_URL="$DATABASE_URL" uv run python manage.py achievno_check_models
+  manual_or_scripted_auth_smoke_with_db:
+    - Sign up a new user.
+    - Verify email using dev verification token.
+    - Sign in and confirm achievno_access and achievno_refresh httpOnly cookies are set.
+    - GET /api/v1/auth/me returns account/profile.
+    - POST /api/v1/auth/refresh returns refreshed true and new access cookie.
+    - POST /api/v1/auth/sign-out clears cookies and revokes session.
+    - GET /api/v1/auth/me fails after sign-out.
+  manual_checks:
+    - No migration files were created.
+    - No schema changes were made.
+    - A2 and A3 checks remain green.
+    - Auth code follows API -> application -> infrastructure layering.
+
+output_required:
+  - summary
+  - changed_files
+  - commands_run
+  - auth_smoke_result
+  - db_check_result
+  - model_check_result
+  - commit_hash
+  - known_gaps
+  - blockers_if_any
+
+recommended_codex_goal: >
+  Implement docs/dev/contracts/A4_ACCOUNTS_AUTH_SESSIONS.yaml exactly. Add email/password auth, email verification,
+  JWT access cookie, opaque refresh cookie, auth/me, refresh, and sign-out using existing unmanaged DB models. Do not add
+  migrations, AUTH_USER_MODEL, frontend changes, product APIs, OAuth, Telegram auth, or refresh rotation.
+
+next_contracts:
+  - B0_FRONTEND_API_CLIENT_AND_AUTH_WIRING
+  - A1_PREPROD_PODMAN_RUNTIME
