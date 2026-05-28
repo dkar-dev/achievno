@@ -1,0 +1,240 @@
+id: B0_FRONTEND_API_CLIENT_AND_AUTH_WIRING
+title: Wire Next.js auth UI to Django API with httpOnly cookie sessions
+priority: P0
+status: ready_for_codex
+linear:
+  team: Achievno
+  project: Achievno
+  label: Feature
+  priority: 1
+  suggested_title: "[MVP][B0] Wire frontend auth to Django API"
+
+objective: >
+  Connect the existing Next.js client auth screens and auth state to the Django A4 auth API. Replace demo-only auth behavior
+  with real API calls using httpOnly cookies and credentials: include. This contract covers frontend auth wiring only.
+  It must not implement product data APIs, rewrite the UI system, change backend auth behavior, or add token storage in
+  localStorage/sessionStorage.
+
+context:
+  product: Achievno
+  master_contract: docs/dev/contracts/achievno_mvp_24h_delivery_contract.yaml
+  global_rules: AGENTS.md
+  depends_on:
+    - A4_ACCOUNTS_AUTH_SESSIONS
+    - F1_A4_AUTH_LIVE_SMOKE
+  current_frontend:
+    path: app/client
+    stack:
+      - Next.js 16
+      - React 19
+      - TypeScript
+      - Tailwind CSS
+    current_auth_status:
+      - app/client/app/auth/sign-in/page.tsx currently simulates sign-in and always redirects to /app/spaces.
+      - app/client/app/auth/sign-up/page.tsx currently validates password confirmation and routes to verify-email without API call.
+      - app/client/app/auth/verify-email/page.tsx is static and does not call API.
+      - app/client/app/page.tsx redirects to welcome without checking auth state.
+      - app/client/components/providers/app-providers.tsx has Telegram providers but no auth provider.
+  current_backend:
+    path: app/server
+    status: A4 complete
+    auth_api_base: /api/v1/auth
+    endpoints:
+      - POST /api/v1/auth/sign-up
+      - POST /api/v1/auth/verify-email
+      - POST /api/v1/auth/sign-in
+      - POST /api/v1/auth/refresh
+      - POST /api/v1/auth/sign-out
+      - GET /api/v1/auth/me
+    cookies:
+      - achievno_access
+      - achievno_refresh
+
+scope:
+  include:
+    - Add a central frontend API client for Django API calls.
+    - Configure NEXT_PUBLIC_API_BASE_URL with local default http://127.0.0.1:8000.
+    - Ensure every auth request uses credentials: include.
+    - Add typed auth API adapter for sign-up, verify-email, sign-in, refresh, sign-out, and me.
+    - Add frontend AuthProvider/useAuth state around AppProviders.
+    - Wire sign-in screen to real sign-in API.
+    - Wire sign-up screen to real sign-up API.
+    - Wire verify-email screen to real verify-email API using dev verification token in local/preprod flow.
+    - Add basic protected route behavior for /app/* surfaces using auth/me.
+    - Add logout behavior from existing settings/logout UI to real sign-out API.
+    - Add loading and error states for auth screens.
+    - Add no-silent-mock fallback rule for auth.
+    - Keep frontend build green.
+  exclude:
+    - Product data API wiring for spaces, achievements, friends, groups, challenges, notifications.
+    - Backend changes unless a tiny CORS/settings bug blocks B0; if needed, create a fix note before changing backend.
+    - Refresh-token rotation.
+    - Telegram auth lifecycle.
+    - Google OAuth2.
+    - Real email delivery.
+    - Full route middleware hardening.
+    - Full UI redesign.
+    - Browser e2e automation.
+    - Schema changes or migrations.
+
+allowed_files:
+  - app/client/**
+  - docs/dev/contracts/B0_FRONTEND_API_CLIENT_AND_AUTH_WIRING.yaml
+  - README.md
+  - app/server/config/settings.py
+  - app/server/apps/accounts/**
+
+backend_change_policy:
+  default: forbidden
+  allowed_only_if_blocked:
+    - CORS cookie setting or CSRF setting prevents frontend auth in local preprod.
+    - API response shape mismatch makes frontend impossible to type safely.
+  rules:
+    - Keep any backend change minimal and report it explicitly.
+    - Do not change auth semantics without creating a follow-up fix contract.
+    - Do not modify database schema.
+
+frontend_env:
+  variables:
+    - name: NEXT_PUBLIC_API_BASE_URL
+      default_for_local: http://127.0.0.1:8000
+      required_for_preprod: true
+    - name: NEXT_PUBLIC_USE_MOCKS
+      default_for_auth: "false"
+      rule: auth must not silently fall back to mocks when false
+
+api_client_requirements:
+  location_options:
+    preferred:
+      - app/client/lib/achievno/api/client.ts
+      - app/client/lib/achievno/api/auth.ts
+      - app/client/lib/achievno/api/errors.ts
+  behavior:
+    - Use fetch.
+    - Set credentials: include for all requests.
+    - Set Content-Type: application/json for JSON requests.
+    - Parse stable JSON responses.
+    - Throw typed ApiError or return explicit error result on non-2xx responses.
+    - Do not read httpOnly cookie values; browser manages them.
+    - Do not store JWT/refresh tokens in localStorage or sessionStorage.
+    - Do not use silent demo success for auth.
+
+frontend_auth_state:
+  provider:
+    suggested_location: app/client/components/providers/auth-provider.tsx
+    responsibilities:
+      - On mount, call auth/me.
+      - Track loading/authenticated/unauthenticated/error state.
+      - Expose account/profile from auth/me.
+      - Expose signIn, signUp, verifyEmail, refresh, signOut, reloadMe helpers.
+      - On signOut, call API and reset auth state.
+  hook:
+    suggested_location: app/client/lib/achievno/auth/use-auth.ts
+    name: useAuth
+  app_provider_integration:
+    file: app/client/components/providers/app-providers.tsx
+    rule: AuthProvider should wrap children without breaking existing Telegram providers.
+
+screen_wiring:
+  sign_in:
+    file: app/client/app/auth/sign-in/page.tsx
+    required:
+      - read email/password from named inputs or controlled state
+      - call auth.signIn
+      - show loading state
+      - show backend error message safely
+      - redirect to ROUTES.spaces on success
+      - remove simulated API call and demo always-success logic
+  sign_up:
+    file: app/client/app/auth/sign-up/page.tsx
+    required:
+      - include display_name input or derive display name from email only if UI impact must stay minimal
+      - validate password confirmation client-side
+      - call auth.signUp
+      - store dev_verification_token only in memory or query/session state needed for local verify screen, not localStorage
+      - route to verify-email screen with token only for local preprod dev flow
+      - show loading/error states
+  verify_email:
+    file: app/client/app/auth/verify-email/page.tsx
+    required:
+      - read dev token from URL search params or in-memory state fallback
+      - call auth.verifyEmail
+      - show success/error/loading state
+      - allow navigation to sign-in after verified
+      - do not pretend verification succeeded without API response
+  root_redirect:
+    file: app/client/app/page.tsx
+    acceptable_mvp_behavior:
+      - either remain a simple welcome redirect, or become an auth-aware client redirect if low-risk
+      - do not break unauthenticated welcome flow
+  protected_app_surfaces:
+    required:
+      - /app/spaces must check auth state before showing protected content
+      - unauthenticated users should be redirected to ROUTES.signIn or ROUTES.welcome
+      - show loading state while auth/me is pending
+    note: It is acceptable to protect only the main /app/spaces entry in B0 if deeper surfaces remain mock-heavy.
+  logout:
+    file: app/client/app/app/spaces/page.tsx
+    required:
+      - existing logout item should call auth.signOut then route to welcome/sign-in
+      - do not only router.push(ROUTES.welcome)
+
+forbidden:
+  - do not store access token in localStorage
+  - do not store refresh token in localStorage
+  - do not store tokens in sessionStorage
+  - do not read httpOnly cookie values from JavaScript
+  - do not keep sign-in as simulated success
+  - do not keep sign-up as route-only fake flow
+  - do not keep verify-email as fake success
+  - do not add product API wiring in B0
+  - do not redesign the UI globally
+  - do not remove existing Telegram providers unless they block auth provider integration and the reason is documented
+  - do not introduce a second frontend auth system
+  - do not modify DB schema
+  - do not create migrations
+
+acceptance:
+  commands:
+    - cd app/client && npm run build
+    - cd app/client && npm run lint
+  backend_precheck_commands:
+    - cd app/server && DATABASE_URL="$DATABASE_URL" uv run python manage.py achievno_smoke_auth
+  manual_local_flow:
+    setup:
+      - Start Django server with DATABASE_URL pointing to local PostgreSQL.
+      - Start Next.js client with NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:8000.
+    checks:
+      - Open /auth/sign-up.
+      - Create a new account.
+      - Verify email through local dev token flow.
+      - Sign in.
+      - Confirm browser reaches /app/spaces.
+      - Refresh page on /app/spaces and remain authenticated.
+      - Logout from settings/logout item.
+      - Confirm protected /app/spaces redirects or blocks after logout.
+  manual_checks:
+    - Auth requests include credentials.
+    - Auth screens show loading and error states.
+    - No auth token is stored in localStorage/sessionStorage.
+    - NEXT_PUBLIC_USE_MOCKS=false does not silently fake auth success.
+    - Backend A4 smoke still passes.
+
+output_required:
+  - summary
+  - changed_files
+  - commands_run
+  - frontend_auth_flow_result
+  - backend_auth_smoke_result
+  - commit_hash
+  - known_gaps
+  - blockers_if_any
+
+recommended_codex_goal: >
+  Implement docs/dev/contracts/B0_FRONTEND_API_CLIENT_AND_AUTH_WIRING.yaml exactly. Wire Next.js auth screens and auth state
+  to the Django A4 auth API using fetch credentials: include and httpOnly cookies. Do not store tokens in frontend storage,
+  do not add product API wiring, and do not change backend/schema unless a minimal CORS/API shape fix blocks local auth.
+
+next_contracts:
+  - P0_MAIN_AGGREGATE_AND_PROFILE
+  - A1_PREPROD_PODMAN_RUNTIME
