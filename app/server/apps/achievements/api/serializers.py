@@ -11,7 +11,13 @@ class PersonalAchievementListSerializer(serializers.Serializer):
 class PersonalAchievementCreateSerializer(serializers.Serializer):
     base_type = serializers.ChoiceField(choices=["done", "progress"])
     title = serializers.CharField(min_length=2, max_length=180, trim_whitespace=True)
-    short_definition = serializers.CharField(min_length=2, max_length=255, trim_whitespace=True)
+    short_definition = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        allow_null=True,
+        max_length=255,
+        trim_whitespace=True,
+    )
     description = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     progress_target = serializers.DecimalField(
         required=False,
@@ -37,6 +43,12 @@ class PersonalAchievementCreateSerializer(serializers.Serializer):
             )
         return attrs
 
+    def validate_short_definition(self, value: str | None) -> str | None:
+        if value is None:
+            return None
+        value = value.strip()
+        return value or None
+
     def validate_description(self, value: str | None) -> str | None:
         if value is None:
             return None
@@ -52,7 +64,13 @@ class PersonalAchievementCreateSerializer(serializers.Serializer):
 
 class PersonalAchievementPatchSerializer(serializers.Serializer):
     title = serializers.CharField(required=False, min_length=2, max_length=180, trim_whitespace=True)
-    short_definition = serializers.CharField(required=False, min_length=2, max_length=255, trim_whitespace=True)
+    short_definition = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        allow_null=True,
+        max_length=255,
+        trim_whitespace=True,
+    )
     description = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     deadline_at = serializers.DateTimeField(required=False, allow_null=True)
     progress_target = serializers.DecimalField(
@@ -64,6 +82,12 @@ class PersonalAchievementPatchSerializer(serializers.Serializer):
     unit_label = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=64)
     primary_category_id = serializers.UUIDField(required=False, allow_null=True)
     rank_id = serializers.UUIDField(required=False, allow_null=True)
+
+    def validate_short_definition(self, value: str | None) -> str | None:
+        if value is None:
+            return None
+        value = value.strip()
+        return value or None
 
     def validate_description(self, value: str | None) -> str | None:
         if value is None:
