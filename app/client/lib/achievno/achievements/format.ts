@@ -17,7 +17,7 @@ export function toUiAchievement(achievement: PersonalAchievement): Achievement {
   return {
     id: achievement.achievement_id,
     title: achievement.title,
-    description: achievement.description ?? achievement.short_definition,
+    description: achievement.description ?? achievement.short_definition ?? '',
     targetValue: target,
     currentValue: current,
     unit: achievement.unit_label ?? (achievement.base_type === 'done' ? 'done' : undefined),
