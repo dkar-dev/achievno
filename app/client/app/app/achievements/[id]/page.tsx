@@ -9,7 +9,7 @@ import { AchievementDetailSkeleton } from '@/components/achievno/skeleton'
 import { ListError, LoadingButton } from '@/components/achievno/loading-states'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/lib/achievno/auth/use-auth'
-import { achievementsApi, type PersonalAchievement } from '@/lib/achievno/api/achievements'
+import { achievementsApi, type AchievementLog, type PersonalAchievement } from '@/lib/achievno/api/achievements'
 import { getApiErrorMessage } from '@/lib/achievno/api/errors'
 import {
   PERSONAL_ACHIEVEMENTS_USE_MOCKS,
@@ -47,7 +47,27 @@ function apiStatusLabel(status: PersonalAchievement['status']) {
 
 function formatDate(dateStr?: string | null): string | null {
   if (!dateStr) return null
-  return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+  return new Date(dateStr).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  })
+}
+
+function formatDateTime(dateStr?: string | null): string | null {
+  if (!dateStr) return null
+  return new Date(dateStr).toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
+function logTitle(log: AchievementLog): string {
+  if (log.action_type === 'progress_logged') return 'Progress logged'
+  if (log.action_type === 'completed') return 'Completed'
+  return log.action_type.replaceAll('_', ' ')
 }
 
 export default function AchievementDetailPage() {
@@ -74,6 +94,8 @@ export default function AchievementDetailPage() {
   const uiAchievement = achievement ? toUiAchievement(achievement) : null
   const isCompleted = achievement?.status === 'completed'
   const isArchived = achievement?.status === 'archived'
+  const isDoneType = achievement?.base_type === 'done'
+  const summary = achievement ? achievement.description || achievement.short_definition : null
 
   const handleComplete = async () => {
     if (!achievement) return
@@ -117,13 +139,15 @@ export default function AchievementDetailPage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-bg-base">
-      <BackHeader title="" onBack={() => router.back()} />
+      <BackHeader title="Achievement" onBack={() => router.back()} />
 
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto pb-28">
         {detail.isLoading ? (
           <AchievementDetailSkeleton />
         ) : detail.error || !achievement || !uiAchievement ? (
-          <ListError message={detail.error || 'Achievement could not be loaded.'} onRetry={() => void detail.reload()} />
+          <div className="px-screen py-4">
+            <ListError message={detail.error || 'Achievement could not be loaded.'} onRetry={() => void detail.reload()} />
+          </div>
         ) : (
           <div className="space-y-5 px-screen py-4 motion-screen-push">
             {PERSONAL_ACHIEVEMENTS_USE_MOCKS && (
@@ -132,41 +156,60 @@ export default function AchievementDetailPage() {
               </div>
             )}
 
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0 flex-1">
-                <h1 className="text-heading font-semibold">{achievement.title}</h1>
-                <p className="mt-1 text-body text-secondary">{achievement.short_definition}</p>
+            <div className="space-y-3 rounded-2xl border border-border-subtle bg-bg-elevated p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <h1 className="text-heading font-semibold text-primary-text">{achievement.title}</h1>
+                  {summary && <p className="mt-1 text-body text-secondary">{summary}</p>}
+                </div>
+                <AchievnoBadge
+                  variant={getAchievementBadgeVariant(uiAchievement.status)}
+                  size="md"
+                >
+                  {apiStatusLabel(achievement.status)}
+                </AchievnoBadge>
               </div>
-              <AchievnoBadge
-                variant={getAchievementBadgeVariant(uiAchievement.status)}
-                size="md"
-              >
-                {apiStatusLabel(achievement.status)}
-              </AchievnoBadge>
+
+              <div className="grid grid-cols-2 gap-2 text-label text-secondary">
+                <InfoPill label="Type" value={isDoneType ? 'Done' : 'Progress'} />
+                <InfoPill label="Due" value={formatDate(achievement.deadline_at) ?? 'No deadline'} />
+              </div>
             </div>
 
-            <div className="rounded-xl border border-border-subtle bg-bg-elevated p-4">
-              <div className="mb-3 flex items-baseline justify-between">
-                <span className="text-title font-semibold">
-                  {uiAchievement.currentValue}
-                  <span className="font-normal text-secondary"> / {uiAchievement.targetValue}</span>
-                </span>
-                <span className="text-label text-tertiary">{uiAchievement.unit}</span>
+            {isDoneType ? (
+              <div className="rounded-xl border border-border-subtle bg-bg-elevated p-4">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <h2 className="text-title font-semibold">Completion</h2>
+                    <p className="mt-1 text-label text-secondary">
+                      {isCompleted ? 'This achievement is completed.' : 'Mark it done when the result is achieved.'}
+                    </p>
+                  </div>
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full border border-border-subtle bg-bg-muted">
+                    {isCompleted ? <IconCheck size={22} /> : <span className="text-title font-semibold">0/1</span>}
+                  </div>
+                </div>
               </div>
-              <AchievnoProgress
-                value={uiAchievement.currentValue}
-                max={uiAchievement.targetValue}
-                color={isCompleted ? 'success' : 'primary'}
-                size="md"
-              />
-              <p className="mt-2 text-label text-tertiary">
-                {achievement.base_type === 'done' ? 'Done achievement' : 'Progress achievement'}
-                {achievement.deadline_at ? ` · due ${formatDate(achievement.deadline_at)}` : ''}
-              </p>
-            </div>
-
-            {achievement.description && (
-              <p className="text-body text-secondary">{achievement.description}</p>
+            ) : (
+              <div className="rounded-xl border border-border-subtle bg-bg-elevated p-4">
+                <div className="mb-3 flex items-baseline justify-between">
+                  <span className="text-title font-semibold">
+                    {uiAchievement.currentValue}
+                    <span className="font-normal text-secondary"> / {uiAchievement.targetValue}</span>
+                  </span>
+                  <span className="text-label text-tertiary">{uiAchievement.unit}</span>
+                </div>
+                <AchievnoProgress
+                  value={uiAchievement.currentValue}
+                  max={uiAchievement.targetValue}
+                  color={isCompleted ? 'success' : 'primary'}
+                  size="md"
+                />
+                <p className="mt-2 text-label text-tertiary">
+                  {uiAchievement.progressPercent}% complete
+                  {achievement.deadline_at ? ` · due ${formatDate(achievement.deadline_at)}` : ''}
+                </p>
+              </div>
             )}
 
             {actionError && (
@@ -180,18 +223,26 @@ export default function AchievementDetailPage() {
               {detail.recentLogs.length > 0 ? (
                 <div className="space-y-2">
                   {detail.recentLogs.map((log) => (
-                    <div key={log.achievement_log_id} className="rounded-xl border border-border-subtle px-3 py-2">
-                      <p className="text-label font-medium">{log.action_type}</p>
-                      <p className="text-caption text-secondary">
-                        {log.delta_value ?? 0} · result {log.resulting_value ?? 0}
-                        {log.note_text ? ` · ${log.note_text}` : ''}
-                      </p>
+                    <div key={log.achievement_log_id} className="rounded-xl border border-border-subtle bg-bg-elevated px-3 py-2">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-label font-medium capitalize">{logTitle(log)}</p>
+                          <p className="text-caption text-secondary">
+                            {log.delta_value !== null ? `+${log.delta_value}` : 'No delta'}
+                            {log.resulting_value !== null ? ` · result ${log.resulting_value}` : ''}
+                            {log.note_text ? ` · ${log.note_text}` : ''}
+                          </p>
+                        </div>
+                        {log.created_at && <span className="text-caption text-tertiary">{formatDateTime(log.created_at)}</span>}
+                      </div>
                     </div>
                   ))}
                 </div>
               ) : (
-                <div className="rounded-xl border border-dashed border-border-subtle px-4 py-3 text-sm text-tertiary">
-                  No progress logs yet.
+                <div className="rounded-xl border border-dashed border-border-subtle bg-bg-muted px-4 py-3 text-sm text-tertiary">
+                  {isDoneType
+                    ? 'No completion log yet. Complete the achievement to create the first log.'
+                    : 'No progress logs yet. Add progress to create the first log.'}
                 </div>
               )}
             </section>
@@ -201,41 +252,58 @@ export default function AchievementDetailPage() {
 
       {achievement && !isArchived && (
         <div className="sticky bottom-0 border-t border-border-subtle bg-bg-base px-screen py-4 safe-area-bottom">
-          <div className="flex gap-3">
-            {!isCompleted && (
-              <>
-                <Button
-                  onClick={() => router.push(ROUTES.achievementProgress(achievement.achievement_id))}
-                  className="h-12 flex-1 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
-                >
-                  <IconPlus size={18} className="mr-2" />
-                  Progress
-                </Button>
-                <LoadingButton
-                  loading={isCompleting}
-                  onClick={() => void handleComplete()}
-                  variant="ghost"
-                  className="h-12 rounded-xl px-4 text-secondary"
-                >
-                  <IconCheck size={18} className="mr-1" />
-                  Complete
-                </LoadingButton>
-              </>
-            )}
-            {isCompleted && (
-              <LoadingButton
-                loading={isArchiving}
-                onClick={() => void handleArchive()}
-                variant="outline"
-                className="h-12 flex-1 rounded-xl"
+          {!isCompleted && isDoneType && (
+            <LoadingButton
+              loading={isCompleting}
+              onClick={() => void handleComplete()}
+              className="h-12 w-full rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              <IconCheck size={18} className="mr-2" />
+              Done
+            </LoadingButton>
+          )}
+          {!isCompleted && !isDoneType && (
+            <div className="flex gap-3">
+              <Button
+                onClick={() => router.push(ROUTES.achievementProgress(achievement.achievement_id))}
+                className="h-12 flex-1 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
               >
-                <IconArchive size={18} className="mr-2" />
-                Archive
+                <IconPlus size={18} className="mr-2" />
+                Log progress
+              </Button>
+              <LoadingButton
+                loading={isCompleting}
+                onClick={() => void handleComplete()}
+                variant="ghost"
+                className="h-12 rounded-xl px-4 text-secondary"
+              >
+                <IconCheck size={18} className="mr-1" />
+                Complete
               </LoadingButton>
-            )}
-          </div>
+            </div>
+          )}
+          {isCompleted && (
+            <LoadingButton
+              loading={isArchiving}
+              onClick={() => void handleArchive()}
+              variant="outline"
+              className="h-12 w-full rounded-xl"
+            >
+              <IconArchive size={18} className="mr-2" />
+              Archive
+            </LoadingButton>
+          )}
         </div>
       )}
+    </div>
+  )
+}
+
+function InfoPill({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-border-subtle bg-bg-muted px-3 py-2">
+      <p className="text-caption text-tertiary">{label}</p>
+      <p className="truncate text-label font-medium text-primary-text">{value}</p>
     </div>
   )
 }
