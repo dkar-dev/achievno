@@ -35,7 +35,7 @@ class SignUpResult:
     account: AccountDTO
     profile: ProfileDTO
     dev_verification_token: str | None
-    verification_email_sent: bool
+    verification_email_sent: bool = False
 
 
 @dataclass(frozen=True)
