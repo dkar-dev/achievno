@@ -7,6 +7,7 @@ from uuid import UUID
 from django.conf import settings
 
 from apps.accounts.domain.errors import AuthenticationRequired, InvalidCredentials
+from apps.accounts.infrastructure.email import send_verification_email
 from apps.accounts.infrastructure.tokens import (
     generate_refresh_token,
     generate_verification_token,
@@ -34,6 +35,7 @@ class SignUpResult:
     account: AccountDTO
     profile: ProfileDTO
     dev_verification_token: str | None
+    verification_email_sent: bool
 
 
 @dataclass(frozen=True)
@@ -84,6 +86,11 @@ class AuthService:
             username=username,
             verification_token=verification_token,
         )
+        verification_email_sent = send_verification_email(
+            email=email,
+            display_name=display_name,
+            token=verification_token,
+        )
         return SignUpResult(
             account=AccountDTO(account_id=created.account.account_id),
             profile=ProfileDTO(
@@ -96,6 +103,7 @@ class AuthService:
                 if settings.ACHIEVNO_RETURN_DEV_VERIFICATION_TOKEN
                 else None
             ),
+            verification_email_sent=verification_email_sent,
         )
 
     def verify_email(self, *, token: str) -> None:
