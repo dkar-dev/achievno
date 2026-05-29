@@ -109,5 +109,26 @@ ACHIEVNO_RETURN_DEV_VERIFICATION_TOKEN = DEBUG or env_bool(
     default=False,
 )
 
+ACHIEVNO_PUBLIC_APP_URL = os.environ.get("ACHIEVNO_PUBLIC_APP_URL", "http://127.0.0.1:3000")
+ACHIEVNO_EMAIL_VERIFICATION_PATH = os.environ.get(
+    "ACHIEVNO_EMAIL_VERIFICATION_PATH",
+    "/auth/verify-email",
+)
+ACHIEVNO_SEND_VERIFICATION_EMAIL = env_bool("ACHIEVNO_SEND_VERIFICATION_EMAIL", default=False)
+
+EMAIL_BACKEND = os.environ.get(
+    "EMAIL_BACKEND",
+    "django.core.mail.backends.smtp.EmailBackend",
+)
+EMAIL_HOST = os.environ.get("EMAIL_HOST", "")
+EMAIL_PORT = env_int("EMAIL_PORT", 587)
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
+EMAIL_USE_TLS = env_bool("EMAIL_USE_TLS", default=True)
+EMAIL_USE_SSL = env_bool("EMAIL_USE_SSL", default=False)
+EMAIL_TIMEOUT = env_int("EMAIL_TIMEOUT", 10)
+DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER)
+SERVER_EMAIL = DEFAULT_FROM_EMAIL
+
 USE_TZ = True
 TIME_ZONE = "UTC"
