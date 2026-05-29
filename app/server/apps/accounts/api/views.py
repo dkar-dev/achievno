@@ -92,6 +92,7 @@ class SignUpView(APIView):
             "account_id": str(result.account.account_id),
             "profile_id": str(result.profile.profile_id),
             "email_verification_required": True,
+            "verification_email_sent": result.verification_email_sent,
         }
         if result.dev_verification_token:
             payload["dev_verification_token"] = result.dev_verification_token
