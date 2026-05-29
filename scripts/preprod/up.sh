@@ -8,6 +8,7 @@ CLIENT_CONTAINER="achievno-preprod-client"
 PREPROD_DB_URL="${PREPROD_DATABASE_URL:-${DATABASE_URL:-}}"
 PREPROD_PODMAN_NETWORK="${PREPROD_PODMAN_NETWORK:-}"
 PODMAN_NETWORK_ARGS=()
+API_ENV_FILE_ARGS=()
 
 if ! command -v podman >/dev/null 2>&1; then
   echo "podman is required for the local pre-prod runtime" >&2
@@ -24,11 +25,16 @@ if [ -n "${PREPROD_PODMAN_NETWORK}" ]; then
   PODMAN_NETWORK_ARGS=(--network "${PREPROD_PODMAN_NETWORK}")
 fi
 
+if [ -f ".env.preprod.local" ]; then
+  API_ENV_FILE_ARGS=(--env-file .env.preprod.local)
+fi
+
 podman run \
   --detach \
   --replace \
   --name "${API_CONTAINER}" \
   "${PODMAN_NETWORK_ARGS[@]}" \
+  "${API_ENV_FILE_ARGS[@]}" \
   --publish 127.0.0.1:8000:8000 \
   --env "DATABASE_URL=${PREPROD_DB_URL}" \
   --env "PREPROD_DATABASE_URL=${PREPROD_DB_URL}" \
