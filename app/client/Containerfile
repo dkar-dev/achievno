@@ -1,0 +1,30 @@
+FROM node:24-slim
+
+WORKDIR /app
+
+ENV NEXT_TELEMETRY_DISABLED=1
+
+ARG NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:8000
+ARG NEXT_PUBLIC_USE_MOCKS=false
+ENV NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL} \
+    NEXT_PUBLIC_USE_MOCKS=${NEXT_PUBLIC_USE_MOCKS}
+
+COPY package.json package-lock.json ./
+RUN npm ci
+
+COPY app ./app
+COPY components ./components
+COPY hooks ./hooks
+COPY lib ./lib
+COPY public ./public
+COPY styles ./styles
+COPY components.json next.config.mjs postcss.config.mjs tsconfig.json ./
+
+RUN npm run build \
+    && npm prune --omit=dev
+
+ENV NODE_ENV=production
+
+EXPOSE 3000
+
+CMD ["npm", "run", "start", "--", "-H", "0.0.0.0", "-p", "3000"]
