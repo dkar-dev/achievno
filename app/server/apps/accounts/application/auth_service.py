@@ -74,7 +74,7 @@ class AuthService:
         email: str,
         password: str,
         display_name: str,
-        username: str | None,
+        username: str | None = None,
     ) -> SignUpResult:
         verification_token = generate_verification_token()
         created = self.repository.create_email_account(
