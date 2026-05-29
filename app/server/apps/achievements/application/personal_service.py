@@ -24,7 +24,7 @@ from apps.achievements.infrastructure.repositories import (
 class CreatePersonalAchievementCommand:
     base_type: str
     title: str
-    short_definition: str
+    short_definition: str | None = None
     description: str | None = None
     progress_target: Decimal | None = None
     unit_label: str | None = None
@@ -52,7 +52,7 @@ class PersonalAchievementService:
             data=CreateAchievementData(
                 base_type=command.base_type,
                 title=command.title,
-                short_definition=command.short_definition,
+                short_definition=command.short_definition or command.title,
                 description=command.description,
                 progress_target=command.progress_target,
                 unit_label=command.unit_label,
