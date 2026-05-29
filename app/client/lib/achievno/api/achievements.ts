@@ -18,7 +18,7 @@ export type PersonalAchievement = {
   base_type: AchievementBaseType
   assignment_mode: 'self' | 'all_members' | 'selected_members'
   title: string
-  short_definition: string
+  short_definition: string | null
   description: string | null
   status: AchievementApiStatus
   progress_current: number | null
@@ -62,7 +62,7 @@ export type PersonalAchievementProgressResponse = PersonalAchievementResponse & 
 export type CreatePersonalAchievementRequest = {
   base_type: AchievementBaseType
   title: string
-  short_definition: string
+  short_definition?: string | null
   description?: string | null
   progress_target?: string | number | null
   unit_label?: string | null
