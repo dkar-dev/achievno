@@ -22,7 +22,8 @@ export default function CreateAchievementPage() {
   const [description, setDescription] = React.useState('')
   const [progressTarget, setProgressTarget] = React.useState('')
   const [unitLabel, setUnitLabel] = React.useState('')
-  const [deadlineAt, setDeadlineAt] = React.useState('')
+  const [deadlineDate, setDeadlineDate] = React.useState('')
+  const [deadlineTime, setDeadlineTime] = React.useState('')
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
   const [success, setSuccess] = React.useState<string | null>(null)
@@ -34,8 +35,13 @@ export default function CreateAchievementPage() {
   }, [auth.status, router])
 
   const canSubmit = title.trim().length >= 2
-    && shortDefinition.trim().length >= 2
     && (baseType === 'done' || Number(progressTarget) > 0)
+
+  const buildDeadlineIso = () => {
+    if (!deadlineDate) return null
+    const localDateTime = deadlineTime ? `${deadlineDate}T${deadlineTime}` : `${deadlineDate}T23:59`
+    return new Date(localDateTime).toISOString()
+  }
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -54,11 +60,11 @@ export default function CreateAchievementPage() {
       const response = await achievementsApi.createPersonal({
         base_type: baseType,
         title: title.trim(),
-        short_definition: shortDefinition.trim(),
+        short_definition: shortDefinition.trim() || null,
         description: description.trim() || null,
         progress_target: baseType === 'progress' ? progressTarget : null,
         unit_label: unitLabel.trim() || null,
-        deadline_at: deadlineAt ? new Date(deadlineAt).toISOString() : null,
+        deadline_at: buildDeadlineIso(),
       })
       setSuccess('Achievement created.')
       router.push(ROUTES.achievement(response.achievement.achievement_id))
@@ -104,15 +110,16 @@ export default function CreateAchievementPage() {
           </Button>
         </div>
 
-        <Field label="Title">
+        <Field label="Title" required>
           <Input value={title} onChange={(event) => setTitle(event.target.value)} maxLength={180} />
         </Field>
 
-        <Field label="Short definition">
+        <Field label="Short name" hint="Optional">
           <Input
             value={shortDefinition}
             onChange={(event) => setShortDefinition(event.target.value)}
             maxLength={255}
+            placeholder="Leave empty to use title"
           />
         </Field>
 
@@ -122,7 +129,7 @@ export default function CreateAchievementPage() {
 
         {baseType === 'progress' && (
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Target">
+            <Field label="Target" required>
               <Input
                 type="number"
                 min="0.01"
@@ -137,13 +144,23 @@ export default function CreateAchievementPage() {
           </div>
         )}
 
-        <Field label="Deadline">
-          <Input
-            type="datetime-local"
-            value={deadlineAt}
-            onChange={(event) => setDeadlineAt(event.target.value)}
-          />
-        </Field>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Deadline date" hint="Optional">
+            <Input
+              type="date"
+              value={deadlineDate}
+              onChange={(event) => setDeadlineDate(event.target.value)}
+            />
+          </Field>
+          <Field label="Deadline time" hint="Optional">
+            <Input
+              type="time"
+              value={deadlineTime}
+              onChange={(event) => setDeadlineTime(event.target.value)}
+              disabled={!deadlineDate}
+            />
+          </Field>
+        </div>
 
         {error && (
           <div className="rounded-xl border border-destructive/20 bg-destructive/5 px-3 py-2 text-label text-destructive">
@@ -164,10 +181,23 @@ export default function CreateAchievementPage() {
   )
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({
+  label,
+  hint,
+  required,
+  children,
+}: {
+  label: string
+  hint?: string
+  required?: boolean
+  children: React.ReactNode
+}) {
   return (
     <label className="block space-y-1">
-      <span className="text-label text-secondary">{label}</span>
+      <span className="flex items-center justify-between gap-2 text-label text-secondary">
+        <span>{label}{required ? ' *' : ''}</span>
+        {hint && <span className="text-caption text-tertiary">{hint}</span>}
+      </span>
       {children}
     </label>
   )
