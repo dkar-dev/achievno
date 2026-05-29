@@ -1,0 +1,115 @@
+id: H0_MVP_UI_AND_FLOW_HARDENING
+title: Harden current MVP UI, navigation, and core entity flows
+priority: P0
+status: ready_for_codex
+linear:
+  team: Achievno
+  project: Achievno
+  label: Task
+  priority: 1
+  suggested_title: "[MVP][H0] Harden MVP UI and core flows"
+
+objective: >
+  Use the remaining MVP time to stabilize and polish the already implemented local pre-prod application instead of adding
+  new product scope. Focus on the visible core surfaces and main entities that already exist: auth, /app/spaces main
+  aggregate, personal achievements, and challenges. Fix broken navigation, confusing UI states, obvious copy issues,
+  form validation gaps, and runtime defects discovered during manual use. Do not implement friends/groups reads, new APIs,
+  schema changes, or large redesigns.
+
+context:
+  product: Achievno
+  global_rules: AGENTS.md
+  depends_on:
+    - M0_MANUAL_BROWSER_SMOKE_AND_README_STATUS
+  current_status:
+    - Local pre-prod MVP accepted.
+    - Browser smoke passed.
+    - Main implemented surfaces: auth, /app/spaces, /app/me, personal achievements, challenges.
+    - Deferred scopes remain outside this task.
+  timebox: 3h_remaining_mvp_hardening
+
+scope:
+  include:
+    - Review and harden existing visible app routes.
+    - Fix obvious broken links/navigation between /app/spaces, /app/me, /app/achievements/*, and /app/challenges/*.
+    - Improve loading, empty, success, and error states for existing screens only.
+    - Improve form validation messages and disabled/loading submit states for existing auth, achievements, and challenges forms.
+    - Ensure main screen cards/counts/actions match implemented backend flows.
+    - Ensure NEXT_PUBLIC_USE_MOCKS=false never silently shows demo data on protected/product surfaces.
+    - Ensure logout and protected route behavior remain stable.
+    - Run pre-prod smoke and quick manual browser pass after fixes.
+    - Update docs/dev/MVP_STATUS.md known gaps if a non-blocking UI gap remains.
+  exclude:
+    - Friends/groups read APIs or screens.
+    - New product endpoints.
+    - New database tables/columns/migrations.
+    - Approval/evidence flows.
+    - Notification mutations.
+    - Public challenge marketplace.
+    - Complex leaderboard/rewards.
+    - Large redesign or component system rewrite.
+    - Cloud deployment.
+
+allowed_files:
+  - app/client/**
+  - app/server/**
+  - docs/dev/MVP_STATUS.md
+  - README.md
+  - docs/dev/contracts/H0_MVP_UI_AND_FLOW_HARDENING.yaml
+
+route_checklist:
+  auth:
+    - /auth/sign-in
+    - /auth/sign-up
+    - /auth/verify-email
+  protected:
+    - /app/spaces
+    - /app/me
+    - /app/achievements/create
+    - /app/achievements/[id]
+    - /app/achievements/[id]/progress
+    - /app/challenges
+    - /app/challenges/create
+    - /app/challenges/[id]
+
+hardening_rules:
+  - Prefer small targeted fixes over refactors.
+  - Keep current visual identity and layout.
+  - Do not add fake success paths.
+  - Do not hide API failures behind mock data when mocks are disabled.
+  - Do not alter backend behavior unless a frontend-visible blocker requires a small API/DTO fix.
+  - If a screen is non-essential and broken, prefer clear empty/error messaging over new feature work.
+
+acceptance:
+  commands:
+    - scripts/preprod/status.sh
+    - PREPROD_DATABASE_URL="$PREPROD_DATABASE_URL" scripts/preprod/smoke.sh
+    - cd app/server && uv run python manage.py check
+    - cd app/server && uv run python manage.py test
+    - cd app/client && npm run build
+    - cd app/client && npm run lint
+    - cd app/client && npx tsc --noEmit
+  manual_browser_pass:
+    - Sign in with verified account.
+    - Visit every route in route_checklist that is reachable in current MVP.
+    - Create a done achievement.
+    - Create a progress achievement and add progress.
+    - Complete/archive an achievement.
+    - Create and complete/progress a challenge.
+    - Return to /app/spaces and confirm counts/actions are coherent.
+    - Logout and confirm protected routes block/redirect.
+
+output_required:
+  - summary
+  - changed_files
+  - commands_run
+  - ui_hardening_result
+  - manual_browser_pass_result
+  - commit_hash
+  - known_gaps
+  - blockers_if_any
+
+recommended_codex_goal: >
+  Implement docs/dev/contracts/H0_MVP_UI_AND_FLOW_HARDENING.yaml exactly. Do a small targeted UI/navigation/hardening pass
+  over the existing MVP surfaces only: auth, /app/spaces, /app/me, personal achievements, and challenges. Do not add
+  friends/groups reads, new product scope, schema changes, migrations, or large redesigns.
