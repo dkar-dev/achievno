@@ -1,0 +1,216 @@
+id: M0_MANUAL_BROWSER_SMOKE_AND_README_STATUS
+title: Run manual browser smoke and finalize MVP status documentation
+priority: P0
+status: ready_for_codex
+linear:
+  team: Achievno
+  project: Achievno
+  label: Task
+  priority: 1
+  suggested_title: "[MVP][M0] Manual browser smoke and README status"
+
+objective: >
+  Convert the current code-complete local pre-prod MVP into a documented acceptance snapshot. Run a manual browser smoke
+  flow against the Podman pre-prod runtime, fix only blocking defects discovered during the smoke, and update README/dev
+  status so the repository clearly describes what works, what is deferred, and how to run/verify the MVP locally.
+
+context:
+  product: Achievno
+  global_rules: AGENTS.md
+  depends_on:
+    - A1_PREPROD_PODMAN_RUNTIME
+    - B0_FRONTEND_API_CLIENT_AND_AUTH_WIRING
+    - P0_MAIN_AGGREGATE_AND_PROFILE
+    - P1_PERSONAL_ACHIEVEMENTS
+    - C0_CHALLENGES_MINIMAL_FLOW
+  current_status:
+    code_complete_review_items:
+      - ACH-46 B0 frontend auth wiring
+      - ACH-47 P0 main aggregate/profile
+      - ACH-48 P1 personal achievements
+      - ACH-49 C0 minimal challenges
+    done_items:
+      - ACH-50 A1 local pre-prod Podman runtime
+    runtime:
+      - rootless Podman API/client containers
+      - existing PostgreSQL container as external dependency
+  purpose:
+    - confirm actual browser flow, not only command-line smoke
+    - document MVP snapshot
+    - avoid adding new product scope
+
+scope:
+  include:
+    - Start local pre-prod runtime using scripts/preprod/up.sh.
+    - Run scripts/preprod/smoke.sh successfully.
+    - Run manual browser smoke from http://127.0.0.1:3000 with NEXT_PUBLIC_USE_MOCKS=false.
+    - Fix only blocking defects found during the manual smoke.
+    - Do not implement new feature scope while fixing smoke issues.
+    - Update README current recovery/MVP status section.
+    - Add or update docs/dev/MVP_STATUS.md with exact accepted features, deferred features, smoke commands, and known gaps.
+    - Add a concise final MVP acceptance checklist.
+    - Mark browser-verified items explicitly.
+  exclude:
+    - New product features.
+    - Friends/groups read implementation.
+    - UI redesign.
+    - Marketplace/leaderboards/rewards/approvals/evidence.
+    - Cloud deployment.
+    - CI/CD.
+    - Schema changes or migrations.
+    - Dependency audit remediation unless a vulnerability blocks runtime.
+
+allowed_files:
+  - README.md
+  - docs/dev/MVP_STATUS.md
+  - docs/dev/contracts/M0_MANUAL_BROWSER_SMOKE_AND_README_STATUS.yaml
+  - app/client/**
+  - app/server/**
+  - scripts/preprod/**
+
+fix_policy:
+  allowed:
+    - broken route/navigation fixes
+    - CORS/cookie local pre-prod fixes
+    - frontend runtime errors
+    - backend API runtime errors
+    - DTO mismatch fixes
+    - container runtime/script bugs
+    - minimal empty/error state fixes
+  forbidden:
+    - new product feature implementation
+    - database schema changes
+    - migrations
+    - redesigns
+    - broad refactors unrelated to smoke blockers
+    - silent mock fallback when NEXT_PUBLIC_USE_MOCKS=false
+
+manual_browser_smoke:
+  setup:
+    - Existing PostgreSQL container is running.
+    - PREPROD_DATABASE_URL points to existing PostgreSQL from containers.
+    - PREPROD_PODMAN_NETWORK is set if needed for DB connectivity.
+    - Run scripts/preprod/build.sh if images are stale.
+    - Run scripts/preprod/up.sh.
+    - Run scripts/preprod/smoke.sh.
+  required_flow:
+    - Open http://127.0.0.1:3000.
+    - Sign up a new account or sign in with a known verified account.
+    - Verify email through local dev token flow if signing up.
+    - Reach /app/spaces.
+    - Confirm /app/spaces loads /api/v1/main data, not demo data.
+    - Refresh /app/spaces and remain authenticated.
+    - Open /app/me.
+    - Create a done achievement.
+    - Create a progress achievement.
+    - Open achievement detail.
+    - Add progress to progress achievement.
+    - Complete an achievement.
+    - Archive an achievement.
+    - Return to /app/spaces and confirm counts/data update from API.
+    - Open /app/challenges.
+    - Create a challenge.
+    - Open challenge detail.
+    - Join/self-participate if needed.
+    - Add progress or complete challenge.
+    - Refresh challenge detail and confirm data persists.
+    - Logout from settings/logout UI.
+    - Confirm protected /app/spaces, /app/me, and /app/challenges block or redirect after logout.
+  negative_checks:
+    - Set or simulate broken API URL and confirm protected/product screens show error state instead of demo data when mocks are disabled.
+    - Confirm localStorage/sessionStorage do not contain access/refresh tokens.
+
+required_commands:
+  - scripts/preprod/status.sh
+  - PREPROD_DATABASE_URL="$PREPROD_DATABASE_URL" scripts/preprod/smoke.sh
+  - cd app/server && uv run python manage.py check
+  - cd app/server && uv run python manage.py test
+  - cd app/client && npm run build
+  - cd app/client && npm run lint
+  - cd app/client && npx tsc --noEmit
+
+documentation_requirements:
+  README:
+    - Update current status to reflect Django + Next.js + external PostgreSQL + Podman pre-prod.
+    - Include concise run commands or link to detailed section.
+    - State that MVP is local pre-prod, not hosted cloud deployment.
+  docs_dev_mvp_status:
+    required_sections:
+      - Snapshot date
+      - What works
+      - How to run local pre-prod
+      - Acceptance commands
+      - Browser smoke result
+      - Deferred scope
+      - Known gaps and risks
+      - Linear issue status summary
+      - Next recommended work
+    deferred_scope_must_include:
+      - Telegram auth
+      - Google OAuth2
+      - refresh token rotation
+      - friends/groups product reads if not implemented
+      - approvals/evidence
+      - notification mutations
+      - public challenge marketplace
+      - complex leaderboards/rewards
+      - cloud hosting deployment
+      - dependency audit remediation
+
+linear_status_policy:
+  if_browser_smoke_passes:
+    - Mark ACH-46 Done.
+    - Mark ACH-47 Done.
+    - Mark ACH-48 Done.
+    - Mark ACH-49 Done.
+    - Mark M0 Done.
+  if_blockers_found:
+    - Keep relevant issue In Review.
+    - Create bounded follow-up fix issue/contract only for blocker.
+    - Do not mark M0 Done.
+
+forbidden:
+  - do not modify PostgreSQL schema
+  - do not add migrations
+  - do not add new large product scope
+  - do not hide failures behind mocks
+  - do not claim browser smoke passed unless it was actually run
+  - do not commit secrets
+  - do not remove pre-prod smoke scripts
+
+acceptance:
+  commands:
+    - scripts/preprod/status.sh
+    - PREPROD_DATABASE_URL="$PREPROD_DATABASE_URL" scripts/preprod/smoke.sh
+    - cd app/server && uv run python manage.py check
+    - cd app/server && uv run python manage.py test
+    - cd app/client && npm run build
+    - cd app/client && npm run lint
+    - cd app/client && npx tsc --noEmit
+  manual:
+    - Full manual browser smoke required_flow passes.
+    - Negative checks pass or documented as known gaps if non-blocking.
+    - README updated.
+    - docs/dev/MVP_STATUS.md added or updated.
+    - No schema/migration/secrets introduced.
+
+output_required:
+  - summary
+  - changed_files
+  - commands_run
+  - browser_smoke_result
+  - fixes_made
+  - mvp_status_result
+  - issues_marked_done
+  - commit_hash
+  - known_gaps
+  - blockers_if_any
+
+recommended_codex_goal: >
+  Implement docs/dev/contracts/M0_MANUAL_BROWSER_SMOKE_AND_README_STATUS.yaml exactly. Run local pre-prod smoke and manual
+  browser MVP flow, fix only blocking smoke defects, update README and docs/dev/MVP_STATUS.md, and do not add new product
+  scope, schema changes, migrations, or mock fallbacks.
+
+next_contracts:
+  - P2_FRIENDS_AND_GROUPS_READS
+  - Q0_DEPENDENCY_AUDIT_REMEDIATION
