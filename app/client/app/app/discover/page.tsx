@@ -180,7 +180,7 @@ export default function DiscoverPage() {
             {MOCK_FEATURED_CHALLENGES.map((challenge) => (
               <button
                 key={challenge.id}
-                onClick={() => router.push(`/app/discover/challenges/${challenge.id}`)}
+                onClick={() => router.push(ROUTES.challenges)}
                 className="w-full bg-surface rounded-xl border border-border p-4 text-left hover:border-border-strong transition-colors"
               >
                 <div className="flex items-start gap-3">

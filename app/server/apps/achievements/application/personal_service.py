@@ -98,7 +98,7 @@ class PersonalAchievementService:
                 delta_value=delta_value,
                 note_text=note_text,
             )
-            updated = self.repository.get_personal(
+            updated = self.repository.get_visible(
                 profile_id=profile_id,
                 achievement_id=achievement.achievement_id,
             )
@@ -118,7 +118,7 @@ class PersonalAchievementService:
                 delta_value=delta_value,
                 note_text=note_text,
             )
-            updated = self.repository.get_personal(
+            updated = self.repository.get_visible(
                 profile_id=profile_id,
                 achievement_id=achievement.achievement_id,
             )
@@ -126,7 +126,7 @@ class PersonalAchievementService:
         return {"achievement": achievement_to_dto(updated), "log": log_to_dto(log)}
 
     def archive(self, *, profile_id: UUID, achievement_id: UUID) -> dict:
-        achievement = self.repository.get_personal(profile_id=profile_id, achievement_id=achievement_id)
+        achievement = self.repository.get_visible(profile_id=profile_id, achievement_id=achievement_id)
         if achievement is None:
             raise PersonalAchievementNotFound()
         if achievement.status == "archived":
@@ -135,7 +135,7 @@ class PersonalAchievementService:
         return {"achievement": achievement_to_dto(updated)}
 
     def _get_editable(self, *, profile_id: UUID, achievement_id: UUID):
-        achievement = self.repository.get_personal(profile_id=profile_id, achievement_id=achievement_id)
+        achievement = self.repository.get_visible(profile_id=profile_id, achievement_id=achievement_id)
         if achievement is None:
             raise PersonalAchievementNotFound()
         if achievement.status == "archived":

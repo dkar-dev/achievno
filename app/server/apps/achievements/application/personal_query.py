@@ -89,7 +89,7 @@ class PersonalAchievementQuery:
         }
 
     def detail(self, *, profile_id: UUID, achievement_id: UUID) -> dict | None:
-        achievement = self.repository.get_personal(profile_id=profile_id, achievement_id=achievement_id)
+        achievement = self.repository.get_visible(profile_id=profile_id, achievement_id=achievement_id)
         if achievement is None:
             return None
         logs = self.repository.recent_logs(achievement_id=achievement.achievement_id)

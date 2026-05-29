@@ -1,398 +1,377 @@
 'use client'
 
-/**
- * ═══════════════════════════════════════════════════════════════
- * GROUP WORKSPACE SCREEN
- * ═══════════════════════════════════════════════════════════════
- * Route: /app/groups/[id]
- * Tabs: Overview | Achievements | Challenges
- *
- * Members moved to header overflow menu -> bottom sheet
- *
- * Layout (CRITICAL - no shift):
- * - Fixed header (sticky)
- * - Sticky tabs (below header)
- * - Scrollable content (STABLE HEIGHT)
- * - Tab switch: crossfade animation without layout shift
- * ═══════════════════════════════════════════════════════════════
- */
-
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import * as React from 'react'
+import { useParams, useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import { AchievnoAvatar } from '@/components/achievno/avatar'
-import { AchievnoBadge } from '@/components/achievno/badge'
 import { AchievementCard } from '@/components/achievno/achievement-card'
 import { TabBar } from '@/components/achievno/tabs'
-import { NoChallenges } from '@/components/achievno/empty-state'
+import { ListError, LoadingButton } from '@/components/achievno/loading-states'
 import {
-    ActivityListSkeleton,
-    MemberListSkeleton,
-} from '@/components/achievno/skeleton'
-import { AsyncBoundary } from '@/components/achievno/loading-states'
-import {
-    AchievnoIcon,
-    IconPlus,
-    IconTrophy,
-    IconUsers,
-    IconCrown,
-    IconActivity,
-    IconCalendar,
-    IconChevronRight,
+  AchievnoIcon,
+  IconChevronRight,
+  IconPlus,
+  IconTarget,
+  IconTrophy,
+  IconUsers,
 } from '@/lib/achievno/icons'
+import type { AchievementBaseType } from '@/lib/achievno/api/achievements'
+import { groupsApi, type GroupDetailResponse } from '@/lib/achievno/api/groups'
+import { getApiErrorMessage } from '@/lib/achievno/api/errors'
+import { useAuth } from '@/lib/achievno/auth/use-auth'
+import { toUiAchievement } from '@/lib/achievno/achievements/format'
 import { ROUTES } from '@/lib/achievno/constants'
-import type { Achievement } from '@/lib/achievno/types'
-
-// ─────────────────────────────────────────────────────────────────
-// TAB CONFIG
-// ─────────────────────────────────────────────────────────────────
 
 const GROUP_TABS = [
-    { id: 'overview' as const, label: 'Overview' },
-    { id: 'achievements' as const, label: 'Achievements' },
-    { id: 'challenges' as const, label: 'Challenges' },
+  { id: 'overview' as const, label: 'Overview' },
+  { id: 'achievements' as const, label: 'Achievements' },
+  { id: 'challenges' as const, label: 'Challenges' },
 ]
 
 type TabId = typeof GROUP_TABS[number]['id']
 
-// ─────────────────────────────────────────────────────────────────
-// MOCK DATA
-// ─────────────────────────────────────────────────────────────────
-
-const MOCK_GROUP = {
-    id: 'dev-team',
-    name: 'Dev Team',
-    avatar: null,
-    memberCount: 8,
-    completionRate: 72,
-    description: 'Building amazing products together',
-    createdAt: '2025-01-15',
-    isAdmin: true,
+function buildDeadlineIso(deadlineDate: string, deadlineTime: string) {
+  if (!deadlineDate) return null
+  const localDateTime = deadlineTime ? `${deadlineDate}T${deadlineTime}` : `${deadlineDate}T23:59`
+  return new Date(localDateTime).toISOString()
 }
 
-const MOCK_ACHIEVEMENTS: Achievement[] = [
-    {
-        id: '1',
-        title: 'Launch Presentation',
-        description: 'Complete the Q2 launch presentation',
-        targetValue: 10,
-        currentValue: 6,
-        unit: 'slides',
-        status: 'active',
-        dueDate: '2026-05-30',
-        createdAt: '2026-03-01',
-        spaceId: 'dev-team',
-        spaceType: 'group',
-        creatorId: 'user-1',
-        progressPercent: 60,
-        isOverdue: false,
-    },
-    {
-        id: '2',
-        title: 'Bug Fix Sprint',
-        description: 'Fix all critical bugs before release',
-        targetValue: 10,
-        currentValue: 4,
-        unit: 'bugs',
-        status: 'active',
-        createdAt: '2026-03-15',
-        spaceId: 'dev-team',
-        spaceType: 'group',
-        creatorId: 'user-2',
-        progressPercent: 40,
-        isOverdue: false,
-    },
-]
+export default function GroupWorkspacePage() {
+  const router = useRouter()
+  const params = useParams<{ id: string }>()
+  const auth = useAuth()
+  const groupId = params.id
+  const [activeTab, setActiveTab] = React.useState<TabId>('overview')
+  const [data, setData] = React.useState<GroupDetailResponse | null>(null)
+  const [isLoading, setIsLoading] = React.useState(true)
+  const [error, setError] = React.useState<string | null>(null)
 
-const MOCK_CHALLENGES = [
-    {
-        id: 'c1',
-        title: 'Code Review Sprint',
-        description: 'First to review 10 PRs wins',
-        status: 'active' as const,
-        participantCount: 5,
-        endDate: 'Apr 15',
-        leader: { id: '1', name: 'Alex Chen', avatar: null, score: 7 },
-    },
-    {
-        id: 'c2',
-        title: 'Documentation Marathon',
-        description: 'Most docs written in a week',
-        status: 'upcoming' as const,
-        participantCount: 3,
-        startDate: 'Apr 20',
-    },
-]
+  const loadGroup = React.useCallback(async () => {
+    if (!auth.isAuthenticated) {
+      setIsLoading(false)
+      return
+    }
 
-const MOCK_ACTIVITY = [
-    { id: 'a1', user: 'Alex', action: 'completed "Daily Workout"', time: '2h ago' },
-    { id: 'a2', user: 'Bella', action: 'logged progress on "Launch"', time: '3h ago' },
-    { id: 'a3', user: 'Max', action: 'joined the group', time: 'Yesterday' },
-]
+    setIsLoading(true)
+    setError(null)
+    try {
+      setData(await groupsApi.detail(groupId))
+    } catch (caughtError) {
+      setData(null)
+      setError(getApiErrorMessage(caughtError, 'Group could not be loaded.'))
+    } finally {
+      setIsLoading(false)
+    }
+  }, [auth.isAuthenticated, groupId])
 
-// ─────────────────────────────────────────────────────────────────
-// AUXILIARY COMPONENTS
-// ─────────────────────────────────────────────────────────────────
+  React.useEffect(() => {
+    if (auth.status === 'unauthenticated') {
+      router.replace(ROUTES.signIn)
+    }
+  }, [auth.status, router])
 
-// ─────────────────────────────────────────────────────────────────
-// TAB CONTENT COMPONENTS
-// ─────────────────────────────────────────────────────────────────
+  React.useEffect(() => {
+    void loadGroup()
+  }, [loadGroup])
 
-function OverviewTab() {
-    const router = useRouter()
+  if (auth.status === 'loading') {
+    return <CenteredMessage message="Checking authentication..." />
+  }
 
+  if (!auth.isAuthenticated) {
+    return <CenteredMessage message="Sign-in required." />
+  }
+
+  if (isLoading) {
+    return <CenteredMessage message="Loading group..." />
+  }
+
+  if (error || !data) {
     return (
-        <div className="space-y-6 motion-tab-content">
-            <div className="grid grid-cols-3 gap-2">
-                <div className="bg-bg-elevated rounded-lg p-3 border border-border-subtle flex flex-col items-center justify-center text-center min-h-[64px]">
-                    <div className="text-title font-semibold text-primary">
-                        {MOCK_ACHIEVEMENTS.length}
-                    </div>
-                    <div className="text-caption text-tertiary truncate w-full">
-                        Active
-                    </div>
-                </div>
-                <div className="bg-bg-elevated rounded-lg p-3 border border-border-subtle flex flex-col items-center justify-center text-center min-h-[64px]">
-                    <div className="text-title font-semibold text-challenge">
-                        {MOCK_CHALLENGES.filter((c) => c.status === 'active').length}
-                    </div>
-                    <div className="text-caption text-tertiary truncate w-full">
-                        Challenges
-                    </div>
-                </div>
-                <div className="bg-bg-elevated rounded-lg p-3 border border-border-subtle flex flex-col items-center justify-center text-center min-h-[64px]">
-                    <div className="text-title font-semibold text-success">89%</div>
-                    <div className="text-caption text-tertiary truncate w-full">
-                        This week
-                    </div>
-                </div>
-            </div>
-
-            <div>
-                <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-label font-medium">Recent Activity</h3>
-                    <button className="text-label text-primary">See all</button>
-                </div>
-                <div className="bg-bg-elevated rounded-xl border border-border-subtle divide-y divide-border-subtle">
-                    {MOCK_ACTIVITY.map((item) => (
-                        <div key={item.id} className="p-3 flex items-start gap-3">
-                            <div className="size-8 rounded-full bg-bg-muted flex items-center justify-center shrink-0">
-                                <AchievnoIcon
-                                    icon={IconActivity}
-                                    size="sm"
-                                    className="text-tertiary"
-                                />
-                            </div>
-                            <div className="flex-1 min-w-0 line-clamp-2">
-                <span className="text-label">
-                  <span className="font-medium">{item.user}</span>{' '}
-                    <span className="text-secondary">{item.action}</span>
-                </span>
-                            </div>
-                            <span className="text-caption text-tertiary shrink-0">
-                {item.time}
-              </span>
-                        </div>
-                    ))}
-                </div>
-            </div>
-
-            <div>
-                <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-label font-medium">Current Goals</h3>
-                    <button className="text-label text-primary">See all</button>
-                </div>
-                <div className="space-y-2">
-                    {MOCK_ACHIEVEMENTS.slice(0, 2).map((achievement) => (
-                        <AchievementCard
-                            key={achievement.id}
-                            achievement={achievement}
-                            variant="compact"
-                            onPress={() => router.push(ROUTES.achievement(achievement.id))}
-                        />
-                    ))}
-                </div>
-            </div>
-        </div>
+      <div className="min-h-screen bg-bg-base px-screen py-6">
+        <ListError message={error || 'Group could not be loaded.'} onRetry={() => void loadGroup()} />
+      </div>
     )
+  }
+
+  const { group, achievements } = data
+  const activeAchievements = achievements.filter((achievement) => achievement.status !== 'completed' && achievement.status !== 'archived')
+
+  return (
+    <div className="flex min-h-screen flex-col bg-bg-base">
+      <div className="safe-area-top border-b border-border-subtle px-screen py-3">
+        <div className="relative flex min-h-11 items-center justify-center">
+          <button
+            className="absolute left-0 flex h-11 w-11 items-center justify-center rounded-full border border-border-subtle bg-bg-elevated"
+            onClick={() => router.push(ROUTES.rootShell('groups'))}
+            aria-label="Back"
+          >
+            <AchievnoIcon icon={IconChevronRight} className="rotate-180" />
+          </button>
+
+          <div className="inline-flex h-11 items-center rounded-full border border-border-subtle bg-bg-elevated px-5">
+            <div className="text-center">
+              <p className="text-lg font-semibold leading-none">{group.title}</p>
+              <p className="text-xs text-secondary">{group.member_count} members</p>
+            </div>
+          </div>
+
+          <div className="absolute right-0 top-1/2 -translate-y-1/2">
+            <AchievnoAvatar name={group.title} src={group.avatar_url ?? undefined} size="lg" variant="rounded" />
+          </div>
+        </div>
+      </div>
+
+      <div className="sticky top-0 z-10 border-b border-border-subtle bg-bg-base">
+        <div className="px-screen py-2">
+          <TabBar
+            tabs={GROUP_TABS}
+            value={activeTab}
+            onChange={setActiveTab}
+            variant="default"
+            size="compact"
+          />
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-auto">
+        <div className="min-h-[300px] px-screen py-4">
+          {activeTab === 'overview' && (
+            <OverviewTab
+              data={data}
+              activeAchievementsCount={activeAchievements.length}
+              onOpenAchievement={(achievementId) => router.push(ROUTES.achievement(achievementId))}
+            />
+          )}
+          {activeTab === 'achievements' && (
+            <AchievementsTab
+              groupId={group.group_id}
+              achievements={achievements}
+              onReload={loadGroup}
+              onOpenAchievement={(achievementId) => router.push(ROUTES.achievement(achievementId))}
+            />
+          )}
+          {activeTab === 'challenges' && <ChallengesTab />}
+        </div>
+      </div>
+    </div>
+  )
 }
 
-function AchievementsTab() {
-    const router = useRouter()
+function OverviewTab({
+  data,
+  activeAchievementsCount,
+  onOpenAchievement,
+}: {
+  data: GroupDetailResponse
+  activeAchievementsCount: number
+  onOpenAchievement: (achievementId: string) => void
+}) {
+  const preview = data.achievements.slice(0, 2)
 
-    return (
-        <div className="motion-tab-content">
-            <div className="flex items-center justify-between mb-3">
-        <span className="text-label text-secondary">
-          {MOCK_ACHIEVEMENTS.length} achievements
-        </span>
-                <Button size="sm" className="bg-primary text-primary-foreground">
-                    <AchievnoIcon icon={IconPlus} size="sm" className="mr-1" />
-                    New
-                </Button>
-            </div>
-            <div className="space-y-2">
-                {MOCK_ACHIEVEMENTS.map((achievement) => (
-                    <AchievementCard
-                        key={achievement.id}
-                        achievement={achievement}
-                        variant="compact"
-                        onPress={() => router.push(ROUTES.achievement(achievement.id))}
-                    />
-                ))}
-            </div>
+  return (
+    <div className="space-y-5">
+      <section className="rounded-xl border border-border-subtle bg-bg-elevated p-4">
+        <div className="flex items-start gap-3">
+          <AchievnoAvatar name={data.group.title} src={data.group.avatar_url ?? undefined} size="lg" variant="rounded" />
+          <div className="min-w-0 flex-1">
+            <h1 className="text-heading font-semibold">{data.group.title}</h1>
+            <p className="mt-1 text-label capitalize text-secondary">
+              {data.group.visibility_type} · {data.group.role}
+            </p>
+            {data.group.description && (
+              <p className="mt-3 text-body text-secondary">{data.group.description}</p>
+            )}
+          </div>
         </div>
-    )
+      </section>
+
+      <div className="grid grid-cols-3 gap-2">
+        <StatTile icon={IconUsers} value={data.group.member_count} label="Members" />
+        <StatTile icon={IconTarget} value={activeAchievementsCount} label="Active" />
+        <StatTile icon={IconTrophy} value={data.group.completed_achievements_count} label="Done" />
+      </div>
+
+      <section className="space-y-2">
+        <h2 className="text-label font-medium">Current achievements</h2>
+        {preview.length > 0 ? (
+          <div className="space-y-2">
+            {preview.map((achievement) => (
+              <AchievementCard
+                key={achievement.achievement_id}
+                achievement={{ ...toUiAchievement(achievement), spaceType: 'group' }}
+                variant="compact"
+                onPress={() => onOpenAchievement(achievement.achievement_id)}
+              />
+            ))}
+          </div>
+        ) : (
+          <EmptyPanel message="No team achievements yet. Create one from the Achievements tab." />
+        )}
+      </section>
+    </div>
+  )
+}
+
+function AchievementsTab({
+  groupId,
+  achievements,
+  onReload,
+  onOpenAchievement,
+}: {
+  groupId: string
+  achievements: GroupDetailResponse['achievements']
+  onReload: () => Promise<void>
+  onOpenAchievement: (achievementId: string) => void
+}) {
+  const [showCreate, setShowCreate] = React.useState(false)
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-label text-secondary">{achievements.length} achievements</span>
+        <Button size="sm" className="bg-primary text-primary-foreground" onClick={() => setShowCreate((value) => !value)}>
+          <AchievnoIcon icon={IconPlus} size="sm" className="mr-1" />
+          New
+        </Button>
+      </div>
+
+      {showCreate && (
+        <GroupAchievementForm
+          groupId={groupId}
+          onCreated={async (achievementId) => {
+            setShowCreate(false)
+            await onReload()
+            onOpenAchievement(achievementId)
+          }}
+        />
+      )}
+
+      {achievements.length > 0 ? (
+        <div className="space-y-2">
+          {achievements.map((achievement) => (
+            <AchievementCard
+              key={achievement.achievement_id}
+              achievement={{ ...toUiAchievement(achievement), spaceType: 'group' }}
+              variant="compact"
+              onPress={() => onOpenAchievement(achievement.achievement_id)}
+            />
+          ))}
+        </div>
+      ) : (
+        <EmptyPanel message="No group achievements yet." />
+      )}
+    </div>
+  )
+}
+
+function GroupAchievementForm({
+  groupId,
+  onCreated,
+}: {
+  groupId: string
+  onCreated: (achievementId: string) => Promise<void>
+}) {
+  const [baseType, setBaseType] = React.useState<AchievementBaseType>('done')
+  const [title, setTitle] = React.useState('')
+  const [description, setDescription] = React.useState('')
+  const [target, setTarget] = React.useState('')
+  const [unit, setUnit] = React.useState('')
+  const [deadlineDate, setDeadlineDate] = React.useState('')
+  const [deadlineTime, setDeadlineTime] = React.useState('')
+  const [isSubmitting, setIsSubmitting] = React.useState(false)
+  const [error, setError] = React.useState<string | null>(null)
+
+  const canSubmit = title.trim().length >= 2 && (baseType === 'done' || Number(target) > 0)
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (!canSubmit) return
+
+    setIsSubmitting(true)
+    setError(null)
+    try {
+      const response = await groupsApi.createAchievement(groupId, {
+        base_type: baseType,
+        title: title.trim(),
+        short_definition: null,
+        description: description.trim() || null,
+        progress_target: baseType === 'progress' ? target : null,
+        unit_label: unit.trim() || null,
+        deadline_at: buildDeadlineIso(deadlineDate, deadlineTime),
+      })
+      await onCreated(response.achievement.achievement_id)
+    } catch (caughtError) {
+      setError(getApiErrorMessage(caughtError, 'Group achievement could not be created.'))
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-3 rounded-xl border border-border-subtle bg-bg-elevated p-4">
+      <div className="grid grid-cols-2 gap-2">
+        <Button type="button" variant={baseType === 'done' ? 'default' : 'outline'} onClick={() => setBaseType('done')}>
+          Done
+        </Button>
+        <Button type="button" variant={baseType === 'progress' ? 'default' : 'outline'} onClick={() => setBaseType('progress')}>
+          Progress
+        </Button>
+      </div>
+      <Input value={title} onChange={(event) => setTitle(event.target.value)} maxLength={180} placeholder="Achievement title" />
+      <Textarea value={description} onChange={(event) => setDescription(event.target.value)} rows={3} placeholder="Description" />
+      {baseType === 'progress' && (
+        <div className="grid grid-cols-2 gap-2">
+          <Input type="number" min="0.01" step="0.01" value={target} onChange={(event) => setTarget(event.target.value)} placeholder="Target" />
+          <Input value={unit} onChange={(event) => setUnit(event.target.value)} maxLength={64} placeholder="Unit" />
+        </div>
+      )}
+      <div className="grid grid-cols-2 gap-2">
+        <Input type="date" value={deadlineDate} onChange={(event) => setDeadlineDate(event.target.value)} />
+        <Input type="time" value={deadlineTime} onChange={(event) => setDeadlineTime(event.target.value)} disabled={!deadlineDate} />
+      </div>
+      {error && (
+        <div className="rounded-xl border border-destructive/20 bg-destructive/5 px-3 py-2 text-label text-destructive">
+          {error}
+        </div>
+      )}
+      <LoadingButton className="w-full" loading={isSubmitting} disabled={!canSubmit}>
+        Create achievement
+      </LoadingButton>
+    </form>
+  )
 }
 
 function ChallengesTab() {
-    const router = useRouter()
-
-    if (MOCK_CHALLENGES.length === 0) {
-        return <NoChallenges />
-    }
-
-    return (
-        <div className="motion-tab-content">
-            <div className="flex items-center justify-between mb-3">
-        <span className="text-label text-secondary">
-          {MOCK_CHALLENGES.length} challenges
-        </span>
-                <Button size="sm" className="bg-challenge text-challenge-foreground">
-                    <AchievnoIcon icon={IconPlus} size="sm" className="mr-1" />
-                    Create
-                </Button>
-            </div>
-            <div className="space-y-2">
-                {MOCK_CHALLENGES.map((challenge) => (
-                    <button
-                        key={challenge.id}
-                        onClick={() => router.push(`/app/challenges/${challenge.id}`)}
-                        className="w-full bg-bg-elevated rounded-xl border border-border-subtle p-3 text-left hover:bg-bg-muted transition-colors"
-                    >
-                        <div className="flex items-start justify-between mb-2">
-                            <div className="flex items-center gap-2">
-                                <div className="size-10 rounded-lg bg-challenge-subtle flex items-center justify-center">
-                                    <AchievnoIcon icon={IconTrophy} className="text-challenge" />
-                                </div>
-                                <div>
-                                    <h4 className="text-label font-medium">{challenge.title}</h4>
-                                    <p className="text-caption text-tertiary line-clamp-1">
-                                        {challenge.description}
-                                    </p>
-                                </div>
-                            </div>
-                            <AchievnoBadge
-                                variant={challenge.status === 'active' ? 'info' : 'muted'}
-                                size="sm"
-                            >
-                                {challenge.status === 'active' ? 'Active' : 'Soon'}
-                            </AchievnoBadge>
-                        </div>
-
-                        <div className="flex items-center justify-between pt-2 border-t border-border-subtle">
-                            <div className="flex items-center gap-1 text-caption text-tertiary">
-                                <AchievnoIcon icon={IconUsers} size="sm" />
-                                <span>{challenge.participantCount}</span>
-                            </div>
-                            {challenge.status === 'active' && challenge.leader && (
-                                <div className="flex items-center gap-1 text-caption">
-                                    <AchievnoIcon
-                                        icon={IconCrown}
-                                        size="sm"
-                                        className="text-primary"
-                                    />
-                                    <span>{challenge.leader.name}</span>
-                                    <span className="text-primary">
-                    {challenge.leader.score} pts
-                  </span>
-                                </div>
-                            )}
-                            {challenge.status === 'upcoming' && (
-                                <div className="flex items-center gap-1 text-caption text-tertiary">
-                                    <AchievnoIcon icon={IconCalendar} size="sm" />
-                                    <span>Starts {challenge.startDate}</span>
-                                </div>
-                            )}
-                        </div>
-                    </button>
-                ))}
-            </div>
-        </div>
-    )
+  return <EmptyPanel message="Group challenges are not connected yet. Personal challenges remain available from the main Challenges screen." />
 }
 
-// ─────────────────────────────────────────────────────────────────
-// MAIN COMPONENT
-// ─────────────────────────────────────────────────────────────────
+function StatTile({ icon, value, label }: { icon: typeof IconUsers; value: number; label: string }) {
+  return (
+    <div className="flex min-h-[72px] flex-col items-center justify-center rounded-lg border border-border-subtle bg-bg-elevated p-3 text-center">
+      <AchievnoIcon icon={icon} size="sm" className="mb-1 text-primary" />
+      <div className="text-title font-semibold text-primary-text">{value}</div>
+      <div className="w-full truncate text-caption text-tertiary">{label}</div>
+    </div>
+  )
+}
 
-export default function GroupWorkspacePage() {
-    const router = useRouter()
-    const [activeTab, setActiveTab] = useState<TabId>('overview')
-    const [isLoading] = useState(false)
+function EmptyPanel({ message }: { message: string }) {
+  return (
+    <div className="rounded-xl border border-dashed border-border-subtle bg-bg-muted px-4 py-3 text-sm text-tertiary">
+      {message}
+    </div>
+  )
+}
 
-    const renderTabContent = () => {
-        switch (activeTab) {
-            case 'overview':
-                return <OverviewTab />
-            case 'achievements':
-                return <AchievementsTab />
-            case 'challenges':
-                return <ChallengesTab />
-            default:
-                return null
-        }
-    }
-
-    return (
-        <>
-            <div className="min-h-screen bg-bg-base flex flex-col">
-                <div className="safe-area-top px-screen py-3 border-b border-border-subtle">
-                    <div className="relative flex min-h-11 items-center justify-center">
-                        <button
-                            className="absolute left-0 flex h-11 w-11 items-center justify-center rounded-full border border-border-subtle bg-bg-elevated"
-                            onClick={() => router.push(ROUTES.rootShell('groups'))}
-                            aria-label="Back"
-                        >
-                            <AchievnoIcon icon={IconChevronRight} className="rotate-180" />
-                        </button>
-
-                        <div className="inline-flex h-11 items-center rounded-full border border-border-subtle bg-bg-elevated px-5">
-                            <div className="text-center">
-                                <p className="text-lg font-semibold leading-none">{MOCK_GROUP.name}</p>
-                                <p className="text-xs text-secondary">{MOCK_GROUP.memberCount} members</p>
-                            </div>
-                        </div>
-
-                        <div className="absolute right-0 top-1/2 -translate-y-1/2">
-                            <AchievnoAvatar name={MOCK_GROUP.name} size="lg" variant="rounded" />
-                        </div>
-                    </div>
-                </div>
-
-                <div className="sticky top-0 z-10 bg-bg-base border-b border-border-subtle">
-                    <div className="px-screen py-2">
-                        <TabBar
-                            tabs={GROUP_TABS}
-                            value={activeTab}
-                            onChange={setActiveTab}
-                            variant="default"
-                            size="compact"
-                        />
-                    </div>
-                </div>
-
-                <div className="flex-1 overflow-auto">
-                    <div className="px-screen py-4 min-h-[300px]">
-                        <AsyncBoundary
-                            loading={isLoading}
-                            loadingFallback={<ActivityListSkeleton />}
-                        >
-                            {renderTabContent()}
-                        </AsyncBoundary>
-                    </div>
-                </div>
-            </div>
-        </>
-    )
+function CenteredMessage({ message }: { message: string }) {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-bg-base px-screen">
+      <div className="rounded-xl border border-border-subtle bg-bg-muted px-4 py-3 text-label text-secondary">
+        {message}
+      </div>
+    </div>
+  )
 }

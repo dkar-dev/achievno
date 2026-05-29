@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from decimal import Decimal
 from uuid import UUID, uuid4
 
-from django.db import IntegrityError, transaction
+from django.db import IntegrityError, models, transaction
 from django.utils import timezone
 
 
@@ -75,6 +75,14 @@ class PersonalAchievementRepository:
     def get_personal(self, *, profile_id: UUID, achievement_id: UUID):
         return (
             self._personal_queryset(profile_id=profile_id)
+            .select_related("primary_category", "rank", "owner_context")
+            .filter(achievement_id=achievement_id)
+            .first()
+        )
+
+    def get_visible(self, *, profile_id: UUID, achievement_id: UUID):
+        return (
+            self._visible_queryset(profile_id=profile_id)
             .select_related("primary_category", "rank", "owner_context")
             .filter(achievement_id=achievement_id)
             .first()
@@ -161,4 +169,26 @@ class PersonalAchievementRepository:
         return Achievement.objects.filter(
             owner_context__context_type="personal",
             owner_context__personal_profile_id=profile_id,
+        )
+
+    def _visible_queryset(self, *, profile_id: UUID):
+        load_model_graph()
+        from apps.achievements.infrastructure.models import Achievement
+        from apps.groups.infrastructure.models import GroupMembership
+
+        active_group_ids = GroupMembership.objects.filter(
+            profile_id=profile_id,
+            membership_status="active",
+            left_at__isnull=True,
+        ).values("group_id")
+
+        return Achievement.objects.filter(
+            (
+                models.Q(owner_context__context_type="personal")
+                & models.Q(owner_context__personal_profile_id=profile_id)
+            )
+            | (
+                models.Q(owner_context__context_type="group")
+                & models.Q(owner_context__group_id__in=active_group_ids)
+            )
         )

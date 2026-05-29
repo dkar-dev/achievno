@@ -8,6 +8,8 @@ import {
 } from '@/lib/achievno/api/achievements'
 import { getApiErrorMessage } from '@/lib/achievno/api/errors'
 
+const EMPTY_MOCK_LOGS: AchievementLog[] = []
+
 export type AchievementDetailState = {
   achievement: PersonalAchievement | null
   recentLogs: AchievementLog[]
@@ -20,7 +22,7 @@ export function useAchievementDetail({
   achievementId,
   enabled,
   mockAchievement,
-  mockLogs = [],
+  mockLogs = EMPTY_MOCK_LOGS,
 }: {
   achievementId: string
   enabled: boolean

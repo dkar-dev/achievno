@@ -59,6 +59,9 @@ export type MainGroupPreview = {
   visibility_type: string
   role: string
   membership_status: string
+  member_count: number
+  active_achievements_count: number
+  completed_achievements_count: number
   joined_at: string | null
 }
 

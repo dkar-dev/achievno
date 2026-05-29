@@ -9,7 +9,7 @@
  * ═══════════════════════════════════════════════════════════════
  */
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -26,6 +26,9 @@ import {
   IconCheck
 } from "@/lib/achievno/icons"
 import { ROUTES, UI, AVATAR_COLORS } from "@/lib/achievno/constants"
+import { groupsApi } from "@/lib/achievno/api/groups"
+import { getApiErrorMessage } from "@/lib/achievno/api/errors"
+import { useAuth } from "@/lib/achievno/auth/use-auth"
 import { cn } from "@/lib/utils"
 
 type GroupVisibility = "public" | "private"
@@ -47,24 +50,40 @@ const VISIBILITY_OPTIONS: { value: GroupVisibility; icon: typeof IconGlobe; labe
 
 export default function CreateGroupPage() {
   const router = useRouter()
+  const auth = useAuth()
   const [name, setName] = useState("")
   const [description, setDescription] = useState("")
   const [visibility, setVisibility] = useState<GroupVisibility>("public")
   const [selectedColor, setSelectedColor] = useState<(typeof AVATAR_COLORS)[number]>(AVATAR_COLORS[0])
   const [showDiscardConfirm, setShowDiscardConfirm] = useState(false)
   const [isCreating, setIsCreating] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const hasContent = name.trim().length > 0 || description.trim().length > 0
 
+  useEffect(() => {
+    if (auth.status === 'unauthenticated') {
+      router.replace(ROUTES.signIn)
+    }
+  }, [auth.status, router])
+
   const handleCreate = async () => {
     if (!name.trim()) return
-    
+
     setIsCreating(true)
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 500))
-    
-    // Would return the new group ID
-    router.push("/app/groups/new-group-id")
+    setError(null)
+    try {
+      const response = await groupsApi.create({
+        title: name.trim(),
+        description: description.trim() || null,
+        visibility_type: visibility,
+      })
+      router.push(ROUTES.group(response.group.group_id))
+    } catch (caughtError) {
+      setError(getApiErrorMessage(caughtError, 'Group could not be created.'))
+    } finally {
+      setIsCreating(false)
+    }
   }
 
   const handleBack = () => {
@@ -227,6 +246,12 @@ export default function CreateGroupPage() {
                   <p className="text-body text-secondary mt-3 line-clamp-2">{description}</p>
                 )}
               </div>
+            </div>
+          )}
+
+          {error && (
+            <div className="rounded-xl border border-destructive/20 bg-destructive/5 px-3 py-2 text-label text-destructive">
+              {error}
             </div>
           )}
         </div>

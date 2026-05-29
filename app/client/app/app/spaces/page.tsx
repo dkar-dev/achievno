@@ -73,7 +73,7 @@ const DEMO_PERSONAL_SPACE: Space = {
 const DEMO_FRIENDS: Space[] = [
     {
         id: 'fr-1',
-        type: 'personal',
+        type: 'friend',
         name: 'Alex Morgan',
         avatarInitials: 'AM',
         avatarColor: AVATAR_COLORS[4],
@@ -84,7 +84,7 @@ const DEMO_FRIENDS: Space[] = [
     },
     {
         id: 'fr-2',
-        type: 'personal',
+        type: 'friend',
         name: 'Nina Chen',
         avatarInitials: 'NC',
         avatarColor: AVATAR_COLORS[5],
@@ -193,6 +193,9 @@ const DEMO_MAIN_AGGREGATE: MainAggregate = {
             visibility_type: 'private',
             role: 'member',
             membership_status: 'active',
+            member_count: group.memberCount ?? 0,
+            active_achievements_count: group.activeCount,
+            completed_achievements_count: group.completedCount,
             joined_at: group.lastActivityAt,
         })),
     },
@@ -258,9 +261,9 @@ function groupSpaceFromPreview(group: MainGroupPreview): Space {
         avatarUrl: group.avatar_url ?? undefined,
         avatarInitials: initialsForName(group.title),
         avatarColor: colorForId(group.group_id),
-        memberCount: 0,
-        activeCount: 0,
-        completedCount: 0,
+        memberCount: group.member_count,
+        activeCount: group.active_achievements_count,
+        completedCount: group.completed_achievements_count,
         progressPercent: 0,
         hasUnread: false,
         lastActivityAt: group.joined_at || new Date(0).toISOString(),
@@ -274,13 +277,8 @@ function RootPillNav() {
     const [isSigningOut, setIsSigningOut] = React.useState(false)
 
     const settingsItems = [
-        { id: 'profile', label: 'Profile', route: ROUTES.profile },
-        { id: 'notifications', label: 'Notifications', route: '/app/settings/notifications' },
-        { id: 'privacy', label: 'Privacy', route: '/app/settings/privacy' },
-        { id: 'account', label: 'Account', route: '/app/settings/account' },
-        { id: 'language', label: 'Language', route: '/app/settings' },
-        { id: 'appearance', label: 'Appearance', route: '/app/settings' },
-        { id: 'about', label: 'About', route: '/app/settings' },
+        { id: 'notifications', label: 'Notifications', route: ROUTES.notifications },
+        { id: 'settings', label: 'Settings', route: ROUTES.settings },
         { id: 'logout', label: 'Logout', route: null },
     ] as const
 
@@ -402,10 +400,51 @@ function MainSurface({
                     onPress={() => router.push(ROUTES.personalWorkspace)}
                 />
                 {hasNoAchievements && (
-                    <div className="rounded-xl border border-dashed border-border-subtle px-4 py-3 text-sm text-tertiary">
-                        No personal achievements yet.
+                    <div className="rounded-xl border border-dashed border-border-subtle px-4 py-3">
+                        <p className="text-sm text-tertiary">No personal achievements yet.</p>
+                        <Button
+                            size="sm"
+                            variant="outline"
+                            className="mt-3 rounded-full"
+                            onClick={() => router.push(ROUTES.achievementCreate)}
+                        >
+                            <AchievnoIcon icon={IconPlus} size="sm" className="mr-1" />
+                            Create achievement
+                        </Button>
                     </div>
                 )}
+            </section>
+
+            <section className="space-y-3">
+                <div>
+                    <p className="text-caption font-semibold uppercase tracking-[0.24em] text-tertiary">
+                        Challenges
+                    </p>
+                    <h3 className="text-title font-semibold">Open challenge flows</h3>
+                </div>
+                <div className="rounded-xl border border-border-subtle bg-bg-elevated p-4">
+                    <p className="text-label text-secondary">
+                        Challenge data is loaded from the API on the challenge screens.
+                    </p>
+                    <div className="mt-3 flex gap-2">
+                        <Button
+                            size="sm"
+                            variant="outline"
+                            className="rounded-full"
+                            onClick={() => router.push(ROUTES.challenges)}
+                        >
+                            Open
+                        </Button>
+                        <Button
+                            size="sm"
+                            className="rounded-full bg-challenge text-challenge-foreground"
+                            onClick={() => router.push(ROUTES.challengeCreate)}
+                        >
+                            <AchievnoIcon icon={IconPlus} size="sm" className="mr-1" />
+                            Create
+                        </Button>
+                    </div>
+                </div>
             </section>
 
             <section className="space-y-3">
@@ -414,9 +453,6 @@ function MainSurface({
                         <p className="text-caption font-semibold uppercase tracking-[0.24em] text-tertiary">Friends</p>
                         <h3 className="text-title font-semibold">1-on-1 relations</h3>
                     </div>
-                    <Button size="sm" className="rounded-full" onClick={() => router.push(ROUTES.discover)}>
-                        + Invite
-                    </Button>
                 </div>
                 <input
                     placeholder="Search friend"

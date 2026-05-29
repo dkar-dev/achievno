@@ -55,6 +55,7 @@ class AuthApiTests(SimpleTestCase):
                 "account_id": str(account_id),
                 "profile_id": str(profile_id),
                 "email_verification_required": True,
+                "verification_email_sent": False,
                 "dev_verification_token": "dev-token",
             },
         )

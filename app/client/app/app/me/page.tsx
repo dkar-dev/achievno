@@ -116,9 +116,13 @@ export default function PersonalWorkspacePage() {
     }
   }, [auth.status, router])
 
-  const filteredAchievements = React.useMemo(
-    () => filterAchievements(achievements.items, filter).map(toUiAchievement),
+  const filteredApiAchievements = React.useMemo(
+    () => filterAchievements(achievements.items, filter),
     [achievements.items, filter],
+  )
+  const filteredAchievements = React.useMemo(
+    () => filteredApiAchievements.map(toUiAchievement),
+    [filteredApiAchievements],
   )
 
   const handleLogProgress = (achievement: Achievement) => {
@@ -204,15 +208,22 @@ export default function PersonalWorkspacePage() {
             </div>
           ) : filteredAchievements.length > 0 ? (
             <div className="flex flex-col gap-2">
-              {filteredAchievements.map((achievement) => (
+              {filteredAchievements.map((achievement, index) => {
+                const apiAchievement = filteredApiAchievements[index]
+                return (
                 <AchievementCard
                   key={achievement.id}
                   achievement={achievement}
                   variant="compact"
                   onPress={() => router.push(ROUTES.achievement(achievement.id))}
-                  onLogProgress={achievement.status === 'active' ? () => handleLogProgress(achievement) : undefined}
+                  onLogProgress={
+                    achievement.status === 'active' && apiAchievement?.base_type === 'progress'
+                      ? () => handleLogProgress(achievement)
+                      : undefined
+                  }
                 />
-              ))}
+                )
+              })}
             </div>
           ) : (
             <NoAchievements onAction={() => router.push(ROUTES.achievementCreate)} />

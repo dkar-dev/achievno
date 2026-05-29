@@ -111,6 +111,7 @@ class MainAggregateSelectors:
             .select_related("profile_a", "profile_b")
             .order_by("-updated_at", "-created_at")
         )
+        active_connections = connections.filter(status="active")
         counts = connections.aggregate(
             total=Count("friend_connection_id"),
             active=Count("friend_connection_id", filter=Q(status="active")),
@@ -119,17 +120,17 @@ class MainAggregateSelectors:
             side.friend_connection_id: side.side_status
             for side in FriendConnectionSide.objects.filter(
                 profile_id=self.profile_id,
-                friend_connection_id__in=connections.values("friend_connection_id")[:PREVIEW_LIMIT],
+                friend_connection_id__in=active_connections.values("friend_connection_id")[:PREVIEW_LIMIT],
             )
         }
 
         return {
             "total_count": counts["total"] or 0,
             "active_count": counts["active"] or 0,
-            "pending_count": 0,
+            "pending_count": (counts["total"] or 0) - (counts["active"] or 0),
             "preview": [
                 friend_connection_to_dto(connection, self.profile_id, side_statuses)
-                for connection in connections[:PREVIEW_LIMIT]
+                for connection in active_connections[:PREVIEW_LIMIT]
             ],
         }
 
@@ -140,9 +141,9 @@ class MainAggregateSelectors:
         memberships = (
             GroupMembership.objects.filter(
                 profile_id=self.profile_id,
+                membership_status="active",
                 left_at__isnull=True,
             )
-            .exclude(membership_status="removed")
             .select_related("group")
             .order_by("-updated_at", "-joined_at")
         )
@@ -216,6 +217,23 @@ def friend_connection_to_dto(connection, profile_id: UUID, side_statuses: dict) 
 
 
 def group_membership_to_dto(membership) -> dict:
+    load_unmanaged_model_graph()
+    from apps.achievements.infrastructure.models import Achievement
+    from apps.groups.infrastructure.models import GroupMembership
+
+    member_count = GroupMembership.objects.filter(
+        group_id=membership.group_id,
+        membership_status="active",
+        left_at__isnull=True,
+    ).count()
+    achievement_counts = Achievement.objects.filter(
+        owner_context__context_type="group",
+        owner_context__group_id=membership.group_id,
+    ).aggregate(
+        active=Count("achievement_id", filter=Q(status__in=["in_progress", "overdue", "in_review"])),
+        completed=Count("achievement_id", filter=Q(status="completed")),
+    )
+
     return {
         "group_id": str(membership.group.group_id),
         "title": membership.group.title,
@@ -223,6 +241,9 @@ def group_membership_to_dto(membership) -> dict:
         "visibility_type": membership.group.visibility_type,
         "role": membership.role,
         "membership_status": membership.membership_status,
+        "member_count": member_count,
+        "active_achievements_count": achievement_counts["active"] or 0,
+        "completed_achievements_count": achievement_counts["completed"] or 0,
         "joined_at": datetime_to_iso(membership.joined_at),
     }
 
