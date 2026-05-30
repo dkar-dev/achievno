@@ -108,7 +108,9 @@ export const ROUTES = {
   rootShell: (surface: RootShellSurface = 'main') =>
     surface === 'main' ? '/app/spaces' : `/app/spaces?surface=${surface}`,
   personalWorkspace: '/app/me',
+  friends: '/app/friends',
   friendsRemoved: '/app/friends/removed',
+  invite: (token: string) => `/app/invites/${token}`,
   discover: '/app/discover',
   notifications: '/app/notifications',
   profile: '/app/profile',

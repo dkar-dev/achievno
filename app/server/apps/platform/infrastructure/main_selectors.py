@@ -201,7 +201,17 @@ def achievement_to_dto(achievement) -> dict:
 
 
 def friend_connection_to_dto(connection, profile_id: UUID, side_statuses: dict) -> dict:
+    load_unmanaged_model_graph()
+    from apps.achievements.infrastructure.models import Achievement
+
     other_profile = connection.profile_b if connection.profile_a_id == profile_id else connection.profile_a
+    achievement_counts = Achievement.objects.filter(
+        owner_context__context_type="friend_connection",
+        owner_context__friend_connection_id=connection.friend_connection_id,
+    ).aggregate(
+        active=Count("achievement_id", filter=Q(status__in=["in_progress", "overdue", "in_review"])),
+        completed=Count("achievement_id", filter=Q(status="completed")),
+    )
     return {
         "friend_connection_id": str(connection.friend_connection_id),
         "status": connection.status,
@@ -212,6 +222,8 @@ def friend_connection_to_dto(connection, profile_id: UUID, side_statuses: dict) 
             "username": other_profile.username,
             "avatar_url": other_profile.avatar_url,
         },
+        "active_achievements_count": achievement_counts["active"] or 0,
+        "completed_achievements_count": achievement_counts["completed"] or 0,
         "updated_at": datetime_to_iso(connection.updated_at),
     }
 

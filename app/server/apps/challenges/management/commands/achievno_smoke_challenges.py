@@ -98,7 +98,10 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         try:
             ensure_live_postgresql_database()
-            with override_settings(ACHIEVNO_RETURN_DEV_VERIFICATION_TOKEN=True):
+            with override_settings(
+                ACHIEVNO_RETURN_DEV_VERIFICATION_TOKEN=True,
+                ACHIEVNO_SEND_VERIFICATION_EMAIL=False,
+            ):
                 run_challenges_smoke(APIClient(), self.stdout)
         except (AuthSmokeFailure, PersonalAchievementsSmokeFailure, ChallengesSmokeFailure) as exc:
             raise CommandError(str(exc)) from exc

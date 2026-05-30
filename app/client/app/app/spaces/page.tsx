@@ -12,7 +12,9 @@ import {
     IconCompass,
     IconPlus,
     IconSettings,
+    IconShare,
     IconTarget,
+    IconUserPlus,
     IconUsers,
 } from '@/lib/achievno/icons'
 import { AVATAR_COLORS, ROUTES, type RootShellSurface } from '@/lib/achievno/constants'
@@ -179,6 +181,8 @@ const DEMO_MAIN_AGGREGATE: MainAggregate = {
                 username: null,
                 avatar_url: friend.avatarUrl ?? null,
             },
+            active_achievements_count: friend.activeCount,
+            completed_achievements_count: friend.completedCount,
             updated_at: friend.lastActivityAt,
         })),
     },
@@ -246,8 +250,8 @@ function friendSpaceFromPreview(friend: MainFriendPreview): Space {
         avatarUrl: friend.profile.avatar_url ?? undefined,
         avatarInitials: initialsForName(friend.profile.display_name),
         avatarColor: colorForId(friend.profile.profile_id),
-        activeCount: friend.status === 'active' ? 1 : 0,
-        completedCount: 0,
+        activeCount: friend.active_achievements_count,
+        completedCount: friend.completed_achievements_count,
         hasUnread: false,
         lastActivityAt: friend.updated_at || new Date(0).toISOString(),
     }
@@ -386,6 +390,32 @@ function MainSurface({
     return (
         <div className="space-y-6">
             <section className="space-y-3">
+                <div className="rounded-xl border border-primary/25 bg-primary/5 p-4">
+                    <div className="flex items-start gap-3">
+                        <div className="flex size-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+                            <AchievnoIcon icon={IconUserPlus} size="sm" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                            <h3 className="text-title font-semibold">Invite a friend</h3>
+                            <p className="mt-1 text-label text-secondary">
+                                Create a 1-on-1 relation and track shared achievements together.
+                            </p>
+                        </div>
+                    </div>
+                    <div className="mt-3 grid grid-cols-2 gap-2">
+                        <Button className="rounded-full" onClick={() => router.push(ROUTES.friends)}>
+                            <AchievnoIcon icon={IconShare} size="sm" className="mr-1" />
+                            Invite
+                        </Button>
+                        <Button variant="outline" className="rounded-full" onClick={() => router.push(ROUTES.friends)}>
+                            <AchievnoIcon icon={IconUsers} size="sm" className="mr-1" />
+                            Friends
+                        </Button>
+                    </div>
+                </div>
+            </section>
+
+            <section className="space-y-3">
                 <div className="flex items-center justify-between">
                     <div>
                         <p className="text-caption font-semibold uppercase tracking-[0.24em] text-tertiary">
@@ -453,6 +483,10 @@ function MainSurface({
                         <p className="text-caption font-semibold uppercase tracking-[0.24em] text-tertiary">Friends</p>
                         <h3 className="text-title font-semibold">1-on-1 relations</h3>
                     </div>
+                    <Button size="sm" variant="outline" className="rounded-full" onClick={() => router.push(ROUTES.friends)}>
+                        <AchievnoIcon icon={IconUserPlus} size="sm" className="mr-1" />
+                        Invite
+                    </Button>
                 </div>
                 <input
                     placeholder="Search friend"

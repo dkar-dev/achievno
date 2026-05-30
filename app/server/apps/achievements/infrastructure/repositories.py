@@ -174,6 +174,7 @@ class PersonalAchievementRepository:
     def _visible_queryset(self, *, profile_id: UUID):
         load_model_graph()
         from apps.achievements.infrastructure.models import Achievement
+        from apps.friends.infrastructure.models import FriendConnectionSide
         from apps.groups.infrastructure.models import GroupMembership
 
         active_group_ids = GroupMembership.objects.filter(
@@ -181,6 +182,13 @@ class PersonalAchievementRepository:
             membership_status="active",
             left_at__isnull=True,
         ).values("group_id")
+        active_friend_connection_ids = FriendConnectionSide.objects.filter(
+            profile_id=profile_id,
+            side_status="active",
+            removed_at__isnull=True,
+            friend_connection__status="active",
+            friend_connection__tombstoned_at__isnull=True,
+        ).values("friend_connection_id")
 
         return Achievement.objects.filter(
             (
@@ -190,5 +198,9 @@ class PersonalAchievementRepository:
             | (
                 models.Q(owner_context__context_type="group")
                 & models.Q(owner_context__group_id__in=active_group_ids)
+            )
+            | (
+                models.Q(owner_context__context_type="friend_connection")
+                & models.Q(owner_context__friend_connection_id__in=active_friend_connection_ids)
             )
         )

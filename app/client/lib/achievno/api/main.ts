@@ -42,6 +42,8 @@ export type MainFriendPreview = {
     username: string | null
     avatar_url: string | null
   }
+  active_achievements_count: number
+  completed_achievements_count: number
   updated_at: string | null
 }
 
