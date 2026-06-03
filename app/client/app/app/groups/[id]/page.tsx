@@ -13,6 +13,7 @@ import {
   AchievnoIcon,
   IconChevronRight,
   IconPlus,
+  IconShare,
   IconTarget,
   IconTrophy,
   IconUsers,
@@ -26,6 +27,7 @@ import { ROUTES } from '@/lib/achievno/constants'
 
 const GROUP_TABS = [
   { id: 'overview' as const, label: 'Overview' },
+  { id: 'members' as const, label: 'Members' },
   { id: 'achievements' as const, label: 'Achievements' },
   { id: 'challenges' as const, label: 'Challenges' },
 ]
@@ -142,7 +144,15 @@ export default function GroupWorkspacePage() {
             <OverviewTab
               data={data}
               activeAchievementsCount={activeAchievements.length}
+              onInvite={() => router.push(ROUTES.groupInviteCreate(group.group_id))}
+              onShowMembers={() => setActiveTab('members')}
               onOpenAchievement={(achievementId) => router.push(ROUTES.achievement(achievementId))}
+            />
+          )}
+          {activeTab === 'members' && (
+            <MembersTab
+              data={data}
+              onInvite={() => router.push(ROUTES.groupInviteCreate(group.group_id))}
             />
           )}
           {activeTab === 'achievements' && (
@@ -163,13 +173,18 @@ export default function GroupWorkspacePage() {
 function OverviewTab({
   data,
   activeAchievementsCount,
+  onInvite,
+  onShowMembers,
   onOpenAchievement,
 }: {
   data: GroupDetailResponse
   activeAchievementsCount: number
+  onInvite: () => void
+  onShowMembers: () => void
   onOpenAchievement: (achievementId: string) => void
 }) {
   const preview = data.achievements.slice(0, 2)
+  const memberPreview = data.members.slice(0, 3)
 
   return (
     <div className="space-y-5">
@@ -179,12 +194,22 @@ function OverviewTab({
           <div className="min-w-0 flex-1">
             <h1 className="text-heading font-semibold">{data.group.title}</h1>
             <p className="mt-1 text-label capitalize text-secondary">
-              {data.group.visibility_type} · {data.group.role}
+              {data.group.visibility_type} · your role: {data.group.role}
             </p>
             {data.group.description && (
               <p className="mt-3 text-body text-secondary">{data.group.description}</p>
             )}
           </div>
+        </div>
+        <div className="mt-4 grid grid-cols-2 gap-2">
+          <Button className="rounded-full" onClick={onInvite}>
+            <AchievnoIcon icon={IconShare} size="sm" className="mr-1" />
+            Invite members
+          </Button>
+          <Button variant="outline" className="rounded-full" onClick={onShowMembers}>
+            <AchievnoIcon icon={IconUsers} size="sm" className="mr-1" />
+            View members
+          </Button>
         </div>
       </section>
 
@@ -193,6 +218,24 @@ function OverviewTab({
         <StatTile icon={IconTarget} value={activeAchievementsCount} label="Active" />
         <StatTile icon={IconTrophy} value={data.group.completed_achievements_count} label="Done" />
       </div>
+
+      <section className="space-y-2">
+        <div className="flex items-center justify-between">
+          <h2 className="text-label font-medium">Members</h2>
+          <button type="button" className="text-label font-medium text-primary" onClick={onShowMembers}>
+            See all
+          </button>
+        </div>
+        {memberPreview.length > 0 ? (
+          <div className="space-y-2">
+            {memberPreview.map((member) => (
+              <MemberRow key={member.membership_id} member={member} />
+            ))}
+          </div>
+        ) : (
+          <EmptyPanel message={`No members loaded yet. Your ${data.group.role} membership is active.`} />
+        )}
+      </section>
 
       <section className="space-y-2">
         <h2 className="text-label font-medium">Current achievements</h2>
@@ -215,6 +258,43 @@ function OverviewTab({
   )
 }
 
+function MembersTab({
+  data,
+  onInvite,
+}: {
+  data: GroupDetailResponse
+  onInvite: () => void
+}) {
+  return (
+    <div className="space-y-4">
+      <section className="rounded-xl border border-border-subtle bg-bg-elevated p-4">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h2 className="text-title font-semibold">Team members</h2>
+            <p className="mt-1 text-label text-secondary">
+              You are an active {data.group.role}. Member roles come from group memberships.
+            </p>
+          </div>
+          <Button size="sm" className="rounded-full" onClick={onInvite}>
+            <AchievnoIcon icon={IconShare} size="sm" className="mr-1" />
+            Invite
+          </Button>
+        </div>
+      </section>
+
+      {data.members.length > 0 ? (
+        <div className="space-y-2">
+          {data.members.map((member) => (
+            <MemberRow key={member.membership_id} member={member} />
+          ))}
+        </div>
+      ) : (
+        <EmptyPanel message={`No members loaded yet. Your ${data.group.role} membership is active.`} />
+      )}
+    </div>
+  )
+}
+
 function AchievementsTab({
   groupId,
   achievements,
@@ -231,10 +311,12 @@ function AchievementsTab({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3">
-        <span className="text-label text-secondary">{achievements.length} achievements</span>
+        <span className="text-label text-secondary">
+          {achievements.length} team achievements tracked for this group
+        </span>
         <Button size="sm" className="bg-primary text-primary-foreground" onClick={() => setShowCreate((value) => !value)}>
           <AchievnoIcon icon={IconPlus} size="sm" className="mr-1" />
-          New
+          New team achievement
         </Button>
       </div>
 
@@ -261,7 +343,7 @@ function AchievementsTab({
           ))}
         </div>
       ) : (
-        <EmptyPanel message="No group achievements yet." />
+        <EmptyPanel message="No team achievements yet. They are tracked for the group, not individual assignee management." />
       )}
     </div>
   )
@@ -321,7 +403,7 @@ function GroupAchievementForm({
         </Button>
       </div>
       <Input value={title} onChange={(event) => setTitle(event.target.value)} maxLength={180} placeholder="Achievement title" />
-      <Textarea value={description} onChange={(event) => setDescription(event.target.value)} rows={3} placeholder="Description" />
+      <Textarea value={description} onChange={(event) => setDescription(event.target.value)} rows={3} placeholder="Description for the team" />
       {baseType === 'progress' && (
         <div className="grid grid-cols-2 gap-2">
           <Input type="number" min="0.01" step="0.01" value={target} onChange={(event) => setTarget(event.target.value)} placeholder="Target" />
@@ -338,7 +420,7 @@ function GroupAchievementForm({
         </div>
       )}
       <LoadingButton className="w-full" loading={isSubmitting} disabled={!canSubmit}>
-        Create achievement
+        Create team achievement
       </LoadingButton>
     </form>
   )
@@ -346,6 +428,23 @@ function GroupAchievementForm({
 
 function ChallengesTab() {
   return <EmptyPanel message="Group challenges are not connected yet. Personal challenges remain available from the main Challenges screen." />
+}
+
+function MemberRow({ member }: { member: GroupDetailResponse['members'][number] }) {
+  return (
+    <div className="flex items-center gap-3 rounded-xl border border-border-subtle bg-bg-elevated p-3">
+      <AchievnoAvatar name={member.display_name} src={member.avatar_url ?? undefined} size="md" variant="rounded" />
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-label font-semibold">{member.display_name}</p>
+        <p className="truncate text-caption text-tertiary">
+          {member.username ? `@${member.username} · ` : ''}{member.role} · {member.status}
+        </p>
+      </div>
+      <span className="rounded-full bg-bg-muted px-2 py-1 text-[11px] font-medium capitalize text-secondary">
+        {member.role}
+      </span>
+    </div>
+  )
 }
 
 function StatTile({ icon, value, label }: { icon: typeof IconUsers; value: number; label: string }) {

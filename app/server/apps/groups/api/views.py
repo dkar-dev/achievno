@@ -20,7 +20,7 @@ from apps.groups.application.group_service import (
     GroupService,
     JoinDemoGroupCommand,
 )
-from apps.groups.domain.errors import GroupError, GroupNotFound, GroupValidationError
+from apps.groups.domain.errors import GroupError, GroupInviteNotFound, GroupNotFound, GroupValidationError
 
 
 def validation_error_response(serializer) -> Response:
@@ -94,6 +94,17 @@ class GroupDetailView(APIView):
         return Response(payload)
 
 
+class GroupMembersView(APIView):
+    authentication_classes = [CookieJWTAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, group_id: UUID):
+        payload = GroupQuery().members(profile_id=request.user.profile_id, group_id=group_id)
+        if payload is None:
+            return group_error_response(GroupNotFound())
+        return Response(payload)
+
+
 class GroupJoinView(APIView):
     authentication_classes = [CookieJWTAuthentication]
     permission_classes = [permissions.IsAuthenticated]
@@ -104,6 +115,41 @@ class GroupJoinView(APIView):
         except GroupError as exc:
             return group_error_response(exc)
         return Response(payload)
+
+
+class GroupInvitesView(APIView):
+    authentication_classes = [CookieJWTAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, group_id: UUID):
+        try:
+            payload = GroupService().create_invite(profile_id=request.user.profile_id, group_id=group_id)
+        except GroupError as exc:
+            return group_error_response(exc)
+        return Response(payload, status=status.HTTP_201_CREATED)
+
+
+class GroupInviteDetailView(APIView):
+    authentication_classes = [CookieJWTAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, token: str):
+        payload = GroupQuery().invite_detail(token=token)
+        if payload is None:
+            return group_error_response(GroupInviteNotFound())
+        return Response(payload)
+
+
+class GroupInviteAcceptView(APIView):
+    authentication_classes = [CookieJWTAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, token: str):
+        try:
+            payload = GroupService().accept_invite(token=token, profile_id=request.user.profile_id)
+        except GroupError as exc:
+            return group_error_response(exc)
+        return Response(payload, status=status.HTTP_201_CREATED)
 
 
 class GroupAchievementsView(APIView):

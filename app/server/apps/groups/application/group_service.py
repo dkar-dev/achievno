@@ -7,8 +7,15 @@ from uuid import UUID
 from django.db import DatabaseError
 
 from apps.achievements.application.personal_query import achievement_to_dto
-from apps.groups.application.group_query import group_to_dto
-from apps.groups.domain.errors import GroupNotFound, GroupPersistenceError, GroupValidationError
+from apps.groups.application.group_query import group_invite_to_dto, group_to_dto
+from apps.groups.domain.errors import (
+    GroupInviteAlreadyUsed,
+    GroupInviteInvalid,
+    GroupInviteNotFound,
+    GroupNotFound,
+    GroupPersistenceError,
+    GroupValidationError,
+)
 from apps.groups.infrastructure.repositories import (
     CreateGroupAchievementData,
     CreateGroupData,
@@ -83,6 +90,29 @@ class GroupService:
             raise GroupNotFound()
         group, membership = visible
         return {"group": self._group_payload(group, membership)}
+
+    def create_invite(self, *, profile_id: UUID, group_id: UUID) -> dict:
+        try:
+            invite = self.repository.create_invite(profile_id=profile_id, group_id=group_id)
+        except DatabaseError as exc:
+            raise GroupPersistenceError() from exc
+        if invite is None:
+            raise GroupNotFound()
+        return {"invite": group_invite_to_dto(invite)}
+
+    def accept_invite(self, *, token: str, profile_id: UUID) -> dict:
+        try:
+            result, state = self.repository.accept_invite(token=token, profile_id=profile_id)
+        except DatabaseError as exc:
+            raise GroupPersistenceError() from exc
+        if state == "not_found":
+            raise GroupInviteNotFound()
+        if state == "already_used":
+            raise GroupInviteAlreadyUsed()
+        if state in {"expired", "target_mismatch"}:
+            raise GroupInviteInvalid()
+        membership = result
+        return {"group": self._group_payload(membership.group, membership)}
 
     def create_achievement(
         self,

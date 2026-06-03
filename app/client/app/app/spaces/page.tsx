@@ -380,6 +380,7 @@ function MainSurface({
     const router = useRouter()
     const personalSpace = personalSpaceFromAggregate(aggregate)
     const friendSpaces = aggregate.friends.preview.map(friendSpaceFromPreview)
+    const groupSpaces = aggregate.groups.preview.map(groupSpaceFromPreview)
     const filteredFriends = friendSpaces.filter((friend) =>
         friend.name.toLowerCase().includes(friendSearch.toLowerCase()),
     )
@@ -474,6 +475,55 @@ function MainSurface({
                             Create
                         </Button>
                     </div>
+                </div>
+            </section>
+
+            <section className="space-y-3">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <p className="text-caption font-semibold uppercase tracking-[0.24em] text-tertiary">Groups</p>
+                        <h3 className="text-title font-semibold">Team achievement spaces</h3>
+                    </div>
+                    <Button size="sm" variant="outline" className="rounded-full" onClick={() => router.push(ROUTES.groupCreate)}>
+                        <AchievnoIcon icon={IconPlus} size="sm" className="mr-1" />
+                        Create
+                    </Button>
+                </div>
+                <div className="rounded-xl border border-border-subtle bg-bg-elevated p-4">
+                    <p className="text-label text-secondary">
+                        {aggregate.groups.total_count > 0
+                            ? `${aggregate.groups.total_count} real group spaces loaded from the API.`
+                            : 'No group spaces yet. Create a team or discover a public group.'}
+                    </p>
+                    <div className="mt-3 grid grid-cols-2 gap-2">
+                        <Button size="sm" className="rounded-full" onClick={() => router.push(ROUTES.rootShell('groups'))}>
+                            <AchievnoIcon icon={IconUsers} size="sm" className="mr-1" />
+                            Groups
+                        </Button>
+                        <Button size="sm" variant="outline" className="rounded-full" onClick={() => router.push(ROUTES.discover)}>
+                            <AchievnoIcon icon={IconCompass} size="sm" className="mr-1" />
+                            Discover
+                        </Button>
+                    </div>
+                </div>
+                <div className="space-y-2">
+                    {groupSpaces.slice(0, 3).map((group) => (
+                        <div key={group.id} className="space-y-2">
+                            <GroupSpaceItem
+                                space={group}
+                                onPress={() => router.push(ROUTES.group(group.id))}
+                            />
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                className="w-full rounded-full"
+                                onClick={() => router.push(ROUTES.groupInviteCreate(group.id))}
+                            >
+                                <AchievnoIcon icon={IconShare} size="sm" className="mr-1" />
+                                Invite to {group.name}
+                            </Button>
+                        </div>
+                    ))}
                 </div>
             </section>
 

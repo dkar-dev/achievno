@@ -18,6 +18,18 @@ export type GroupSummary = {
   joined_at: string | null
 }
 
+export type GroupMember = {
+  membership_id: string
+  profile_id: string
+  display_name: string
+  username: string | null
+  avatar_url: string | null
+  role: string
+  status: string
+  joined_at: string | null
+  created_at: string | null
+}
+
 export type GroupsListResponse = {
   items: GroupSummary[]
   total_count: number
@@ -28,7 +40,43 @@ export type GroupResponse = {
 }
 
 export type GroupDetailResponse = GroupResponse & {
+  members: GroupMember[]
   achievements: PersonalAchievement[]
+}
+
+export type GroupMembersResponse = {
+  items: GroupMember[]
+  total_count: number
+}
+
+export type GroupInvite = {
+  invite_id: string
+  invite_kind: string
+  delivery_mode: string
+  status: string
+  token: string
+  url: string | null
+  link_expires_at: string | null
+  accepted_at: string | null
+  created_at: string | null
+  sender_profile: {
+    profile_id: string
+    display_name: string
+    username: string | null
+    avatar_url: string | null
+  }
+  group: {
+    group_id: string
+    title: string
+    description: string | null
+    avatar_url: string | null
+    visibility_type: string
+  }
+  resolved_group_membership_id: string | null
+}
+
+export type GroupInviteResponse = {
+  invite: GroupInvite
 }
 
 export type GroupAchievementsResponse = {
@@ -64,6 +112,24 @@ export const groupsApi = {
   },
   join(groupId: string) {
     return apiFetch<GroupResponse>(`/api/v1/groups/${groupId}/join`, {
+      method: 'POST',
+      body: {},
+    })
+  },
+  members(groupId: string) {
+    return apiFetch<GroupMembersResponse>(`/api/v1/groups/${groupId}/members`)
+  },
+  createInvite(groupId: string) {
+    return apiFetch<GroupInviteResponse>(`/api/v1/groups/${groupId}/invites`, {
+      method: 'POST',
+      body: {},
+    })
+  },
+  inviteDetail(token: string) {
+    return apiFetch<GroupInviteResponse>(`/api/v1/group-invites/${encodeURIComponent(token)}`)
+  },
+  acceptInvite(token: string) {
+    return apiFetch<GroupResponse>(`/api/v1/group-invites/${encodeURIComponent(token)}/accept`, {
       method: 'POST',
       body: {},
     })

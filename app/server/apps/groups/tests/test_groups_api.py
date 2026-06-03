@@ -104,6 +104,96 @@ class GroupsApiTests(SimpleTestCase):
         self.assertEqual(response.status_code, 404)
         self.assertEqual(response.json()["error"]["code"], "group_not_found")
 
+    @patch("apps.groups.api.views.GroupQuery")
+    def test_group_members_list_returns_404_for_inaccessible_group(self, query_class):
+        group_id = uuid4()
+        query_class.return_value.members.return_value = None
+
+        response = self.client.get(f"/api/v1/groups/{group_id}/members")
+
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.json()["error"]["code"], "group_not_found")
+
+    @patch("apps.groups.api.views.GroupQuery")
+    def test_group_members_list_returns_member_dtos(self, query_class):
+        group_id = uuid4()
+        membership_id = uuid4()
+        query_class.return_value.members.return_value = {
+            "items": [
+                {
+                    "membership_id": str(membership_id),
+                    "profile_id": str(self.profile_id),
+                    "display_name": "Demo Owner",
+                    "username": "demo-owner",
+                    "role": "owner",
+                    "status": "active",
+                    "joined_at": "2026-06-03T10:00:00+00:00",
+                    "created_at": "2026-06-03T10:00:00+00:00",
+                }
+            ],
+            "total_count": 1,
+        }
+
+        response = self.client.get(f"/api/v1/groups/{group_id}/members")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["total_count"], 1)
+        self.assertEqual(response.json()["items"][0]["role"], "owner")
+        query_class.return_value.members.assert_called_once_with(profile_id=self.profile_id, group_id=group_id)
+
+    @patch("apps.groups.api.views.GroupService")
+    def test_create_group_invite_returns_shareable_link(self, service_class):
+        group_id = uuid4()
+        invite_id = uuid4()
+        service_class.return_value.create_invite.return_value = {
+            "invite": {
+                "invite_id": str(invite_id),
+                "status": "pending",
+                "token": "group-token",
+                "url": "http://127.0.0.1:3000/app/group-invites/group-token",
+            }
+        }
+
+        response = self.client.post(f"/api/v1/groups/{group_id}/invites", {}, format="json")
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.json()["invite"]["token"], "group-token")
+        service_class.return_value.create_invite.assert_called_once_with(
+            profile_id=self.profile_id,
+            group_id=group_id,
+        )
+
+    @patch("apps.groups.api.views.GroupQuery")
+    def test_group_invite_detail_returns_invite_by_token(self, query_class):
+        query_class.return_value.invite_detail.return_value = {"invite": {"token": "group-token"}}
+
+        response = self.client.get("/api/v1/group-invites/group-token")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {"invite": {"token": "group-token"}})
+        query_class.return_value.invite_detail.assert_called_once_with(token="group-token")
+
+    @patch("apps.groups.api.views.GroupService")
+    def test_accept_group_invite_returns_real_group(self, service_class):
+        group_id = uuid4()
+        service_class.return_value.accept_invite.return_value = {
+            "group": {
+                "group_id": str(group_id),
+                "title": "Demo Team",
+                "role": "member",
+                "membership_status": "active",
+            }
+        }
+
+        response = self.client.post("/api/v1/group-invites/group-token/accept", {}, format="json")
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.json()["group"]["group_id"], str(group_id))
+        service_class.return_value.accept_invite.assert_called_once_with(
+            token="group-token",
+            profile_id=self.profile_id,
+        )
+
     @patch("apps.groups.api.views.GroupService")
     def test_create_group_achievement_validates_done_without_target(self, service_class):
         group_id = uuid4()
