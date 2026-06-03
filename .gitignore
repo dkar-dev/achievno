@@ -2,6 +2,13 @@
 # Dependencies
 # ==========================================
 node_modules/
+app/server/.venv/
+
+# ==========================================
+# Python Generated Files
+# ==========================================
+__pycache__/
+*.py[cod]
 
 # ==========================================
 # Next.js Build Output
@@ -9,6 +16,7 @@ node_modules/
 .next/
 out/
 .next.user-config.*
+next-env.d.ts
 
 # ==========================================
 # TypeScript Build Cache
