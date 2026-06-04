@@ -15,6 +15,8 @@ Current release snapshot:
 - Server target: user's own Ubuntu VPS.
 - Preferred public API domain: `api.achievno.dkar-dev.ru`.
 - Future evidence file storage: Cloudflare R2.
+- VPS already has Docker and Docker Compose plugin installed.
+- VPS already runs Amnezia containers and port `443` is occupied by `amnezia-xray`; do not stop or modify these containers.
 
 ## Hard rules
 
@@ -26,6 +28,8 @@ Current release snapshot:
 - Do not break current MVP flows or smoke commands.
 - Do not implement approval/evidence UI in this task.
 - Do not move frontend away from Vercel.
+- Do not stop, remove, reconfigure, or assume control of existing Amnezia/VPN containers on the VPS.
+- Do not assume host ports `443`, `500/udp`, `4500/udp`, `44073/udp`, or `49630/udp` are available.
 - Keep changes deploy-oriented and bounded.
 - Commit and push after checks pass.
 
@@ -78,11 +82,12 @@ deploy/production/
 Required behavior:
 
 - API container listens on internal port 8000.
-- Reverse proxy exposes HTTPS API domain.
 - Production env is loaded from `.env` on the VPS, not committed.
 - Container restart policy is set.
 - Logs are inspectable with docker compose logs.
 - Production compose must not include real secrets.
+- Compose must not bind host port `443` by default because it is already used by Amnezia.
+- Prefer binding API to loopback only, e.g. `127.0.0.1:8000:8000`, and document how to expose it safely.
 
 Database choice:
 
@@ -90,11 +95,14 @@ Database choice:
 - If a Postgres service is included for convenience, it must be clearly optional and use a named volume.
 - Do not overwrite existing DB data.
 
-Reverse proxy:
+Reverse proxy / public access:
 
-- If using nginx, include config for `api.achievno.dkar-dev.ru` proxying to API container.
-- If using Caddy, include equivalent Caddyfile.
-- Keep it simple. TLS can be handled by nginx+certbot or Caddy.
+- Because host port `443` is already occupied, do not make nginx/Caddy require `443` by default.
+- Provide one of these safe deployment options in docs:
+  1. Cloudflare Tunnel from `api.achievno.dkar-dev.ru` to `http://127.0.0.1:8000`.
+  2. A non-conflicting Cloudflare-proxied HTTPS port such as `8443` if the user chooses to expose one.
+  3. DNS-only temporary testing on a high port, marked as not final.
+- If nginx config is provided, make it optional and clearly note that it needs free `80/443` or an alternate port setup.
 
 ## Priority 3 — GitHub Actions CI
 
@@ -134,6 +142,7 @@ Behavior:
 - Build/restart backend with Docker Compose.
 - Run lightweight backend health check after deploy.
 - Do not echo secrets.
+- Do not stop or modify unrelated Docker containers.
 
 Expected GitHub Secrets to document:
 
@@ -203,6 +212,8 @@ README.md if needed
 Docs must include:
 
 - DNS plan for `api.achievno.dkar-dev.ru`.
+- Note that the current VPS already has Amnezia using port `443`.
+- Recommended exposure path: Cloudflare Tunnel to `http://127.0.0.1:8000`, or an alternate supported Cloudflare proxied port if selected.
 - VPS package setup commands.
 - Docker Compose deploy commands.
 - GitHub Secrets list.
@@ -243,9 +254,10 @@ Do not claim VPS deployment passed unless actually run. If not run, report deplo
 If run on VPS, verify:
 
 - `docker compose ps`
-- `curl -f https://api.achievno.dkar-dev.ru/health`
-- `curl -f https://api.achievno.dkar-dev.ru/health/db`
-- Vercel frontend can call backend with cookies/CORS.
+- `curl -f http://127.0.0.1:8000/health` on VPS
+- `curl -f http://127.0.0.1:8000/health/db` on VPS
+- If public tunnel/domain was configured: `curl -f https://api.achievno.dkar-dev.ru/health`
+- Vercel frontend can call backend with cookies/CORS if public domain was configured.
 
 ## Required final report
 
