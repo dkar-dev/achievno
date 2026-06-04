@@ -130,5 +130,22 @@ EMAIL_TIMEOUT = env_int("EMAIL_TIMEOUT", 10)
 DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER)
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
 
+EVIDENCE_STORAGE_BACKEND = os.environ.get("EVIDENCE_STORAGE_BACKEND", "local").strip().lower()
+EVIDENCE_STORAGE_LOCAL_ROOT = Path(
+    os.environ.get("EVIDENCE_STORAGE_LOCAL_ROOT", BASE_DIR / "var" / "evidence")
+)
+CLOUDFLARE_R2_ACCOUNT_ID = os.environ.get("CLOUDFLARE_R2_ACCOUNT_ID", "")
+CLOUDFLARE_R2_ACCESS_KEY_ID = os.environ.get("CLOUDFLARE_R2_ACCESS_KEY_ID", "")
+CLOUDFLARE_R2_SECRET_ACCESS_KEY = os.environ.get("CLOUDFLARE_R2_SECRET_ACCESS_KEY", "")
+CLOUDFLARE_R2_BUCKET = os.environ.get("CLOUDFLARE_R2_BUCKET", "achievno-evidence-dev")
+CLOUDFLARE_R2_ENDPOINT_URL = os.environ.get(
+    "CLOUDFLARE_R2_ENDPOINT_URL",
+    (
+        f"https://{CLOUDFLARE_R2_ACCOUNT_ID}.r2.cloudflarestorage.com"
+        if CLOUDFLARE_R2_ACCOUNT_ID
+        else ""
+    ),
+)
+
 USE_TZ = True
 TIME_ZONE = "UTC"

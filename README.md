@@ -36,6 +36,12 @@ The backend container starts with `DJANGO_DEBUG=false`, allows `localhost`, `127
 
 Full snapshot status, smoke commands, deferred scope, and known gaps are tracked in [docs/dev/MVP_STATUS.md](docs/dev/MVP_STATUS.md).
 
+## VPS API Deployment
+
+The production API deployment scaffold lives in [deploy/production](deploy/production). It builds the Django backend with Gunicorn and binds the API to `127.0.0.1:8000` by default. It does not bind host port `443`; the current VPS already uses `443` for Amnezia.
+
+Keep the frontend on Vercel. Recommended public exposure is Cloudflare Tunnel from `api.achievno.dkar-dev.ru` to `http://127.0.0.1:8000`. Full VPS, GitHub Actions, and Cloudflare R2 notes are in [docs/dev/DEPLOYMENT_VPS.md](docs/dev/DEPLOYMENT_VPS.md).
+
 ## Current MVP Snapshot
 
 Status date: 2026-06-03.
