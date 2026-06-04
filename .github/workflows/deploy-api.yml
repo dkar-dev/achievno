@@ -2,6 +2,11 @@ name: Deploy API
 
 on:
   workflow_dispatch:
+  workflow_run:
+    workflows:
+      - CI
+    types:
+      - completed
 
 concurrency:
   group: deploy-api-production
@@ -11,7 +16,9 @@ jobs:
   deploy:
     name: Deploy API over SSH
     runs-on: ubuntu-latest
-    environment: production
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main')
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -65,15 +72,23 @@ jobs:
           DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
           ACCESS_TOKEN_SECRET=${ACCESS_TOKEN_SECRET}
           DJANGO_ALLOWED_HOSTS=api.achievno.dkar-dev.ru,localhost,127.0.0.1
-          CORS_ALLOWED_ORIGINS=https://achievno.dkar-dev.ru
-          ACHIEVNO_PUBLIC_APP_URL=https://achievno.dkar-dev.ru
+          CORS_ALLOWED_ORIGINS=https://achievno.vercel.app
+          ACHIEVNO_PUBLIC_APP_URL=https://achievno.vercel.app
           ACHIEVNO_AUTH_COOKIE_SECURE=true
           ACHIEVNO_AUTH_COOKIE_SAMESITE=None
+          ACHIEVNO_SEND_VERIFICATION_EMAIL=true
+          EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
+          EMAIL_HOST=smtp.gmail.com
+          EMAIL_PORT=587
+          EMAIL_USE_TLS=true
+          EMAIL_USE_SSL=false
           EMAIL_HOST_USER=${EMAIL_HOST_USER}
           EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD}
+          DEFAULT_FROM_EMAIL=${EMAIL_HOST_USER}
           API_HOST_BIND=127.0.0.1
           API_HOST_PORT=8000
           EVIDENCE_STORAGE_BACKEND=local
+          EVIDENCE_STORAGE_LOCAL_ROOT=/app/var/evidence
           CLOUDFLARE_R2_ACCOUNT_ID=${CLOUDFLARE_R2_ACCOUNT_ID}
           CLOUDFLARE_R2_ACCESS_KEY_ID=${CLOUDFLARE_R2_ACCESS_KEY_ID}
           CLOUDFLARE_R2_SECRET_ACCESS_KEY=${CLOUDFLARE_R2_SECRET_ACCESS_KEY}
