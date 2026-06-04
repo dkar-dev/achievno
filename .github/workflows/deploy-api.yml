@@ -99,6 +99,26 @@ jobs:
           docker compose -f deploy/production/docker-compose.yml build api
           docker compose -f deploy/production/docker-compose.yml up -d api
           docker compose -f deploy/production/docker-compose.yml ps
-          curl -f http://127.0.0.1:8000/health
-          curl -f http://127.0.0.1:8000/health/db
+
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8000/health; then
+              break
+            fi
+            if [ "$attempt" -eq 30 ]; then
+              docker compose -f deploy/production/docker-compose.yml logs --tail=160 api
+              exit 1
+            fi
+            sleep 2
+          done
+
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8000/health/db; then
+              break
+            fi
+            if [ "$attempt" -eq 30 ]; then
+              docker compose -f deploy/production/docker-compose.yml logs --tail=160 api
+              exit 1
+            fi
+            sleep 2
+          done
           REMOTE
