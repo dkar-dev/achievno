@@ -6,7 +6,11 @@ from uuid import UUID
 
 from django.db import DatabaseError, transaction
 
-from apps.achievements.application.personal_query import achievement_to_dto, log_to_dto
+from apps.achievements.application.personal_query import (
+    achievement_to_dto,
+    approval_request_to_summary_dto,
+    log_to_dto,
+)
 from apps.achievements.domain.errors import (
     PersonalAchievementArchived,
     PersonalAchievementNotFound,
@@ -112,6 +116,10 @@ class PersonalAchievementService:
         else:
             delta_value = Decimal("1.00")
         with transaction.atomic():
+            achievement = self.repository.ensure_completion_approval_policy(
+                achievement=achievement,
+                profile_id=profile_id,
+            )
             log_id = self._submit_progress(
                 achievement_id=achievement.achievement_id,
                 profile_id=profile_id,
@@ -123,7 +131,19 @@ class PersonalAchievementService:
                 achievement_id=achievement.achievement_id,
             )
             log = self.repository.get_log(achievement_log_id=log_id)
-        return {"achievement": achievement_to_dto(updated), "log": log_to_dto(log)}
+            approval_request = self.repository.latest_approval_request_for_log(
+                achievement_id=achievement.achievement_id,
+                achievement_log_id=log_id,
+            )
+        return {
+            "achievement": achievement_to_dto(updated),
+            "log": log_to_dto(log),
+            "approval_request": (
+                approval_request_to_summary_dto(approval_request)
+                if approval_request is not None
+                else None
+            ),
+        }
 
     def archive(self, *, profile_id: UUID, achievement_id: UUID) -> dict:
         achievement = self.repository.get_visible(profile_id=profile_id, achievement_id=achievement_id)

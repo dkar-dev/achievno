@@ -96,6 +96,7 @@ class PersonalAchievementsApiTests(SimpleTestCase):
         query_class.return_value.detail.return_value = {
             "achievement": {"achievement_id": str(achievement_id), "title": "Read"},
             "recent_logs": [],
+            "approval_request": None,
         }
 
         response = self.client.get(f"/api/v1/achievements/{achievement_id}")
@@ -173,4 +174,85 @@ class PersonalAchievementsApiTests(SimpleTestCase):
         service_class.return_value.archive.assert_called_once_with(
             profile_id=self.profile_id,
             achievement_id=achievement_id,
+        )
+
+    @patch("apps.achievements.api.views.EvidenceService")
+    def test_evidence_list_returns_visible_achievement_evidence(self, service_class):
+        achievement_id = uuid4()
+        service_class.return_value.list_for_achievement.return_value = {"items": []}
+
+        response = self.client.get(f"/api/v1/achievements/{achievement_id}/evidence")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {"items": []})
+        service_class.return_value.list_for_achievement.assert_called_once_with(
+            profile_id=self.profile_id,
+            achievement_id=achievement_id,
+        )
+
+    @patch("apps.achievements.api.views.EvidenceService")
+    def test_evidence_attach_accepts_link_and_note(self, service_class):
+        achievement_id = uuid4()
+        service_class.return_value.attach_to_achievement.return_value = {
+            "evidence": {"kind": "link", "url": "https://example.com/proof"}
+        }
+
+        response = self.client.post(
+            f"/api/v1/achievements/{achievement_id}/evidence",
+            {"kind": "link", "url": "https://example.com/proof", "note_text": "Proof"},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 201)
+        command = service_class.return_value.attach_to_achievement.call_args.kwargs["command"]
+        self.assertEqual(command.kind, "link")
+        self.assertEqual(command.url, "https://example.com/proof")
+        self.assertEqual(command.note_text, "Proof")
+
+    def test_evidence_attach_rejects_link_without_url(self):
+        achievement_id = uuid4()
+
+        response = self.client.post(
+            f"/api/v1/achievements/{achievement_id}/evidence",
+            {"kind": "link", "note_text": "Missing URL"},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("url", response.json()["error"]["fields"])
+
+    @patch("apps.achievements.api.views.ApprovalService")
+    def test_approval_list_uses_current_profile(self, service_class):
+        service_class.return_value.list.return_value = {"items": []}
+
+        response = self.client.get("/api/v1/approvals?status=pending")
+
+        self.assertEqual(response.status_code, 200)
+        service_class.return_value.list.assert_called_once_with(
+            profile_id=self.profile_id,
+            status_filter="pending",
+        )
+
+    @patch("apps.achievements.api.views.ApprovalService")
+    def test_approval_decision_uses_assigned_profile(self, service_class):
+        approval_request_id = uuid4()
+        service_class.return_value.decide.return_value = {
+            "approval_request": {
+                "approval_request_id": str(approval_request_id),
+                "request_status": "approved",
+            }
+        }
+
+        response = self.client.post(
+            f"/api/v1/approvals/{approval_request_id}/approve",
+            {"note_text": "Looks good"},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        service_class.return_value.decide.assert_called_once_with(
+            profile_id=self.profile_id,
+            approval_request_id=approval_request_id,
+            decision="approve",
+            note_text="Looks good",
         )

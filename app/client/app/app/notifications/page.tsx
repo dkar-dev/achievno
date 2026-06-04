@@ -1,281 +1,195 @@
-"use client"
+'use client'
 
-/**
- * ═══════════════════════════════════════════════════════════════
- * NOTIFICATIONS SCREEN
- * ═══════════════════════════════════════════════════════════════
- * Route: /app/notifications
- * Shows all user notifications grouped by recency
- * ═══════════════════════════════════════════════════════════════
- */
-
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { BackHeader } from "@/components/achievno/header"
-import { AchievnoAvatar } from "@/components/achievno/avatar"
-import { EmptyState } from "@/components/achievno/empty-state"
+import * as React from 'react'
+import { useRouter } from 'next/navigation'
+import { EmptyState } from '@/components/achievno/empty-state'
+import { BackHeader } from '@/components/achievno/header'
+import { ListError, Spinner } from '@/components/achievno/loading-states'
 import {
-    AchievnoIcon,
-    IconBell,
-    IconTrophy,
-    IconUsers,
-    IconTarget,
-    IconCheck,
-    IconActivity
-} from "@/lib/achievno/icons"
-import { ROUTES } from "@/lib/achievno/constants"
-import { cn } from "@/lib/utils"
+  notificationsApi,
+  type AppNotification,
+} from '@/lib/achievno/api/notifications'
+import { getApiErrorMessage } from '@/lib/achievno/api/errors'
+import { useAuth } from '@/lib/achievno/auth/use-auth'
+import { ROUTES } from '@/lib/achievno/constants'
+import { AchievnoIcon, IconBell, IconShield, IconTarget, IconUsers } from '@/lib/achievno/icons'
+import { cn } from '@/lib/utils'
 
-type NotificationType = "achievement" | "challenge" | "group" | "invite" | "comment"
-
-interface Notification {
-    id: string
-    type: NotificationType
-    title: string
-    message: string
-    time: string
-    isRead: boolean
-    actionUrl?: string
-    actor?: {
-        name: string
-        avatar: string | null
-    }
-}
-
-// Mock notifications
-const MOCK_NOTIFICATIONS: Notification[] = [
-    {
-        id: "1",
-        type: "achievement",
-        title: "Achievement Progress",
-        message: "Alex completed 3 more steps on \"Launch Presentation\"",
-        time: "5 min ago",
-        isRead: false,
-        actionUrl: "/app/achievements/1",
-        actor: { name: "Alex Chen", avatar: null },
-    },
-    {
-        id: "2",
-        type: "challenge",
-        title: "Challenge Update",
-        message: "You moved up to #2 in \"Code Review Sprint\"",
-        time: "1 hour ago",
-        isRead: false,
-        actionUrl: "/app/challenges/c1",
-    },
-    {
-        id: "3",
-        type: "group",
-        title: "Group Activity",
-        message: "3 new achievements were completed in Dev Team",
-        time: "2 hours ago",
-        isRead: true,
-        actionUrl: "/app/groups/dev-team",
-    },
-    {
-        id: "4",
-        type: "invite",
-        title: "Group Invite",
-        message: "Emma invited you to join \"Design Crew\"",
-        time: "3 hours ago",
-        isRead: true,
-        actor: { name: "Emma Wilson", avatar: null },
-    },
-    {
-        id: "5",
-        type: "comment",
-        title: "New Comment",
-        message: "Bella commented on your achievement \"Daily Workout\"",
-        time: "Yesterday",
-        isRead: true,
-        actionUrl: "/app/achievements/2",
-        actor: { name: "Bella Rodriguez", avatar: null },
-    },
-]
-
-const getNotificationIcon = (type: NotificationType) => {
-    switch (type) {
-        case "achievement":
-            return IconTarget
-        case "challenge":
-            return IconTrophy
-        case "group":
-            return IconUsers
-        case "invite":
-            return IconUsers
-        case "comment":
-            return IconActivity
-        default:
-            return IconBell
-    }
-}
-
-const getNotificationColor = (type: NotificationType) => {
-    switch (type) {
-        case "achievement":
-            return "bg-success-subtle text-success"
-        case "challenge":
-            return "bg-challenge-subtle text-challenge"
-        case "group":
-            return "bg-info-subtle text-info"
-        case "invite":
-            return "bg-accent-subtle text-primary"
-        case "comment":
-            return "bg-secondary text-foreground"
-        default:
-            return "bg-secondary text-foreground"
-    }
-}
+type NotificationTone = 'approval' | 'achievement' | 'group' | 'default'
 
 export default function NotificationsPage() {
-    const router = useRouter()
-    const [notifications, setNotifications] = useState(MOCK_NOTIFICATIONS)
+  const router = useRouter()
+  const auth = useAuth()
+  const [notifications, setNotifications] = React.useState<AppNotification[]>([])
+  const [isLoading, setIsLoading] = React.useState(true)
+  const [error, setError] = React.useState<string | null>(null)
 
-    const unreadCount = notifications.filter(n => !n.isRead).length
-
-    const markAllAsRead = () => {
-        setNotifications(prev => prev.map(n => ({ ...n, isRead: true })))
+  const load = React.useCallback(async () => {
+    if (!auth.isAuthenticated) return
+    setIsLoading(true)
+    setError(null)
+    try {
+      const response = await notificationsApi.list({ limit: 100 })
+      setNotifications(response.items)
+    } catch (caughtError) {
+      setNotifications([])
+      setError(getApiErrorMessage(caughtError, 'Notifications could not be loaded.'))
+    } finally {
+      setIsLoading(false)
     }
+  }, [auth.isAuthenticated])
 
-    const handleNotificationClick = (notification: Notification) => {
-        // Mark as read
-        setNotifications(prev =>
-            prev.map(n => (n.id === notification.id ? { ...n, isRead: true } : n))
-        )
-        // Navigate if there's an action URL
-        if (notification.actionUrl) {
-            router.push(notification.actionUrl)
+  React.useEffect(() => {
+    if (auth.status === 'unauthenticated') {
+      router.replace(ROUTES.signIn)
+      return
+    }
+    if (auth.isAuthenticated) {
+      void load()
+    }
+  }, [auth.isAuthenticated, auth.status, load, router])
+
+  const unreadCount = notifications.filter((notification) => !notification.is_read).length
+
+  const markAllAsRead = async () => {
+    const unread = notifications.filter((notification) => !notification.is_read)
+    await Promise.all(unread.map((notification) => notificationsApi.markRead(notification.notification_id)))
+    await load()
+  }
+
+  const handleNotificationClick = async (notification: AppNotification) => {
+    if (!notification.is_read) {
+      await notificationsApi.markRead(notification.notification_id)
+      setNotifications((current) =>
+        current.map((item) =>
+          item.notification_id === notification.notification_id ? { ...item, is_read: true } : item,
+        ),
+      )
+    }
+    const target = notification.action_url || notificationRoute(notification)
+    if (target) {
+      router.push(target)
+    }
+  }
+
+  if (auth.status === 'loading') {
+    return <CenteredMessage message="Checking authentication..." />
+  }
+
+  if (!auth.isAuthenticated) {
+    return <CenteredMessage message="Sign-in required." />
+  }
+
+  return (
+    <div className="flex min-h-screen flex-col bg-bg-base">
+      <BackHeader
+        title="Notifications"
+        onBack={() => router.push(ROUTES.rootShell())}
+        rightActions={
+          unreadCount > 0 ? (
+            <button onClick={() => void markAllAsRead()} className="px-2 text-label text-primary">
+              Mark all read
+            </button>
+          ) : undefined
         }
-    }
+      />
 
-    const todayNotifications = notifications.filter(n =>
-        n.time.includes("min") || n.time.includes("hour")
-    )
-    const olderNotifications = notifications.filter(n =>
-        !n.time.includes("min") && !n.time.includes("hour")
-    )
-
-    return (
-        <div className="min-h-screen bg-background flex flex-col">
-            <BackHeader
-                title="Notifications"
-                onBack={() => router.push(ROUTES.rootShell())}
-                rightActions={
-                    unreadCount > 0 ? (
-                        <button
-                            onClick={markAllAsRead}
-                            className="text-label text-primary px-2"
-                        >
-                            Mark all read
-                        </button>
-                    ) : undefined
-                }
+      <div className="flex-1 overflow-y-auto">
+        {isLoading ? (
+          <div className="flex min-h-64 items-center justify-center">
+            <Spinner />
+          </div>
+        ) : error ? (
+          <div className="px-screen py-4">
+            <ListError message={error} onRetry={() => void load()} />
+          </div>
+        ) : notifications.length === 0 ? (
+          <div className="p-5">
+            <EmptyState
+              icon={<IconBell size={40} />}
+              title="No notifications"
+              description="You're all caught up. New approval activity will appear here."
             />
-
-            <div className="flex-1 overflow-auto">
-                {notifications.length === 0 ? (
-                    <div className="p-5">
-                        <EmptyState
-                            icon={<IconBell size={40} />}
-                            title="No notifications"
-                            description="You're all caught up! New notifications will appear here."
-                        />
-                    </div>
-                ) : (
-                    <div className="divide-y divide-border">
-                        {/* Today */}
-                        {todayNotifications.length > 0 && (
-                            <div>
-                                <div className="px-5 py-2 bg-surface">
-                                    <span className="text-caption text-secondary">Today</span>
-                                </div>
-                                {todayNotifications.map((notification) => (
-                                    <button
-                                        key={notification.id}
-                                        onClick={() => handleNotificationClick(notification)}
-                                        className={cn(
-                                            "w-full px-5 py-4 flex items-start gap-3 text-left hover:bg-surface/50 transition-colors",
-                                            !notification.isRead && "bg-accent-subtle/30"
-                                        )}
-                                    >
-                                        <div className={cn(
-                                            "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
-                                            getNotificationColor(notification.type)
-                                        )}>
-                                            <AchievnoIcon icon={getNotificationIcon(notification.type)} size="sm" />
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex items-center gap-2 mb-1">
-                        <span className={cn(
-                            "text-label",
-                            !notification.isRead && "font-semibold"
-                        )}>
-                          {notification.title}
-                        </span>
-                                                {!notification.isRead && (
-                                                    <div className="w-2 h-2 rounded-full bg-primary" />
-                                                )}
-                                            </div>
-                                            <p className="text-body text-secondary line-clamp-2">
-                                                {notification.message}
-                                            </p>
-                                            <span className="text-caption text-tertiary mt-1 block">
-                        {notification.time}
-                      </span>
-                                        </div>
-                                    </button>
-                                ))}
-                            </div>
-                        )}
-
-                        {/* Older */}
-                        {olderNotifications.length > 0 && (
-                            <div>
-                                <div className="px-5 py-2 bg-surface">
-                                    <span className="text-caption text-secondary">Earlier</span>
-                                </div>
-                                {olderNotifications.map((notification) => (
-                                    <button
-                                        key={notification.id}
-                                        onClick={() => handleNotificationClick(notification)}
-                                        className={cn(
-                                            "w-full px-5 py-4 flex items-start gap-3 text-left hover:bg-surface/50 transition-colors",
-                                            !notification.isRead && "bg-accent-subtle/30"
-                                        )}
-                                    >
-                                        <div className={cn(
-                                            "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
-                                            getNotificationColor(notification.type)
-                                        )}>
-                                            <AchievnoIcon icon={getNotificationIcon(notification.type)} size="sm" />
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex items-center gap-2 mb-1">
-                        <span className={cn(
-                            "text-label",
-                            !notification.isRead && "font-semibold"
-                        )}>
-                          {notification.title}
-                        </span>
-                                                {!notification.isRead && (
-                                                    <div className="w-2 h-2 rounded-full bg-primary" />
-                                                )}
-                                            </div>
-                                            <p className="text-body text-secondary line-clamp-2">
-                                                {notification.message}
-                                            </p>
-                                            <span className="text-caption text-tertiary mt-1 block">
-                        {notification.time}
-                      </span>
-                                        </div>
-                                    </button>
-                                ))}
-                            </div>
-                        )}
-                    </div>
+          </div>
+        ) : (
+          <div className="divide-y divide-border-subtle">
+            {notifications.map((notification) => (
+              <button
+                key={notification.notification_id}
+                onClick={() => void handleNotificationClick(notification)}
+                className={cn(
+                  'flex w-full items-start gap-3 px-5 py-4 text-left transition-colors hover:bg-bg-muted',
+                  !notification.is_read && 'bg-accent-subtle/30',
                 )}
-            </div>
-        </div>
-    )
+              >
+                <div className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-xl', toneClass(notificationTone(notification)))}>
+                  <AchievnoIcon icon={notificationIcon(notificationTone(notification))} size="sm" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="mb-1 flex items-center gap-2">
+                    <span className={cn('text-label', !notification.is_read && 'font-semibold')}>
+                      {notification.title}
+                    </span>
+                    {!notification.is_read && <span className="h-2 w-2 rounded-full bg-primary" />}
+                  </div>
+                  <p className="line-clamp-2 text-body text-secondary">{notification.body}</p>
+                  <span className="mt-1 block text-caption text-tertiary">
+                    {formatDateTime(notification.created_at)}
+                  </span>
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function notificationRoute(notification: AppNotification) {
+  if (notification.approval_request_id) return ROUTES.approvals
+  if (notification.achievement_id) return ROUTES.achievement(notification.achievement_id)
+  if (notification.group_id) return ROUTES.group(notification.group_id)
+  return null
+}
+
+function notificationTone(notification: AppNotification): NotificationTone {
+  if (notification.approval_request_id || notification.type.includes('approval')) return 'approval'
+  if (notification.achievement_id || notification.type.includes('achievement')) return 'achievement'
+  if (notification.group_id || notification.friend_connection_id) return 'group'
+  return 'default'
+}
+
+function notificationIcon(tone: NotificationTone) {
+  if (tone === 'approval') return IconShield
+  if (tone === 'achievement') return IconTarget
+  if (tone === 'group') return IconUsers
+  return IconBell
+}
+
+function toneClass(tone: NotificationTone) {
+  if (tone === 'approval') return 'bg-primary/10 text-primary'
+  if (tone === 'achievement') return 'bg-success/10 text-success'
+  if (tone === 'group') return 'bg-info/10 text-info'
+  return 'bg-bg-muted text-secondary'
+}
+
+function formatDateTime(dateStr?: string | null): string {
+  if (!dateStr) return 'Recently'
+  return new Date(dateStr).toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
+function CenteredMessage({ message }: { message: string }) {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-bg-base px-screen">
+      <div className="rounded-xl border border-border-subtle bg-bg-muted px-4 py-3 text-label text-secondary">
+        {message}
+      </div>
+    </div>
+  )
 }

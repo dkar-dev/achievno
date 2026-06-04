@@ -114,6 +114,7 @@ export const ROUTES = {
   groupInvite: (token: string) => `/app/group-invites/${token}`,
   discover: '/app/discover',
   notifications: '/app/notifications',
+  approvals: '/app/approvals',
   profile: '/app/profile',
   profileEdit: '/app/profile/edit',
   settings: '/app/settings',

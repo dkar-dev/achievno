@@ -97,11 +97,155 @@ class PersonalAchievementRepository:
             .order_by("-created_at")[:limit]
         )
 
+    def evidence_logs(self, *, achievement_id: UUID) -> list[object]:
+        load_model_graph()
+        from apps.achievements.infrastructure.models import AchievementLog
+
+        return list(
+            AchievementLog.objects.filter(achievement_id=achievement_id)
+            .order_by("-created_at")
+        )
+
     def get_log(self, *, achievement_log_id: UUID):
         load_model_graph()
         from apps.achievements.infrastructure.models import AchievementLog
 
         return AchievementLog.objects.get(achievement_log_id=achievement_log_id)
+
+    def create_evidence_log(self, *, achievement, profile_id: UUID, note_text: str | None):
+        load_model_graph()
+        from apps.achievements.infrastructure.models import AchievementLog
+
+        return AchievementLog.objects.create(
+            achievement_log_id=uuid4(),
+            achievement=achievement,
+            actor_profile_id=profile_id,
+            action_type="evidence_attached",
+            delta_value=Decimal("0.00"),
+            resulting_value=achievement.progress_current,
+            note_text=note_text,
+            created_at=timezone.now(),
+        )
+
+    def create_evidence_asset(
+        self,
+        *,
+        owner_profile_id: UUID,
+        storage_provider: str,
+        storage_key: str,
+        file_name: str,
+        mime_type: str,
+        size_bytes: int,
+        checksum_sha256: str,
+    ):
+        load_model_graph()
+        from apps.achievements.infrastructure.models import EvidenceAsset
+
+        return EvidenceAsset.objects.create(
+            evidence_asset_id=uuid4(),
+            owner_profile_id=owner_profile_id,
+            storage_provider=storage_provider,
+            storage_key=storage_key,
+            file_name=file_name,
+            mime_type=mime_type,
+            size_bytes=size_bytes,
+            checksum_sha256=checksum_sha256,
+            created_at=timezone.now(),
+        )
+
+    def create_evidence_link(
+        self,
+        *,
+        target_kind: str,
+        target_id: UUID,
+        asset,
+        caption: str | None,
+    ):
+        load_model_graph()
+        from apps.achievements.infrastructure.models import EvidenceLink
+
+        return EvidenceLink.objects.create(
+            evidence_link_id=uuid4(),
+            target_kind=target_kind,
+            target_id=target_id,
+            asset=asset,
+            caption=caption,
+            created_at=timezone.now(),
+        )
+
+    def list_evidence_links(self, *, target_ids_by_kind: dict[str, list[UUID]]) -> list[object]:
+        load_model_graph()
+        from apps.achievements.infrastructure.models import EvidenceLink
+
+        query = models.Q()
+        for target_kind, target_ids in target_ids_by_kind.items():
+            if target_ids:
+                query |= models.Q(target_kind=target_kind, target_id__in=target_ids)
+        if not query:
+            return []
+        return list(
+            EvidenceLink.objects.select_related("asset")
+            .filter(query)
+            .order_by("-created_at")
+        )
+
+    def ensure_completion_approval_policy(self, *, achievement, profile_id: UUID):
+        if achievement.owner_context.context_type == "personal" or achievement.approval_policy_id:
+            return achievement
+
+        load_model_graph()
+        from apps.achievements.infrastructure.models import Achievement, ApprovalPolicy
+
+        now = timezone.now()
+        policy = ApprovalPolicy.objects.create(
+            approval_policy_id=uuid4(),
+            mode="completion",
+            min_approvals=1,
+            require_evidence=False,
+            allowed_approver_scope="all_members",
+            created_by_profile_id=profile_id,
+            owner_context=achievement.owner_context,
+            created_at=now,
+            updated_at=now,
+        )
+        achievement.approval_policy = policy
+        achievement.updated_at = now
+        achievement.save(update_fields=["approval_policy", "updated_at"])
+        return Achievement.objects.select_related("primary_category", "rank", "owner_context").get(
+            achievement_id=achievement.achievement_id
+        )
+
+    def latest_approval_request_for_log(self, *, achievement_id: UUID, achievement_log_id: UUID):
+        load_model_graph()
+        from apps.achievements.infrastructure.models import ApprovalRequest
+
+        return (
+            ApprovalRequest.objects.select_related("achievement", "origin_progress_log")
+            .filter(achievement_id=achievement_id, origin_progress_log_id=achievement_log_id)
+            .order_by("-created_at")
+            .first()
+        )
+
+    def latest_approval_request_for_achievement(self, *, achievement_id: UUID):
+        load_model_graph()
+        from apps.achievements.infrastructure.models import ApprovalRequest
+
+        return (
+            ApprovalRequest.objects.select_related("achievement", "origin_progress_log")
+            .filter(achievement_id=achievement_id)
+            .order_by("-created_at")
+            .first()
+        )
+
+    def approval_requests_for_achievement(self, *, achievement_id: UUID) -> list[object]:
+        load_model_graph()
+        from apps.achievements.infrastructure.models import ApprovalRequest
+
+        return list(
+            ApprovalRequest.objects.select_related("achievement", "origin_progress_log")
+            .filter(achievement_id=achievement_id)
+            .order_by("-created_at")
+        )
 
     @transaction.atomic
     def create_personal(self, *, profile_id: UUID, data: CreateAchievementData):

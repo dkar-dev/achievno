@@ -40,9 +40,11 @@ def rank_to_dto(rank) -> dict | None:
 
 
 def achievement_to_dto(achievement) -> dict:
+    owner_context = getattr(achievement, "owner_context", None)
     return {
         "achievement_id": str(achievement.achievement_id),
         "owner_context_id": str(achievement.owner_context_id),
+        "owner_context_type": getattr(owner_context, "context_type", None),
         "base_type": achievement.base_type,
         "assignment_mode": achievement.assignment_mode,
         "title": achievement.title,
@@ -73,6 +75,20 @@ def log_to_dto(log) -> dict:
     }
 
 
+def approval_request_to_summary_dto(request) -> dict:
+    return {
+        "approval_request_id": str(request.approval_request_id),
+        "achievement_id": str(request.achievement_id),
+        "origin_progress_log_id": str(request.origin_progress_log_id),
+        "request_status": request.request_status,
+        "min_approval_count": request.min_approval_count,
+        "current_approval_count": request.current_approval_count,
+        "current_reject_count": request.current_reject_count,
+        "created_at": datetime_to_iso(request.created_at),
+        "resolved_at": datetime_to_iso(request.resolved_at),
+    }
+
+
 class PersonalAchievementQuery:
     def __init__(self, repository: PersonalAchievementRepository | None = None):
         self.repository = repository or PersonalAchievementRepository()
@@ -93,7 +109,15 @@ class PersonalAchievementQuery:
         if achievement is None:
             return None
         logs = self.repository.recent_logs(achievement_id=achievement.achievement_id)
+        approval_request = self.repository.latest_approval_request_for_achievement(
+            achievement_id=achievement.achievement_id
+        )
         return {
             "achievement": achievement_to_dto(achievement),
             "recent_logs": [log_to_dto(log) for log in logs],
+            "approval_request": (
+                approval_request_to_summary_dto(approval_request)
+                if approval_request is not None
+                else None
+            ),
         }

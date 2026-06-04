@@ -8,20 +8,28 @@ import { AchievnoProgress } from '@/components/achievno/progress'
 import { AchievementDetailSkeleton } from '@/components/achievno/skeleton'
 import { ListError, LoadingButton } from '@/components/achievno/loading-states'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import { useAuth } from '@/lib/achievno/auth/use-auth'
-import { achievementsApi, type AchievementLog, type PersonalAchievement } from '@/lib/achievno/api/achievements'
+import {
+  achievementsApi,
+  type AchievementEvidence,
+  type AchievementLog,
+  type PersonalAchievement,
+} from '@/lib/achievno/api/achievements'
 import { getApiErrorMessage } from '@/lib/achievno/api/errors'
 import {
   PERSONAL_ACHIEVEMENTS_USE_MOCKS,
 } from '@/lib/achievno/achievements/use-personal-achievements'
 import { useAchievementDetail } from '@/lib/achievno/achievements/use-achievement-detail'
 import { toUiAchievement } from '@/lib/achievno/achievements/format'
-import { IconArchive, IconCheck, IconPlus } from '@/lib/achievno/icons'
+import { IconArchive, IconCheck, IconClock, IconExternalLink, IconPlus, IconShield } from '@/lib/achievno/icons'
 import { ROUTES, STATUS_LABELS } from '@/lib/achievno/constants'
 
 const DEMO_ACHIEVEMENT: PersonalAchievement = {
   achievement_id: 'demo-progress-achievement',
   owner_context_id: 'demo-personal',
+  owner_context_type: 'personal',
   base_type: 'progress',
   assignment_mode: 'self',
   title: 'Read 10 Books',
@@ -77,6 +85,10 @@ export default function AchievementDetailPage() {
   const achievementId = params.id
   const [isCompleting, setIsCompleting] = React.useState(false)
   const [isArchiving, setIsArchiving] = React.useState(false)
+  const [evidenceKind, setEvidenceKind] = React.useState<'link' | 'note'>('link')
+  const [evidenceUrl, setEvidenceUrl] = React.useState('')
+  const [evidenceNote, setEvidenceNote] = React.useState('')
+  const [isAddingEvidence, setIsAddingEvidence] = React.useState(false)
   const [actionError, setActionError] = React.useState<string | null>(null)
   const detail = useAchievementDetail({
     achievementId,
@@ -95,6 +107,7 @@ export default function AchievementDetailPage() {
   const isCompleted = achievement?.status === 'completed'
   const isArchived = achievement?.status === 'archived'
   const isDoneType = achievement?.base_type === 'done'
+  const isSharedContext = achievement?.owner_context_type === 'friend_connection' || achievement?.owner_context_type === 'group'
   const summary = achievement ? achievement.description || achievement.short_definition : null
 
   const handleComplete = async () => {
@@ -126,6 +139,26 @@ export default function AchievementDetailPage() {
       setActionError(getApiErrorMessage(caughtError, 'Achievement could not be archived.'))
     } finally {
       setIsArchiving(false)
+    }
+  }
+
+  const handleAddEvidence = async () => {
+    if (!achievement) return
+    setActionError(null)
+    setIsAddingEvidence(true)
+    try {
+      await achievementsApi.attachEvidence(achievement.achievement_id, {
+        kind: evidenceKind,
+        url: evidenceKind === 'link' ? evidenceUrl.trim() : null,
+        note_text: evidenceNote.trim() || null,
+      })
+      setEvidenceUrl('')
+      setEvidenceNote('')
+      await detail.reload()
+    } catch (caughtError) {
+      setActionError(getApiErrorMessage(caughtError, 'Evidence could not be added.'))
+    } finally {
+      setIsAddingEvidence(false)
     }
   }
 
@@ -218,6 +251,99 @@ export default function AchievementDetailPage() {
               </div>
             )}
 
+            {detail.approvalRequest && (
+              <section className="rounded-xl border border-border-subtle bg-bg-elevated p-4">
+                <div className="flex items-start gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-bg-muted text-primary">
+                    <IconShield size={20} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-3">
+                      <h2 className="text-title font-semibold">Approval</h2>
+                      <AchievnoBadge
+                        variant={detail.approvalRequest.request_status === 'approved' ? 'success' : detail.approvalRequest.request_status === 'rejected' ? 'destructive' : 'primary'}
+                        size="sm"
+                      >
+                        {approvalStatusLabel(detail.approvalRequest.request_status)}
+                      </AchievnoBadge>
+                    </div>
+                    <p className="mt-1 text-label text-secondary">
+                      {detail.approvalRequest.current_approval_count}/{detail.approvalRequest.min_approval_count} approvals
+                      {detail.approvalRequest.current_reject_count > 0 ? ` · ${detail.approvalRequest.current_reject_count} rejected` : ''}
+                    </p>
+                  </div>
+                </div>
+              </section>
+            )}
+
+            <section className="space-y-3 rounded-xl border border-border-subtle bg-bg-elevated p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <h2 className="text-title font-semibold">Evidence</h2>
+                  <p className="mt-1 text-label text-secondary">
+                    Evidence is optional but useful for verification.
+                    {isSharedContext ? ' Shared achievements may enter approval after completion.' : ''}
+                  </p>
+                </div>
+                <IconClock size={20} className="mt-0.5 text-tertiary" />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setEvidenceKind('link')}
+                  className={`rounded-lg border px-3 py-2 text-label font-medium ${evidenceKind === 'link' ? 'border-primary bg-accent-subtle text-primary' : 'border-border-subtle text-secondary'}`}
+                >
+                  Link
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEvidenceKind('note')}
+                  className={`rounded-lg border px-3 py-2 text-label font-medium ${evidenceKind === 'note' ? 'border-primary bg-accent-subtle text-primary' : 'border-border-subtle text-secondary'}`}
+                >
+                  Note
+                </button>
+              </div>
+
+              {evidenceKind === 'link' && (
+                <Input
+                  value={evidenceUrl}
+                  onChange={(event) => setEvidenceUrl(event.target.value)}
+                  placeholder="https://example.com/proof"
+                  inputMode="url"
+                  className="h-11 rounded-xl"
+                />
+              )}
+              <Textarea
+                value={evidenceNote}
+                onChange={(event) => setEvidenceNote(event.target.value)}
+                placeholder={evidenceKind === 'link' ? 'Add context for this evidence' : 'Write a short evidence note'}
+                className="min-h-20 rounded-xl"
+              />
+              <LoadingButton
+                loading={isAddingEvidence}
+                onClick={() => void handleAddEvidence()}
+                disabled={evidenceKind === 'link' ? !evidenceUrl.trim() : !evidenceNote.trim()}
+                variant="outline"
+                className="h-11 w-full rounded-xl"
+              >
+                <IconPlus size={18} className="mr-2" />
+                Add evidence
+              </LoadingButton>
+
+              {detail.evidence.length > 0 ? (
+                <div className="space-y-2 pt-1">
+                  {detail.evidence.map((evidence) => (
+                    <EvidenceItem key={evidence.evidence_link_id} evidence={evidence} />
+                  ))}
+                </div>
+              ) : (
+                <div className="rounded-xl border border-dashed border-border-subtle bg-bg-muted px-4 py-3 text-sm text-tertiary">
+                  No evidence attached yet.
+                </div>
+              )}
+            </section>
+
             <section className="space-y-2">
               <h2 className="text-caption font-semibold uppercase text-tertiary">Recent logs</h2>
               {detail.recentLogs.length > 0 ? (
@@ -304,6 +430,40 @@ function InfoPill({ label, value }: { label: string; value: string }) {
     <div className="rounded-xl border border-border-subtle bg-bg-muted px-3 py-2">
       <p className="text-caption text-tertiary">{label}</p>
       <p className="truncate text-label font-medium text-primary-text">{value}</p>
+    </div>
+  )
+}
+
+function approvalStatusLabel(status: string) {
+  if (status === 'pending') return 'Pending'
+  if (status === 'approved') return 'Approved'
+  if (status === 'rejected') return 'Rejected'
+  return 'Cancelled'
+}
+
+function EvidenceItem({ evidence }: { evidence: AchievementEvidence }) {
+  return (
+    <div className="rounded-xl border border-border-subtle bg-bg-muted px-3 py-2">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-label font-medium capitalize">{evidence.kind}</p>
+          {evidence.url ? (
+            <a
+              href={evidence.url}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-0.5 inline-flex max-w-full items-center gap-1 truncate text-label text-primary"
+            >
+              <span className="truncate">{evidence.url}</span>
+              <IconExternalLink size={14} />
+            </a>
+          ) : null}
+          {evidence.note_text ? (
+            <p className="mt-0.5 text-caption text-secondary">{evidence.note_text}</p>
+          ) : null}
+        </div>
+        {evidence.created_at && <span className="shrink-0 text-caption text-tertiary">{formatDateTime(evidence.created_at)}</span>}
+      </div>
     </div>
   )
 }

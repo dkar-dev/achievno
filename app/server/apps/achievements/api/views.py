@@ -8,12 +8,17 @@ from rest_framework.views import APIView
 
 from apps.accounts.infrastructure.authentication import CookieJWTAuthentication
 from apps.achievements.api.serializers import (
+    ApprovalDecisionSerializer,
+    ApprovalListSerializer,
+    EvidenceAttachSerializer,
     PersonalAchievementCreateSerializer,
     PersonalAchievementListSerializer,
     PersonalAchievementNoteSerializer,
     PersonalAchievementPatchSerializer,
     PersonalAchievementProgressSerializer,
 )
+from apps.achievements.application.approval_service import ApprovalService
+from apps.achievements.application.evidence_service import EvidenceAttachCommand, EvidenceService
 from apps.achievements.application.personal_query import PersonalAchievementQuery
 from apps.achievements.application.personal_service import (
     CreatePersonalAchievementCommand,
@@ -151,3 +156,98 @@ class PersonalAchievementArchiveView(APIView):
         except PersonalAchievementError as exc:
             return personal_error_response(exc)
         return Response(payload)
+
+
+class AchievementEvidenceView(APIView):
+    authentication_classes = [CookieJWTAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, achievement_id: UUID):
+        payload = EvidenceService().list_for_achievement(
+            profile_id=request.user.profile_id,
+            achievement_id=achievement_id,
+        )
+        if payload is None:
+            return personal_error_response(PersonalAchievementNotFound())
+        return Response(payload)
+
+    def post(self, request, achievement_id: UUID):
+        serializer = EvidenceAttachSerializer(data=request.data)
+        if not serializer.is_valid():
+            return validation_error_response(serializer)
+        uploaded_file = serializer.validated_data.get("file")
+        try:
+            payload = EvidenceService().attach_to_achievement(
+                profile_id=request.user.profile_id,
+                achievement_id=achievement_id,
+                command=EvidenceAttachCommand(
+                    kind=serializer.validated_data["kind"],
+                    url=serializer.validated_data.get("url"),
+                    note_text=serializer.validated_data.get("note_text"),
+                    file_name=getattr(uploaded_file, "name", None),
+                    mime_type=getattr(uploaded_file, "content_type", None),
+                    content=uploaded_file.read() if uploaded_file is not None else None,
+                ),
+            )
+        except PersonalAchievementError as exc:
+            return personal_error_response(exc)
+        return Response(payload, status=status.HTTP_201_CREATED)
+
+
+class ApprovalRequestsView(APIView):
+    authentication_classes = [CookieJWTAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        serializer = ApprovalListSerializer(data=request.query_params)
+        if not serializer.is_valid():
+            return validation_error_response(serializer)
+        payload = ApprovalService().list(
+            profile_id=request.user.profile_id,
+            status_filter=serializer.validated_data.get("status"),
+        )
+        return Response(payload)
+
+
+class ApprovalRequestDetailView(APIView):
+    authentication_classes = [CookieJWTAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, approval_request_id: UUID):
+        payload = ApprovalService().detail(
+            profile_id=request.user.profile_id,
+            approval_request_id=approval_request_id,
+        )
+        if payload is None:
+            return personal_error_response(PersonalAchievementNotFound())
+        return Response(payload)
+
+
+class ApprovalRequestDecisionView(APIView):
+    authentication_classes = [CookieJWTAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
+
+    decision: str
+
+    def post(self, request, approval_request_id: UUID):
+        serializer = ApprovalDecisionSerializer(data=request.data or {})
+        if not serializer.is_valid():
+            return validation_error_response(serializer)
+        try:
+            payload = ApprovalService().decide(
+                profile_id=request.user.profile_id,
+                approval_request_id=approval_request_id,
+                decision=self.decision,
+                note_text=serializer.validated_data.get("note_text"),
+            )
+        except PersonalAchievementError as exc:
+            return personal_error_response(exc)
+        return Response(payload)
+
+
+class ApprovalRequestApproveView(ApprovalRequestDecisionView):
+    decision = "approve"
+
+
+class ApprovalRequestRejectView(ApprovalRequestDecisionView):
+    decision = "reject"

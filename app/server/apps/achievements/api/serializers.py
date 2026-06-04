@@ -126,3 +126,49 @@ class PersonalAchievementNoteSerializer(serializers.Serializer):
             return None
         value = value.strip()
         return value or None
+
+
+class EvidenceAttachSerializer(serializers.Serializer):
+    kind = serializers.ChoiceField(choices=["note", "link", "file"])
+    url = serializers.URLField(required=False, allow_blank=True, allow_null=True)
+    note_text = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    file = serializers.FileField(required=False, allow_null=True)
+
+    def validate_note_text(self, value: str | None) -> str | None:
+        if value is None:
+            return None
+        value = value.strip()
+        return value or None
+
+    def validate_url(self, value: str | None) -> str | None:
+        if value is None:
+            return None
+        value = value.strip()
+        return value or None
+
+    def validate(self, attrs):
+        kind = attrs.get("kind")
+        if kind == "link" and not attrs.get("url"):
+            raise serializers.ValidationError({"url": ["URL evidence requires a URL."]})
+        if kind == "note" and not attrs.get("note_text"):
+            raise serializers.ValidationError({"note_text": ["Note evidence requires text."]})
+        if kind == "file" and not attrs.get("file"):
+            raise serializers.ValidationError({"file": ["File evidence requires an uploaded file."]})
+        return attrs
+
+
+class ApprovalListSerializer(serializers.Serializer):
+    status = serializers.ChoiceField(
+        required=False,
+        choices=["pending", "approved", "rejected", "cancelled"],
+    )
+
+
+class ApprovalDecisionSerializer(serializers.Serializer):
+    note_text = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+
+    def validate_note_text(self, value: str | None) -> str | None:
+        if value is None:
+            return None
+        value = value.strip()
+        return value or None

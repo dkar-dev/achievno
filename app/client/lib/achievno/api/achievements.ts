@@ -15,6 +15,7 @@ export type AchievementReference = {
 export type PersonalAchievement = {
   achievement_id: string
   owner_context_id: string
+  owner_context_type: 'personal' | 'friend_connection' | 'group' | null
   base_type: AchievementBaseType
   assignment_mode: 'self' | 'all_members' | 'selected_members'
   title: string
@@ -51,12 +52,53 @@ export type PersonalAchievementResponse = {
   achievement: PersonalAchievement
 }
 
+export type AchievementApprovalRequestSummary = {
+  approval_request_id: string
+  achievement_id: string
+  origin_progress_log_id: string
+  request_status: 'pending' | 'approved' | 'rejected' | 'cancelled'
+  min_approval_count: number
+  current_approval_count: number
+  current_reject_count: number
+  created_at: string | null
+  resolved_at: string | null
+}
+
+export type AchievementEvidence = {
+  evidence_link_id: string
+  target_kind: 'achievement_log' | 'approval_request'
+  target_id: string
+  kind: 'note' | 'link' | 'file'
+  url: string | null
+  note_text: string | null
+  file_name: string
+  mime_type: string
+  size_bytes: number
+  created_at: string | null
+}
+
 export type PersonalAchievementDetailResponse = PersonalAchievementResponse & {
   recent_logs: AchievementLog[]
+  approval_request: AchievementApprovalRequestSummary | null
 }
 
 export type PersonalAchievementProgressResponse = PersonalAchievementResponse & {
   log: AchievementLog
+  approval_request?: AchievementApprovalRequestSummary | null
+}
+
+export type AchievementEvidenceListResponse = {
+  items: AchievementEvidence[]
+}
+
+export type AchievementEvidenceAttachRequest = {
+  kind: 'note' | 'link'
+  url?: string | null
+  note_text?: string | null
+}
+
+export type AchievementEvidenceAttachResponse = {
+  evidence: AchievementEvidence
 }
 
 export type CreatePersonalAchievementRequest = {
@@ -115,6 +157,15 @@ export const achievementsApi = {
     return apiFetch<PersonalAchievementResponse>(`/api/v1/achievements/${achievementId}/archive`, {
       method: 'POST',
       body: {},
+    })
+  },
+  listEvidence(achievementId: string) {
+    return apiFetch<AchievementEvidenceListResponse>(`/api/v1/achievements/${achievementId}/evidence`)
+  },
+  attachEvidence(achievementId: string, payload: AchievementEvidenceAttachRequest) {
+    return apiFetch<AchievementEvidenceAttachResponse>(`/api/v1/achievements/${achievementId}/evidence`, {
+      method: 'POST',
+      body: payload,
     })
   },
 }

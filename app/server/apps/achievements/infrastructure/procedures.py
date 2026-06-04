@@ -22,3 +22,21 @@ class AchievementProgressProcedure:
             )
             row = cursor.fetchone()
         return row[0]
+
+
+class ApprovalDecisionProcedure:
+    def register(
+        self,
+        *,
+        approval_request_id: UUID,
+        approver_profile_id: UUID,
+        decision: str,
+        note_text: str | None,
+    ) -> UUID:
+        with connection.cursor() as cursor:
+            cursor.execute(
+                "SELECT public.sp_register_approval_decision(%s, %s, %s, %s)",
+                [approval_request_id, approver_profile_id, decision, note_text],
+            )
+            row = cursor.fetchone()
+        return row[0]

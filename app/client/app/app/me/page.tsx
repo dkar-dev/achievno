@@ -26,6 +26,7 @@ const DEMO_PERSONAL_ACHIEVEMENTS: PersonalAchievement[] = [
   {
     achievement_id: 'demo-progress-achievement',
     owner_context_id: 'demo-personal',
+    owner_context_type: 'personal',
     base_type: 'progress',
     assignment_mode: 'self',
     title: 'Read 10 Books',
@@ -46,6 +47,7 @@ const DEMO_PERSONAL_ACHIEVEMENTS: PersonalAchievement[] = [
   {
     achievement_id: 'demo-done-achievement',
     owner_context_id: 'demo-personal',
+    owner_context_type: 'personal',
     base_type: 'done',
     assignment_mode: 'self',
     title: 'Morning Meditation',
@@ -66,6 +68,7 @@ const DEMO_PERSONAL_ACHIEVEMENTS: PersonalAchievement[] = [
   {
     achievement_id: 'demo-archived-achievement',
     owner_context_id: 'demo-personal',
+    owner_context_type: 'personal',
     base_type: 'progress',
     assignment_mode: 'self',
     title: 'Run 5K',

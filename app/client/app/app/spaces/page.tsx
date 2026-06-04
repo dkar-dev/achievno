@@ -13,6 +13,7 @@ import {
     IconPlus,
     IconSettings,
     IconShare,
+    IconShield,
     IconTarget,
     IconUserPlus,
     IconUsers,
@@ -35,6 +36,13 @@ const PILL_NAV_ITEMS = [
         label: 'Notifications',
         icon: IconBell,
         route: ROUTES.notifications,
+        emphasized: false,
+    },
+    {
+        id: 'approvals',
+        label: 'Approvals',
+        icon: IconShield,
+        route: ROUTES.approvals,
         emphasized: false,
     },
     {
@@ -282,6 +290,7 @@ function RootPillNav() {
 
     const settingsItems = [
         { id: 'notifications', label: 'Notifications', route: ROUTES.notifications },
+        { id: 'approvals', label: 'Approvals', route: ROUTES.approvals },
         { id: 'settings', label: 'Settings', route: ROUTES.settings },
         { id: 'logout', label: 'Logout', route: null },
     ] as const
@@ -312,7 +321,7 @@ function RootPillNav() {
                 style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)' }}
             >
                 <div className="rounded-[30px] border border-border-subtle bg-bg-elevated/95 p-2 shadow-[0_18px_40px_rgba(17,24,39,0.12)] backdrop-blur">
-                    <div className="grid grid-cols-4 gap-1">
+                    <div className="grid grid-cols-5 gap-1">
                         {PILL_NAV_ITEMS.map((item) => (
                             <button
                                 key={item.id}

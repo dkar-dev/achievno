@@ -16,6 +16,7 @@ import { ROUTES } from '@/lib/achievno/constants'
 const DEMO_ACHIEVEMENT: PersonalAchievement = {
   achievement_id: 'demo-progress-achievement',
   owner_context_id: 'demo-personal',
+  owner_context_type: 'personal',
   base_type: 'progress',
   assignment_mode: 'self',
   title: 'Read 10 Books',
